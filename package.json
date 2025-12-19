@@ -67,8 +67,8 @@
   },
   "lint-staged": {
     "**/*": [
-      "biome format",
-      "biome lint"
+      "biome format --no-errors-on-unmatched",
+      "biome lint --no-errors-on-unmatched"
     ]
   }
 }
