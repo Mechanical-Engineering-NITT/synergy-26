@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Sample from "@/components/Sample";
 import { authClient } from "@/lib/auth-client";
+import { getSession } from "@/server/session";
 
 export const Route = createFileRoute("/")({
 	component: App,
 	loader: async () => {
-		const { getSession } = await import("@/server/session");
 		const session = await getSession();
 		return { session };
 	},

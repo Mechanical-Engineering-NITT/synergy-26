@@ -1,11 +1,11 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { getAppUserByUserID } from "@/server/db-user-select";
 import { registerUser } from "@/server/registration";
+import { getSession } from "@/server/session";
 
 export const Route = createFileRoute("/register/")({
 	component: Register,
 	loader: async () => {
-		const { getSession } = await import("@/server/session");
-		const { getAppUserByUserID } = await import("@/server/db-user-select");
 		const session = await getSession();
 		if (!session) {
 			throw redirect({
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/register/")({
 				to: "/",
 			});
 		}
-		const appUser = await getAppUserByUserID(session.user.id);
+		const appUser = await getAppUserByUserID({ data: { id: session.user.id } });
 		return appUser;
 	},
 });

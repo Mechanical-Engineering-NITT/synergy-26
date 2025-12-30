@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { users } from "@/db/users-schema";
+import { getAppUserByUserID } from "./db-user-select";
+import { getSession } from "./session";
 
 const registerSchema = z.object({
 	fullname: z.string().min(1, "Full Name is required"),
@@ -14,31 +17,32 @@ const registerSchema = z.object({
 	gender: z.enum(["male", "female", "other"]),
 });
 
-export const createUserOnce = async (userId: string, name: string) => {
-	const { db } = await import("../db");
-	const [user] = await db
-		.insert(users)
-		.values({
-			userid: userId,
-			fullname: name,
-		})
-		.onConflictDoNothing()
-		.returning();
+export const createUserOnce = createServerFn()
+	.inputValidator((data: { userId: string; name: string }) => data)
+	.handler(async ({ data }) => {
+		const { db } = await import("../db");
+		const [user] = await db
+			.insert(users)
+			.values({
+				userid: data.userId,
+				fullname: data.name,
+			})
+			.onConflictDoNothing()
+			.returning();
 
-	if (user) {
-		return user;
-	} else {
-		const { getAppUserByUserID } = await import("./db-user-select");
-		const existingUser = await getAppUserByUserID(userId);
-		return existingUser;
-	}
-};
+		if (user) {
+			return user;
+		} else {
+			const existingUser = await getAppUserByUserID({
+				data: { id: data.userId },
+			});
+			return existingUser;
+		}
+	});
 
 export const registerUser = createServerFn({ method: "POST" })
 	.inputValidator(registerSchema)
 	.handler(async ({ data }) => {
-		const { db } = await import("../db");
-		const { getSession } = await import("./session");
 		const session = await getSession();
 		if (!session) throw new Error("Not authenticated");
 

@@ -27,7 +27,9 @@ export const auth = betterAuth({
 		after: createAuthMiddleware(async (ctx) => {
 			if (ctx.path.includes("/callback") && ctx.context.newSession) {
 				const { user } = ctx.context.newSession;
-				const existingUser = await createUserOnce(user.id, user.name);
+				const existingUser = await createUserOnce({
+					data: { userId: user.id, name: user.name },
+				});
 				if (!existingUser) {
 					throw new Error(
 						"Failed to create or fetch user after authentication",
