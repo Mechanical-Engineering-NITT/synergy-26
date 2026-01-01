@@ -7,14 +7,21 @@ import { users } from "@/db/users-schema";
 import { getAppUserByUserID } from "./db-user-select";
 import { getSession } from "./session";
 
-const registerSchema = z.object({
-	fullname: z.string().min(1, "Full Name is required"),
-	college: z.string().min(1, "College is required"),
-	city: z.string().min(1, "City is required"),
-	department: z.string().min(1, "Department is required"),
-	year: z.string().min(1, "Year is required"),
-	phone: z.string().regex(/^[0-9]{10}$/, "Invalid phone number"),
-	gender: z.enum(["male", "female", "other"]),
+const userSchema = z.object({
+	fullname: z
+		.string("Full Name is required")
+		.min(3, "Full Name is required")
+		.regex(/^[a-zA-Z\s]+$/, "Full Name can contain only letters and spaces"),
+	college: z.string("College is required").min(3, "College is required"),
+	city: z.string("City is required").min(1, "City is required"),
+	department: z
+		.string("Department is required")
+		.min(1, "Department is required"),
+	year: z.string("Year is required").min(1, "Year is required"),
+	phone: z
+		.string("Phone Number is required")
+		.regex(/^[0-9]{10}$/, "Phone number is required"),
+	gender: z.enum(["male", "female", "other"], "Select a gender"),
 });
 
 export const createUserOnce = createServerFn()
@@ -41,7 +48,7 @@ export const createUserOnce = createServerFn()
 	});
 
 export const registerUser = createServerFn({ method: "POST" })
-	.inputValidator(registerSchema)
+	.inputValidator(userSchema)
 	.handler(async ({ data }) => {
 		const session = await getSession();
 		if (!session) throw new Error("Not authenticated");
