@@ -1,75 +1,58 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import type z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
-import { users } from "@/db/users-schema";
-import { getAppUserByUserID } from "./db-user-select";
-import { getSession } from "./session";
-
-const userSchema = z.object({
-	fullname: z
-		.string("Full Name is required")
-		.min(3, "Full Name is required")
-		.regex(/^[a-zA-Z\s]+$/, "Full Name can contain only letters and spaces"),
-	college: z.string("College is required").min(3, "College is required"),
-	city: z.string("City is required").min(1, "City is required"),
-	department: z
-		.string("Department is required")
-		.min(1, "Department is required"),
-	year: z.string("Year is required").min(1, "Year is required"),
-	phone: z
-		.string("Phone Number is required")
-		.regex(/^[0-9]{10}$/, "Phone number is required"),
-	gender: z.enum(["male", "female", "other"], "Select a gender"),
-});
-
-export const createUserOnce = createServerFn()
-	.inputValidator((data: { userId: string; name: string }) => data)
-	.handler(async ({ data }) => {
-		const { db } = await import("../db");
-		const [user] = await db
-			.insert(users)
-			.values({
-				userid: data.userId,
-				fullname: data.name,
-			})
-			.onConflictDoNothing()
-			.returning();
-
-		if (user) {
-			return user;
-		} else {
-			const existingUser = await getAppUserByUserID({
-				data: { id: data.userId },
-			});
-			return existingUser;
-		}
-	});
+import { customUser } from "@/db/schema";
+import { userRequiredMiddleware } from "@/lib/middleware";
+import { UserInputSchema } from "@/routes/register";
 
 export const registerUser = createServerFn({ method: "POST" })
-	.inputValidator(userSchema)
+	.middleware([userRequiredMiddleware])
+	.inputValidator(
+		(data: { userId: string; values: z.infer<typeof UserInputSchema> }) => {
+			const parsedData = UserInputSchema.safeParse(data.values);
+			if (!parsedData.success) {
+				const errorMessage = parsedData.error.issues
+					.map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+					.join(", ");
+				throw new Error(`Invalid input data: ${errorMessage}`);
+			}
+			return { userId: data.userId, values: parsedData.data };
+		},
+	)
 	.handler(async ({ data }) => {
-		const session = await getSession();
-		if (!session) throw new Error("Not authenticated");
+		try {
+			await db.transaction(async (tx) => {
+				const [existingUser] = await tx
+					.select()
+					.from(customUser)
+					.where(eq(customUser.userId, data.userId));
+				if (existingUser) {
+					throw new Error("User has already registered");
+				}
 
-		await db
-			.update(users)
-			.set({
-				fullname: data.fullname,
-				college: data.college,
-				city: data.city,
-				department: data.department,
-				year: data.year,
-				phone: data.phone,
-				gender: data.gender,
-			})
-			.where(eq(users.userid, session.user.id));
+				await tx.insert(customUser).values({
+					userId: data.userId,
+					fullname: data.values.fullname,
+					college: data.values.college,
+					city: data.values.city,
+					department: data.values.department,
+					year: data.values.year,
+					phone: data.values.phone,
+					gender: data.values.gender,
+				});
 
-		await db
-			.update(user)
-			.set({ onBoardingComplete: true })
-			.where(eq(user.id, session.user.id));
+				await tx
+					.update(user)
+					.set({ onBoardingComplete: true })
+					.where(eq(user.id, data.userId));
+			});
+		} catch (error) {
+			throw new Error(
+				`Registration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
 
-		return { success: true };
+		return { ok: true };
 	});

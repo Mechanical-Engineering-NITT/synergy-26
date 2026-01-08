@@ -1,12 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Sample from "@/components/Sample";
 import { authClient } from "@/lib/auth-client";
-import { getSession } from "@/server/session";
+import { enforceOnBoardingIfLoggedInMiddleware } from "@/lib/middleware";
+import { getCurrentSession } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
 	component: App,
+	server: {
+		middleware: [enforceOnBoardingIfLoggedInMiddleware],
+	},
 	loader: async () => {
-		const session = await getSession();
+		const session = await getCurrentSession();
 		return { session };
 	},
 });
