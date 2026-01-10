@@ -1,22 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Sample from "@/components/Sample";
 import { authClient } from "@/lib/auth-client";
-import { enforceOnBoardingIfLoggedInMiddleware } from "@/lib/middleware";
-import { getCurrentSession } from "@/lib/utils";
+import { enforceOnboarding } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
 	component: App,
-	server: {
-		middleware: [enforceOnBoardingIfLoggedInMiddleware],
-	},
 	loader: async () => {
-		const session = await getCurrentSession();
-		return { session };
+		const session = await enforceOnboarding();
+		return session;
 	},
 });
 
 function App() {
-	const { session } = Route.useLoaderData();
+	const response = Route.useLoaderData();
 	return (
 		<div>
 			<span className="text-2xl font-bold text-center">
@@ -33,13 +29,13 @@ function App() {
 			>
 				Sign in with Google
 			</button>
-			{session ? (
+			{response ? (
 				<div>
-					<p>Signed in as {session.user.email}</p>
-					<p>Name: {session.user.name}</p>
+					<p>Signed in as {response.user.email}</p>
+					<p>Name: {response.user.name}</p>
 					<p>
 						Onboarding Complete:{" "}
-						{session.user.onBoardingComplete ? "Yes" : "No"}
+						{response.user.onBoardingComplete ? "Yes" : "No"}
 					</p>
 					<button
 						type="button"

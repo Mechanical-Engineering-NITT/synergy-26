@@ -4,7 +4,6 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import z from "zod";
-import { userRequiredMiddleware } from "@/lib/middleware";
 import { getCurrentSession } from "@/lib/utils";
 import { registerUser } from "@/server/registration";
 
@@ -29,17 +28,9 @@ export const UserInputSchema = z.object({
 
 export const Route = createFileRoute("/register/")({
 	component: Register,
-	server: {
-		middleware: [userRequiredMiddleware],
-	},
 	loader: async () => {
 		const session = await getCurrentSession();
-		if (!session) {
-			throw redirect({
-				to: "/",
-			});
-		}
-		if (session.user.onBoardingComplete) {
+		if (!session || session.user.onBoardingComplete) {
 			throw redirect({
 				to: "/",
 			});
