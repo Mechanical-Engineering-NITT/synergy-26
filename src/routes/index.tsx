@@ -1,10 +1,18 @@
+import { createFileRoute } from "@tanstack/react-router";
 import Sample from "@/components/Sample";
 import { authClient } from "@/lib/auth-client";
-import { createFileRoute } from "@tanstack/react-router";
+import { enforceOnboarding } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/")({
+	component: App,
+	loader: async () => {
+		const session = await enforceOnboarding();
+		return session;
+	},
+});
 
 function App() {
+	const response = Route.useLoaderData();
 	return (
 		<div>
 			<span className="text-2xl font-bold text-center">
@@ -21,6 +29,27 @@ function App() {
 			>
 				Sign in with Google
 			</button>
+			{response ? (
+				<div>
+					<p>Signed in as {response.user.email}</p>
+					<p>Name: {response.user.name}</p>
+					<p>
+						Onboarding Complete:{" "}
+						{response.user.onBoardingComplete ? "Yes" : "No"}
+					</p>
+					<button
+						type="button"
+						onClick={async () => {
+							await authClient.signOut();
+							window.location.reload();
+						}}
+					>
+						Sign Out
+					</button>
+				</div>
+			) : (
+				<p>Not signed in</p>
+			)}
 		</div>
 	);
 }
