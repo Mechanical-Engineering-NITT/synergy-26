@@ -20,3 +20,23 @@ export const customUser = pgTable("custom-user", {
 	phone: text("phone").notNull(),
 	gender: text("gender").notNull(),
 });
+
+export const events = pgTable("events", {
+	id: serial("id").primaryKey(),
+	title: text("title").notNull(),
+	description: text("description").notNull(),
+	time: timestamp("time").notNull(),
+	location: text("location").notNull(),
+	price: text("price").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const workshops = pgTable("workshops", {
+	id: serial("id").primaryKey(),
+	title: text("title").notNull(),
+	description: text("description").notNull(),
+	time: timestamp("time").notNull(),
+	location: text("location").notNull(),
+	price: text("price").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+});

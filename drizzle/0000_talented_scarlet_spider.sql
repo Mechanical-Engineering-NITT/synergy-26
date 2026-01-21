@@ -10,9 +10,29 @@ CREATE TABLE "custom-user" (
 	"gender" text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"title" text NOT NULL,
+	"description" text NOT NULL,
+	"time" timestamp NOT NULL,
+	"location" text NOT NULL,
+	"price" text NOT NULL,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "todos" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "workshops" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"title" text NOT NULL,
+	"description" text NOT NULL,
+	"time" timestamp NOT NULL,
+	"location" text NOT NULL,
+	"price" text NOT NULL,
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint

@@ -5,6 +5,9 @@ import { twMerge } from "tailwind-merge";
 import { auth } from "@/lib/auth";
 import { redirect } from "@tanstack/react-router";
 import { ZodType } from "zod";
+import { db } from "@/db";
+import { events, workshops } from "@/db/schema";
+import { InferSelectModel } from "drizzle-orm";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -51,3 +54,21 @@ export function parseAndThrow<T>(data: T, schema: ZodType<T>) {
 	}
 	return parsedData.data;
 }
+
+export const getAllEvents = createServerFn().handler(async () => {
+	const eventInfo: InferSelectModel<typeof events>[] = [];
+	await db.transaction(async (tx) => {
+		const allEvents = await tx.select().from(events);
+		eventInfo.push(...allEvents);
+	});
+	return eventInfo;
+});
+
+export const getAllWorkshops = createServerFn().handler(async () => {
+	const workshopInfo: InferSelectModel<typeof workshops>[] = [];
+	await db.transaction(async (tx) => {
+		const allWorkshops = await tx.select().from(workshops);
+		workshopInfo.push(...allWorkshops);
+	});
+	return workshopInfo;
+});
