@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import Sample from "@/components/Sample";
 import { authClient } from "@/lib/auth-client";
 import { enforceOnboarding } from "@/lib/utils";
+import EventsTest from "@/components/events/test-events";
+import WorkshopsTest from "@/components/events/test-workshops";
 
 export const Route = createFileRoute("/")({
 	component: App,
@@ -50,6 +52,10 @@ function App() {
 			) : (
 				<p>Not signed in</p>
 			)}
+			<div className="mt-8" />
+			<EventsTest />
+			<div className="mt-8" />
+			<WorkshopsTest />
 		</div>
 	);
 }
