@@ -1,4 +1,4 @@
-import { getAllWorkshops } from "@/lib/utils";
+import { getAllWorkshops } from "@/server/workshop";
 
 export default async function WorkshopsTest() {
 	const workshops = await getAllWorkshops();

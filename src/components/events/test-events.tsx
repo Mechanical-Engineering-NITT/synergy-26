@@ -1,4 +1,4 @@
-import { getAllEvents } from "@/lib/utils";
+import { getAllEvents } from "@/server/event";
 
 export default async function EventsTest() {
 	const events = await getAllEvents();
