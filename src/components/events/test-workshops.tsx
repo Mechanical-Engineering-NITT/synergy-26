@@ -1,7 +1,24 @@
 import { getAllWorkshops } from "@/server/workshop";
+import { useQuery } from "@tanstack/react-query";
 
-export default async function WorkshopsTest() {
-	const workshops = await getAllWorkshops();
+export default function WorkshopsTest() {
+	const {
+		isPending,
+		isError,
+		data: workshops,
+		error,
+	} = useQuery({
+		queryKey: ["workshops"],
+		queryFn: getAllWorkshops,
+	});
+
+	if (isPending) {
+		return <div>Loading workshops...</div>;
+	}
+	if (isError) {
+		return <div>Error loading workshops: {String(error)}</div>;
+	}
+
 	return (
 		<div>
 			<h1>Workshops Test Component</h1>

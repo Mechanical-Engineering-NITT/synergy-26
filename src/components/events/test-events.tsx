@@ -1,7 +1,24 @@
 import { getAllEvents } from "@/server/event";
+import { useQuery } from "@tanstack/react-query";
 
-export default async function EventsTest() {
-	const events = await getAllEvents();
+export default function EventsTest() {
+	const {
+		isPending,
+		isError,
+		data: events,
+		error,
+	} = useQuery({
+		queryKey: ["events"],
+		queryFn: getAllEvents,
+	});
+
+	if (isPending) {
+		return <div>Loading events...</div>;
+	}
+	if (isError) {
+		return <div>Error loading events: {String(error)}</div>;
+	}
+
 	return (
 		<div>
 			<h1>Events Test Component</h1>
