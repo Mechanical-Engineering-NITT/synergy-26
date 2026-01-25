@@ -1,12 +1,12 @@
+import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { customUser } from "@/db/schema";
-import { UserInputSchema } from "@/routes/register";
 import { getCurrentSession, parseAndThrow } from "@/lib/utils";
-import { redirect } from "@tanstack/react-router";
+import { UserInputSchema } from "@/routes/register";
 
 const RegisterUserInputSchema = z.object({
 	userId: z.string(),

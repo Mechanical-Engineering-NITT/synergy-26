@@ -7,6 +7,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
+  // ONLY FOR DEV WEBHOOKS TESTING. DO NOT PUSH UNCOMMENTED.
+  // server: {
+  //   allowedHosts: true, // Allow ngrok and other external hosts for webhook testing
+  // },
   plugins: [
     devtools(),
     nitro(),

@@ -1,20 +1,22 @@
-import { createServerFn } from "@tanstack/react-start";
+import { redirect } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { ZodType } from "zod";
 import { auth } from "@/lib/auth";
-import { redirect } from "@tanstack/react-router";
-import { ZodType } from "zod";
+import { createServerFn } from "@tanstack/react-start";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export const getCurrentSession = createServerFn().handler(async () => {
-	const headers = getRequestHeaders();
-	const response = await auth.api.getSession({ headers });
-	return response;
-});
+export const getCurrentSession = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const headers = getRequestHeaders();
+		const response = await auth.api.getSession({ headers });
+		return response;
+	},
+);
 
 export const enforceOnboarding = async () => {
 	const session = await getCurrentSession();
