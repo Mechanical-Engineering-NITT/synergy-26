@@ -25,13 +25,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "TanStack Start Starter",
+				title: "Synergy 2026",
 			},
 		],
 		links: [
 			{
 				rel: "stylesheet",
 				href: appCss,
+			},
+			{
+				rel: "icon",
+				href: "/favicon.ico",
 			},
 		],
 	}),
@@ -60,7 +64,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					]}
 				/>
 				<Scripts />
-				<Toaster />
+				<Toaster
+					toastOptions={{
+						unstyled: true,
+						classNames: {
+							toast:
+								"group flex items-center gap-3 w-full max-w-[356px] p-4 bg-black text-white border border-cyan-500/50 font-mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(34,211,238,1)] transition-transform",
+							title: "text-sm font-bold",
+							description: "text-xs text-gray-400",
+							success:
+								"!border-cyan-500 !shadow-[4px_4px_0px_0px_rgba(34,211,238,1)]",
+							error:
+								"!border-red-600 !shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]",
+						},
+					}}
+				/>
 			</body>
 		</html>
 	);

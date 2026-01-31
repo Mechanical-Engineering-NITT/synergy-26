@@ -1,9 +1,9 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull, or } from "drizzle-orm";
 import Razorpay from "razorpay";
 import * as z from "zod";
 import { db } from "@/db";
-import { payments, workshops } from "@/db/schema";
+import { payments, registrations, workshops } from "@/db/schema";
 import { parseAndThrow, requireOnBoardedUser } from "@/lib/utils";
 import { getPaidAccommodationNights } from "./accommodation";
 import { getConstantValue } from "./constants";
@@ -27,8 +27,8 @@ export const hasEventPass = createServerOnlyFn(async (userId: string) => {
 		.where(
 			and(
 				eq(payments.userId, userId),
-				eq(payments.isEventPass, true),
 				eq(payments.status, "paid"),
+				or(eq(payments.isEventPass, true), isNotNull(payments.workshopId)),
 			),
 		)
 		.limit(1);
@@ -236,10 +236,23 @@ export const syncOrderStatus = createServerFn({ method: "POST" })
 		}
 
 		if (razorpayStatus === "paid") {
-			await db
+			const [payment] = await db
 				.update(payments)
 				.set({ status: "paid", updatedAt: new Date() })
-				.where(eq(payments.razorpayOrderId, parsedData.orderId));
+				.where(eq(payments.razorpayOrderId, parsedData.orderId))
+				.returning();
+
+			if (payment?.workshopId) {
+				// Register user for workshop automatically
+				await db
+					.insert(registrations)
+					.values({
+						userId: payment.userId,
+						workshopId: payment.workshopId,
+					})
+					.onConflictDoNothing(); // Basic idempotency
+			}
+
 			return "paid" as const;
 		}
 

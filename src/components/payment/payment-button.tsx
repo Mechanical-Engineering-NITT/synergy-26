@@ -199,20 +199,22 @@ export default function PaymentButton({
 				paymentStatus === "success" ||
 				disabled
 			}
-			className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-colors ${
-				paymentStatus === "success"
-					? "bg-green-500 cursor-not-allowed"
-					: paymentStatus === "failed"
-						? "bg-red-500 hover:bg-red-600"
-						: createOrderMutation.isPending ||
-								paymentStatus === "verifying" ||
-								!sdkReady ||
-								disabled
-							? "bg-gray-400 cursor-not-allowed"
-							: "bg-blue-600 hover:bg-blue-700"
-			} ${className}`}
+			className={`group relative w-full py-4 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 -skew-x-12 overflow-hidden flex items-center justify-center gap-2
+                ${
+									paymentStatus === "success"
+										? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 cursor-not-allowed opacity-50"
+										: paymentStatus === "failed"
+											? "bg-red-600 text-white shadow-[4px_4px_0px_0px_rgba(254,243,199,1)] hover:translate-x-0.5 hover:translate-y-0.5"
+											: createOrderMutation.isPending ||
+													paymentStatus === "verifying" ||
+													!sdkReady ||
+													disabled
+												? "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed"
+												: "bg-amber-400 text-black hover:bg-amber-300 shadow-[4px_4px_0px_0px_rgba(34,211,238,1)] hover:translate-x-0.5 hover:translate-y-0.5"
+								} ${className}`}
 		>
-			{getButtonText()}
+			<span className="relative z-10 block skew-x-12">{getButtonText()}</span>
+			<div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-500 skew-x-12"></div>
 		</button>
 	);
 }

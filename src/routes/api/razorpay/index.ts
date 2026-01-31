@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { payments } from "@/db/schema";
+import { payments, registrations } from "@/db/schema";
 
 export const Route = createFileRoute("/api/razorpay/")({
 	server: {
@@ -81,7 +81,7 @@ async function handleOrderPaid(payload: OrderPaidPayload, eventId: string) {
 	const orderId = payload.order.entity.id;
 	const paymentId = payload.payment.entity.id;
 
-	await db
+	const [payment] = await db
 		.update(payments)
 		.set({
 			status: "paid",
@@ -89,7 +89,19 @@ async function handleOrderPaid(payload: OrderPaidPayload, eventId: string) {
 			webhookEventId: eventId,
 			updatedAt: new Date(),
 		})
-		.where(eq(payments.razorpayOrderId, orderId));
+		.where(eq(payments.razorpayOrderId, orderId))
+		.returning();
+
+	if (payment?.workshopId) {
+		// Register user for workshop automatically
+		await db
+			.insert(registrations)
+			.values({
+				userId: payment.userId,
+				workshopId: payment.workshopId,
+			})
+			.onConflictDoNothing(); // Basic idempotency
+	}
 }
 
 interface PaymentFailedPayload {
