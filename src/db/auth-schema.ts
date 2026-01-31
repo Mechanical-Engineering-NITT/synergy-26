@@ -13,6 +13,7 @@ export const user = pgTable("user", {
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 	onBoardingComplete: boolean("on_boarding_complete").default(false),
+	role: text("role").default("USER").notNull(),
 });
 
 export const session = pgTable(
