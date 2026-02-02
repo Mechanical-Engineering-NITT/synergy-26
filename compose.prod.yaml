@@ -1,0 +1,57 @@
+services:
+  web26:
+    build:
+      context: .
+      target: runner
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - synergy-custom-network
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synergy
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: synergy
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - synergy-custom-network
+
+  adminer:
+    image: adminer:5.4.1
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - synergy-custom-network
+
+  migrator:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: postgres://synergy:${DB_PASS}@db:5432/synergy
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - synergy-custom-network
+
+volumes:
+  db_data:
+
+networks:
+  synergy-custom-network:
+    external: true

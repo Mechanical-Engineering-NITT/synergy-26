@@ -18,3 +18,12 @@ cp .env.example .env
 ```bash
 pnpm dev
 ```
+
+## Docs
+
+### Production Database Migrations
+To run database migrations in production using the migrator tool:
+```bash
+docker compose -f compose.prod.yaml run --rm migrator
+```
+This uses the `tools` profile, so it won't run with standard `up` commands unless explicitly requested.

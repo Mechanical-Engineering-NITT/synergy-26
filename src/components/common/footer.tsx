@@ -37,7 +37,6 @@ export default function Footer() {
 							{[
 								{ label: "Synergy '25", href: "https://synergy.nitt.edu/25" },
 								{ label: "Synergy '24", href: "https://synergy.nitt.edu/24" },
-								{ label: "Synergy '23", href: "https://synergy.nitt.edu/23" },
 							].map((link) => (
 								<li key={link.label}>
 									<a
