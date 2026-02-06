@@ -6,11 +6,11 @@ services:
     env_file: .env
     restart: unless-stopped
     depends_on:
-      - db
+      - s26db
     networks:
       - synergy-custom-network
 
-  db:
+  s26db:
     image: postgres:18-alpine
     restart: unless-stopped
     environment:
@@ -31,7 +31,7 @@ services:
     image: adminer:5.4.1
     restart: unless-stopped
     depends_on:
-      - db
+      - s26db
     networks:
       - synergy-custom-network
 
@@ -43,7 +43,7 @@ services:
     environment:
       DATABASE_URL: postgres://synergy:${DB_PASS}@db:5432/synergy
     depends_on:
-      db:
+      s26db:
         condition: service_healthy
     restart: "no"
     networks:

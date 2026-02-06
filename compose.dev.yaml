@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: synergy
-      POSTGRES_PASSWORD: synergy
+      POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: synergy
     ports:
       - "5432:5432"
