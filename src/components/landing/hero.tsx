@@ -29,16 +29,6 @@ export default function Hero({
 
 			{/* 5. Main Content UI */}
 			<div className="relative z-30 flex flex-col items-center justify-center min-h-screen pb-20 px-4 text-center">
-				<h2
-					className="tracking-[0.2em] sm:tracking-[0.5em] font-bold text-xs sm:text-lg md:text-2xl animate-pulse mb-4 sm:mb-6 uppercase text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#FF2E63] to-[#FFDD00]"
-					style={{
-						textShadow: "0px 0px 10px rgba(255, 46, 99, 0.5)",
-						filter: "drop-shadow(0 0 5px rgba(255, 221, 0, 0.3))",
-					}}
-				>
-					Mechanical Engineering NITT
-				</h2>
-
 				<h1
 					className="text-5xl sm:text-7xl md:text-9xl font-black italic tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#FF2E63] to-[#FFDD00] drop-shadow-[0_0_30px_rgba(255,221,0,0.4)]"
 					style={{

@@ -15,6 +15,13 @@
       "when": 1769329163743,
       "tag": "0001_wealthy_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770398553659,
+      "tag": "0002_late_the_initiative",
+      "breakpoints": true
     }
   ]
 }
