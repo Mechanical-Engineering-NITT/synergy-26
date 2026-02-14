@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getAllWorkshops } from "@/server/workshop";
 import StatusSection from "../common/status-section";
@@ -56,6 +56,23 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 		queryKey: ["workshops"],
 		queryFn: getAllWorkshops,
 	});
+
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setSelectedWorkshop(null);
+		};
+
+		if (selectedWorkshop) {
+			document.body.style.overflow = "hidden";
+			window.addEventListener("keydown", handleEscape);
+		} else {
+			document.body.style.overflow = "unset";
+		}
+		return () => {
+			document.body.style.overflow = "unset";
+			window.removeEventListener("keydown", handleEscape);
+		};
+	}, [selectedWorkshop]);
 
 	if (isPending) {
 		return <StatusSection type="loading" />;
@@ -241,8 +258,15 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 
 			{/* Registration Dialog */}
 			{selectedWorkshop && (
-				<div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-					<div className="bg-[#090521] border-2 border-[#9D00FF]/50 shadow-[0_0_80px_rgba(157,0,255,0.2)] max-w-lg w-full p-8 animate-in zoom-in-95 duration-300 relative">
+				<div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+					{/* Backdrop Button */}
+					<button
+						type="button"
+						onClick={() => setSelectedWorkshop(null)}
+						className="absolute inset-0 w-full h-full bg-black/90 backdrop-blur-md cursor-pointer border-none"
+						aria-label="Close dialog"
+					/>
+					<div className="bg-[#090521] border-2 border-[#9D00FF]/50 shadow-[0_0_80px_rgba(157,0,255,0.2)] max-w-lg w-full max-h-[90vh] flex flex-col p-8 animate-in zoom-in-95 duration-300 relative">
 						{/* Corner Accents */}
 						<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFDD00]"></div>
 						<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFDD00]"></div>
@@ -272,7 +296,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 							<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-60"></div>
 						</div>
 
-						<div className="space-y-6 mb-8 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+						<div className="space-y-6 mb-8 overflow-y-auto pr-2 custom-scrollbar overscroll-behavior-contain">
 							<div>
 								<h4 className="text-[#9D00FF] text-xs font-black uppercase tracking-[0.2em] mb-2 drop-shadow-[0_0_5px_rgba(157,0,255,0.5)]">
 									Description
