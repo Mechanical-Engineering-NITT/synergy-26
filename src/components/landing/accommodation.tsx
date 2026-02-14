@@ -59,7 +59,7 @@ export default function AccommodationSection({
 
 			<div className="relative z-30 p-6 max-w-6xl mx-auto py-20">
 				<h1
-					className="text-4xl sm:text-6xl font-black italic tracking-wider text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#9D00FF] to-[#FFDD00] drop-shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-2 uppercase text-center"
+					className="text-4xl sm:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#9D00FF] to-[#FFDD00] drop-shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-2 uppercase text-center"
 					style={{
 						WebkitTextStroke: "1px rgba(255,255,255,0.1)",
 						textShadow: "2px 2px 0px #FFDD00",

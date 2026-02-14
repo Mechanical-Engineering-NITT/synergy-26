@@ -41,7 +41,7 @@ services:
       context: .
       target: migrator
     environment:
-      DATABASE_URL: postgres://synergy:${DB_PASS}@db:5432/synergy
+      DATABASE_URL: postgres://synergy:${DB_PASS}@s26db:5432/synergy
     depends_on:
       s26db:
         condition: service_healthy

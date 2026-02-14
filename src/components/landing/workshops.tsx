@@ -86,7 +86,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 
 			<div className="relative z-30 p-6 max-w-6xl mx-auto py-20">
 				<h1
-					className="text-4xl sm:text-6xl font-black italic tracking-wider text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#9D00FF] to-[#FFDD00] drop-shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-2 uppercase text-center"
+					className="text-4xl sm:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#9D00FF] to-[#FFDD00] drop-shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-2 uppercase text-center"
 					style={{
 						WebkitTextStroke: "1px rgba(255,255,255,0.1)",
 						textShadow: "2px 2px 0px #FFDD00",
@@ -127,6 +127,16 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 
 												{/* Card Accent */}
 												<div className="absolute top-0 right-0 w-16 h-16 bg-linear-to-bl from-[#9D00FF]/20 to-transparent -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+
+												{/* Workshop Image */}
+												<div className="relative aspect-video mb-6 overflow-hidden border border-white/10 group-hover:border-[#9D00FF]/50 transition-all duration-500">
+													<img
+														src={`/workshops/${workshop.id}.webp`}
+														alt={workshop.title}
+														className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+													/>
+													<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-80"></div>
+												</div>
 
 												<div className="mb-4">
 													<h2 className="text-xl font-black text-white uppercase italic tracking-wider group-hover:text-[#FFDD00] transition-colors drop-shadow-[0_0_5px_rgba(157,0,255,0.5)]">
@@ -250,6 +260,16 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 							>
 								&times;
 							</button>
+						</div>
+
+						{/* Workshop Image */}
+						<div className="relative aspect-video mb-6 overflow-hidden border border-[#9D00FF]/30 shadow-[0_0_20px_rgba(157,0,255,0.2)]">
+							<img
+								src={`/workshops/${selectedWorkshop.id}.webp`}
+								alt={selectedWorkshop.title}
+								className="w-full h-full object-cover"
+							/>
+							<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-60"></div>
 						</div>
 
 						<div className="space-y-6 mb-8 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
