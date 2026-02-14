@@ -5,7 +5,6 @@ import * as z from "zod";
 import { db } from "@/db";
 import { payments, registrations, workshops } from "@/db/schema";
 import { parseAndThrow, requireOnBoardedUser } from "@/lib/utils";
-import { getPaidAccommodationNights } from "./accommodation";
 import { getConstantValue } from "./constants";
 
 let razorpayInstance: Razorpay | null = null;
@@ -57,24 +56,19 @@ const CreateOrderInput = z
 		amount: z.number().int().min(100), // in paise, minimum 1 rupee
 		workshopId: z.number().nullable().optional(),
 		isEventPass: z.boolean().optional(),
-		accommodation: z.number().int().min(0).max(3).optional(),
 	})
 	.refine(
 		(data) => {
 			const fields = [
 				data.workshopId !== undefined && data.workshopId !== null,
 				data.isEventPass === true,
-				data.accommodation !== undefined &&
-					data.accommodation !== 0 &&
-					data.accommodation !== null,
 			];
 			const count = fields.filter(Boolean).length;
 			return count === 1;
 		},
 		{
-			message:
-				"Exactly one of workshopId, isEventPass, or accommodation must be provided",
-			path: ["workshopId", "isEventPass", "accommodation"],
+			message: "Exactly one of workshopId or isEventPass must be provided",
+			path: ["workshopId", "isEventPass"],
 		},
 	);
 
@@ -102,15 +96,6 @@ export const createOrder = createServerFn({ method: "POST" })
 				throw new Error("You have already paid for this workshop");
 			}
 		}
-
-		if (parsedData.accommodation) {
-			const existingNights = await getPaidAccommodationNights(userId);
-			if (existingNights + parsedData.accommodation > 3) {
-				throw new Error(
-					`Cannot book ${parsedData.accommodation} nights. You already have ${existingNights} nights paid (max 3 allowed).`,
-				);
-			}
-		}
 		// -------------------------------
 
 		// --- Amount Validation ---
@@ -129,11 +114,6 @@ export const createOrder = createServerFn({ method: "POST" })
 				.limit(1);
 			if (!workshop) throw new Error("Workshop not found");
 			expectedAmountPaise = Number(workshop.price) * 100;
-		} else if (parsedData.accommodation) {
-			const roomPriceStr = await getConstantValue("room");
-			if (!roomPriceStr) throw new Error("Room price not configured");
-			expectedAmountPaise =
-				Number(roomPriceStr) * 100 * parsedData.accommodation;
 		} else {
 			throw new Error("Invalid order type");
 		}
@@ -154,7 +134,6 @@ export const createOrder = createServerFn({ method: "POST" })
 				userId: userId,
 				workshopId: parsedData.workshopId?.toString() || "",
 				isEventPass: parsedData.isEventPass?.toString() || "false",
-				accommodation: parsedData.accommodation?.toString() || "0",
 			},
 		});
 
@@ -165,7 +144,6 @@ export const createOrder = createServerFn({ method: "POST" })
 			status: "created",
 			workshopId: parsedData.workshopId,
 			isEventPass: parsedData.isEventPass,
-			accommodation: parsedData.accommodation || 0,
 			userId: userId,
 		});
 
@@ -293,7 +271,6 @@ export const getUserPayments = createServerFn({ method: "GET" }).handler(
 				status: payments.status,
 				createdAt: payments.createdAt,
 				isEventPass: payments.isEventPass,
-				accommodation: payments.accommodation,
 				workshopTitle: workshops.title,
 			})
 			.from(payments)

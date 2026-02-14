@@ -48,7 +48,6 @@ interface PaymentButtonProps {
 	amount: number; // in paise
 	workshopId?: number | null;
 	isEventPass?: boolean;
-	accommodation?: number;
 	description: string;
 	onSuccess?: (response: RazorpayResponse) => void;
 	onError?: (error: Error) => void;
@@ -61,7 +60,6 @@ export default function PaymentButton({
 	amount,
 	workshopId = null,
 	isEventPass = false,
-	accommodation = 0,
 	description,
 	onSuccess,
 	onError,
@@ -104,7 +102,6 @@ export default function PaymentButton({
 					amount,
 					workshopId,
 					isEventPass,
-					accommodation,
 				},
 			});
 			const keyId = await getRazorpayKeyId();

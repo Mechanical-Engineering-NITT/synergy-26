@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import ConstructionRibbon from "@/components/common/construction-ribbon";
 import ContactBadge from "@/components/common/contact-badge";
 import Footer from "@/components/common/footer";
 import AccommodationSection from "@/components/landing/accommodation";
@@ -19,10 +20,11 @@ function App() {
 	const data = Route.useLoaderData();
 	return (
 		<div className="min-h-screen flex flex-col">
+			<ConstructionRibbon />
 			<Hero user={data?.user ?? null} />
 			<Events isLoggedIn={!!data?.user} />
 			<Workshops isLoggedIn={!!data?.user} />
-			<AccommodationSection isLoggedIn={!!data?.user} />
+			<AccommodationSection />
 			<Footer />
 			<ContactBadge />
 		</div>

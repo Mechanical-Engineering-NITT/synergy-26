@@ -75,7 +75,6 @@ export const payments = pgTable("payments", {
 		.notNull(),
 	workshopId: integer("workshop_id").references(() => workshops.id), // if payment is for a specific workshop
 	isEventPass: boolean("is_event_pass").default(false), // if true, payment grants access to all events
-	accommodation: integer("accommodation").default(0), // no. of nights staying
 	webhookEventId: text("webhook_event_id"), // for idempotency
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),

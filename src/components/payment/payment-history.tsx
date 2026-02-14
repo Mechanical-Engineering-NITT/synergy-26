@@ -76,9 +76,7 @@ export function PaymentHistory() {
 							<td className="px-6 py-5 text-gray-500 group-hover:text-white transition-colors">
 								{payment.isEventPass
 									? "Event Pass"
-									: payment.accommodation && payment.accommodation > 0
-										? `Accom. (${payment.accommodation} N)`
-										: payment.workshopTitle || "-"}
+									: payment.workshopTitle || "-"}
 							</td>
 							<td className="px-6 py-5 text-right">
 								{(payment.status === "created" ||
