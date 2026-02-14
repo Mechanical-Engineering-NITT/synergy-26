@@ -197,7 +197,11 @@ export default function AccommodationSection({
 									TOTAL PRICE
 								</span>
 								<span className="text-2xl font-black text-white italic drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
-									₹{roomPrice * selectedNights}
+									₹
+									{(roomPrice * selectedNights).toLocaleString(undefined, {
+										minimumFractionDigits: 0,
+										maximumFractionDigits: 2,
+									})}
 								</span>
 							</div>
 						</div>

@@ -184,7 +184,13 @@ export default function PaymentButton({
 		if (paymentStatus === "failed") return "Verification Failed";
 		if (paymentStatus === "verifying") return "Verifying Payment...";
 		if (createOrderMutation.isPending) return "Creating Order...";
-		return buttonText || `Pay ₹${amount / 100}`;
+		return (
+			buttonText ||
+			`Pay ₹${(amount / 100).toLocaleString(undefined, {
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 2,
+			})}`
+		);
 	};
 
 	return (

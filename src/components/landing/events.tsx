@@ -162,7 +162,7 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 	});
 
 	const passPrice = passPriceStr
-		? Number.parseInt(passPriceStr, 10) * 100
+		? Math.round(Number.parseFloat(passPriceStr) * 100)
 		: 6942000;
 
 	const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -389,7 +389,11 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 									PRICE
 								</span>
 								<span className="text-2xl font-black text-white italic drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
-									₹{passPrice / 100}
+									₹
+									{(passPrice / 100).toLocaleString(undefined, {
+										minimumFractionDigits: 0,
+										maximumFractionDigits: 2,
+									})}
 								</span>
 							</div>
 						</div>

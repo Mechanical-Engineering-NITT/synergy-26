@@ -351,7 +351,9 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 						{dialogMode === "register" && (
 							<div className="flex flex-col gap-4">
 								<PaymentButton
-									amount={Number.parseInt(selectedWorkshop.price, 10) * 100}
+									amount={Math.round(
+										Number.parseFloat(selectedWorkshop.price) * 100,
+									)}
 									workshopId={selectedWorkshop.id}
 									onSuccess={() => {
 										toast.success("Payment succeeded. Workshop registered!");

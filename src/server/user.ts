@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { customUser } from "@/db/schema";
-import { requireOnBoardedUser } from "@/lib/utils";
+import { parseAndThrow, requireOnBoardedUser } from "@/lib/utils";
+import { UserInputSchema } from "@/routes/register";
 
 export const getUserDetails = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -24,3 +25,31 @@ export const getUserDetails = createServerFn({ method: "GET" }).handler(
 		};
 	},
 );
+
+export const updateUserDetails = createServerFn({ method: "POST" })
+	.inputValidator(UserInputSchema)
+	.handler(async ({ data }) => {
+		const userSession = await requireOnBoardedUser();
+		const parsedData = parseAndThrow(data, UserInputSchema);
+
+		try {
+			await db
+				.update(customUser)
+				.set({
+					fullname: parsedData.fullname,
+					college: parsedData.college,
+					city: parsedData.city,
+					department: parsedData.department,
+					year: parsedData.year,
+					phone: parsedData.phone,
+					gender: parsedData.gender,
+				})
+				.where(eq(customUser.userId, userSession.id));
+
+			return { success: true };
+		} catch (error) {
+			throw new Error(
+				`Failed to update profile: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
+	});

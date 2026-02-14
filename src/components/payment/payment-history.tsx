@@ -54,7 +54,11 @@ export function PaymentHistory() {
 								{payment.razorpayOrderId}
 							</td>
 							<td className="px-6 py-5 text-white italic">
-								₹{payment.amount / 100}
+								₹
+								{(payment.amount / 100).toLocaleString(undefined, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 2,
+								})}
 							</td>
 							<td className="px-6 py-5">
 								<span
