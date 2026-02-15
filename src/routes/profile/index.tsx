@@ -15,6 +15,7 @@ import {
 	X,
 } from "lucide-react";
 import { useId, useState } from "react";
+import Navbar from "@/components/common/navbar";
 import { PaymentHistory } from "@/components/payment/payment-history";
 import { requireOnBoardedUser } from "@/lib/utils";
 import { UserInputSchema } from "@/routes/register";
@@ -61,7 +62,8 @@ function RouteComponent() {
 
 	if (isLoading) {
 		return (
-			<div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+			<div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+				<Navbar user={null} />
 				<div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-screen"></div>
 				<div className="flex flex-col items-center gap-6 relative z-10">
 					<div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_20px_rgba(34,211,238,0.3)]"></div>
@@ -75,7 +77,8 @@ function RouteComponent() {
 
 	if (!user) {
 		return (
-			<div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+			<div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+				<Navbar user={null} />
 				<div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-screen"></div>
 				<div className="bg-zinc-900/50 backdrop-blur-md border border-red-500/50 p-12 -skew-x-2 text-center relative z-10 shadow-[20px_20px_0px_0px_rgba(239,68,68,0.2)]">
 					<h2 className="text-3xl font-black text-red-500 uppercase tracking-tighter italic mb-4">
@@ -92,6 +95,13 @@ function RouteComponent() {
 
 	return (
 		<div className="min-h-screen bg-black font-sans text-white selection:bg-fuchsia-500/30 relative overflow-hidden">
+			<Navbar
+				user={{
+					id: user.userId,
+					email: user.email,
+					name: user.fullname,
+				}}
+			/>
 			{/* Starry Background Layer */}
 			<div className="absolute inset-0 bg-black z-0">
 				<div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-screen"></div>
@@ -115,7 +125,7 @@ function RouteComponent() {
 							<div className="flex flex-wrap items-center gap-4 text-cyan-400 font-bold uppercase tracking-widest text-xs">
 								<span className="flex items-center gap-2 bg-cyan-500/10 px-3 py-1 border border-cyan-500/30">
 									<GraduationCap className="w-3 h-3" />
-									{user.year} YEAR
+									{user.year}
 								</span>
 								<span className="flex items-center gap-2 bg-cyan-500/10 px-3 py-1 border border-cyan-500/30">
 									<Building2 className="w-3 h-3" />
@@ -383,7 +393,7 @@ function RouteComponent() {
 												<InfoItem
 													icon={<GraduationCap className="w-5 h-5" />}
 													label="Cycle"
-													value={`${user.year} Year`}
+													value={`${user.year}`}
 												/>
 											</>
 										)}

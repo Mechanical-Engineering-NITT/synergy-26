@@ -414,6 +414,27 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 								disabled={isPriceLoading}
 								description="Event Pass"
 							/>
+							<p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest mt-2">
+								<span>
+									<a
+										href="/terms-and-conditions"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline font-extrabold hover:text-[#9D00FF]"
+									>
+										Terms and Conditions
+									</a>
+									{" | "}
+									<a
+										href="/refund-policy"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline font-extrabold hover:text-[#9D00FF]"
+									>
+										Refund Policy
+									</a>
+								</span>
+							</p>
 						</div>
 					</div>
 				</div>

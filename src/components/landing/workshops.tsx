@@ -90,7 +90,11 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#090521] overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30">
+		// biome-ignore lint: Static ID is required for anchor scrolling
+		<div
+			id="workshops"
+			className="min-h-screen bg-[#090521] overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
+		>
 			{/* Background Image */}
 			<div className="absolute inset-0 z-0">
 				<img
@@ -366,8 +370,27 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 									}}
 									description={`Workshop: ${selectedWorkshop.title}`}
 								/>
-								<p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest mt-2">
+								<p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest mt-2 flex flex-col">
 									Payment is required for registration.
+									<span>
+										<a
+											href="/terms-and-conditions"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline font-extrabold hover:text-[#9D00FF]"
+										>
+											Terms and Conditions
+										</a>
+										{" | "}
+										<a
+											href="/refund-policy"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline font-extrabold hover:text-[#9D00FF]"
+										>
+											Refund Policy
+										</a>
+									</span>
 								</p>
 							</div>
 						)}

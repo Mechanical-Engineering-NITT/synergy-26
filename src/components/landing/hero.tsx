@@ -29,22 +29,6 @@ export default function Hero({
 				<div className="absolute inset-0 bg-[#090521]/40 mix-blend-multiply"></div>
 			</div>
 
-			{/* Logos */}
-			<div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-40 pointer-events-none">
-				<img
-					src="/nitt.webp"
-					alt="NITT Logo"
-					className="h-10 sm:h-14 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300"
-				/>
-			</div>
-			<div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40 pointer-events-none">
-				<img
-					src="/slogo.webp"
-					alt="Synergy Logo"
-					className="h-10 sm:h-14 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300"
-				/>
-			</div>
-
 			{/* 5. Main Content UI */}
 			<div className="relative z-30 flex flex-col items-center justify-center min-h-screen pb-20 px-4 text-center">
 				<h1

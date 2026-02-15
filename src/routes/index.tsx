@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ConstructionRibbon from "@/components/common/construction-ribbon";
 import ContactBadge from "@/components/common/contact-badge";
 import Footer from "@/components/common/footer";
+import Navbar from "@/components/common/navbar";
 import AccommodationSection from "@/components/landing/accommodation";
 import Events from "@/components/landing/events";
 import Hero from "@/components/landing/hero";
+import MechReelSection from "@/components/landing/reel";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
 
@@ -20,10 +21,11 @@ function App() {
 	const data = Route.useLoaderData();
 	return (
 		<div className="min-h-screen flex flex-col">
-			<ConstructionRibbon />
+			<Navbar user={data?.user ?? null} />
 			<Hero user={data?.user ?? null} />
 			<Events isLoggedIn={!!data?.user} />
 			<Workshops isLoggedIn={!!data?.user} />
+			<MechReelSection />
 			<AccommodationSection />
 			<Footer />
 			<ContactBadge />
