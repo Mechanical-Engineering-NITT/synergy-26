@@ -61,6 +61,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		<html lang="en">
 			<head>
 				<HeadContent />
+				<script
+					defer
+					src="https://synergy.nitt.edu/analytics/script.js"
+					data-website-id="e117a9c6-b7ee-46b3-bc5f-340d02735ef5"
+				></script>
 			</head>
 			<body>
 				{children}
