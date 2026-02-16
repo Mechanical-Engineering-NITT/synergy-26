@@ -4,8 +4,12 @@ import { eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
-import { customUser } from "@/db/schema";
-import { getCurrentSession, parseAndThrow } from "@/lib/utils";
+import { customUser, events, registrations, workshops } from "@/db/schema";
+import {
+	getCurrentSession,
+	parseAndThrow,
+	requireOnBoardedUser,
+} from "@/lib/utils";
 import { UserInputSchema } from "@/routes/register";
 
 const RegisterUserInputSchema = z.object({
@@ -63,3 +67,26 @@ export const registerUser = createServerFn({ method: "POST" })
 
 		return { ok: true };
 	});
+
+export const getRegistrations = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const userSession = await requireOnBoardedUser();
+		const userId = userSession.id;
+
+		const userRegistrations = await db
+			.select({
+				id: registrations.id,
+				eventId: registrations.eventId,
+				workshopId: registrations.workshopId,
+				eventTitle: events.title,
+				workshopTitle: workshops.title,
+			})
+			.from(registrations)
+			.leftJoin(events, eq(registrations.eventId, events.id))
+			.leftJoin(workshops, eq(registrations.workshopId, workshops.id))
+			.where(eq(registrations.userId, userId))
+			.orderBy(registrations.createdAt);
+
+		return userRegistrations;
+	},
+);

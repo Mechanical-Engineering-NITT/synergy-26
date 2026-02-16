@@ -25,6 +25,7 @@ export default function Navbar({
 	}, []);
 
 	const navLinks = [
+		{ name: "What's New", href: "#pricing" },
 		{ name: "Events", href: "#events" },
 		{ name: "Workshops", href: "#workshops" },
 		{ name: "Reel Challenge", href: "#reel-challenge" },
@@ -45,7 +46,7 @@ export default function Navbar({
 
 	return (
 		<nav
-			className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
+			className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 ${
 				scrolled || isOpen
 					? "bg-[#090521]/40 backdrop-blur-xl border-b border-white/10 py-1"
 					: "bg-transparent py-3"
@@ -83,12 +84,20 @@ export default function Navbar({
 								</button>
 							))}
 							{user ? (
-								<Link
-									to="/profile"
-									className="px-6 py-2 bg-[#FFDD00] text-black font-black text-xs uppercase tracking-widest -skew-x-12 hover:shadow-[4px_4px_0px_0px_rgba(255,46,99,1)] transition-all hover:translate-y-0.5"
-								>
-									<span className="block skew-x-12">Profile</span>
-								</Link>
+								<div className="flex items-center gap-4">
+									<Link
+										to="/tickets"
+										className="px-6 py-2 bg-linear-to-r from-red-600 to-red-800 text-white font-black text-xs uppercase tracking-widest -skew-x-12 hover:shadow-[4px_4px_0px_0px_rgba(34,211,238,1)] transition-all hover:translate-y-0.5"
+									>
+										<span className="block skew-x-12">My Tickets</span>
+									</Link>
+									<Link
+										to="/profile"
+										className="px-6 py-2 bg-[#FFDD00] text-black font-black text-xs uppercase tracking-widest -skew-x-12 hover:shadow-[4px_4px_0px_0px_rgba(255,46,99,1)] transition-all hover:translate-y-0.5"
+									>
+										<span className="block skew-x-12">Profile</span>
+									</Link>
+								</div>
 							) : (
 								<button
 									type="button"
@@ -139,13 +148,22 @@ export default function Navbar({
 					))}
 					<div className="pt-4 border-t border-white/5">
 						{user ? (
-							<Link
-								to="/profile"
-								onClick={() => setIsOpen(false)}
-								className="block w-full py-4 text-[#FFDD00] font-black uppercase tracking-widest"
-							>
-								Profile: {user.name}
-							</Link>
+							<>
+								<Link
+									to="/tickets"
+									onClick={() => setIsOpen(false)}
+									className="block w-full py-4 text-cyan-400 font-black uppercase tracking-widest border-b border-white/5"
+								>
+									My Tickets
+								</Link>
+								<Link
+									to="/profile"
+									onClick={() => setIsOpen(false)}
+									className="block w-full py-4 text-[#FFDD00] font-black uppercase tracking-widest"
+								>
+									Profile: {user.name}
+								</Link>
+							</>
 						) : (
 							<button
 								type="button"

@@ -5,6 +5,7 @@ import Navbar from "@/components/common/navbar";
 import AccommodationSection from "@/components/landing/accommodation";
 import Events from "@/components/landing/events";
 import Hero from "@/components/landing/hero";
+import PricingComparison from "@/components/landing/pricing-comparison";
 import MechReelSection from "@/components/landing/reel";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
@@ -23,6 +24,7 @@ function App() {
 		<div className="min-h-screen flex flex-col">
 			<Navbar user={data?.user ?? null} />
 			<Hero user={data?.user ?? null} />
+			<PricingComparison />
 			<Events isLoggedIn={!!data?.user} />
 			<Workshops isLoggedIn={!!data?.user} />
 			<MechReelSection />

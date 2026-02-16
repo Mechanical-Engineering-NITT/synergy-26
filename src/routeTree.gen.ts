@@ -13,6 +13,7 @@ import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-condi
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as ApiRazorpayIndexRouteImport } from './routes/api/razorpay/index'
@@ -36,6 +37,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsIndexRoute = TicketsIndexRouteImport.update({
+  id: '/tickets/',
+  path: '/tickets/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
+  '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
+  '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/tickets/': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/razorpay/': typeof ApiRazorpayIndexRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/profile'
     | '/register'
+    | '/tickets'
     | '/api/auth/$'
     | '/api/razorpay'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/profile'
     | '/register'
+    | '/tickets'
     | '/api/auth/$'
     | '/api/razorpay'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/profile/'
     | '/register/'
+    | '/tickets/'
     | '/api/auth/$'
     | '/api/razorpay/'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
+  TicketsIndexRoute: typeof TicketsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRazorpayIndexRoute: typeof ApiRazorpayIndexRoute
 }
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/': {
+      id: '/tickets/'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof TicketsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register/': {
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsAndConditionsRoute: TermsAndConditionsRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
+  TicketsIndexRoute: TicketsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRazorpayIndexRoute: ApiRazorpayIndexRoute,
 }
