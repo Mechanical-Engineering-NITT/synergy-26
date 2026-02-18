@@ -80,7 +80,6 @@ const EventInputSchema = z.object({
 	description: z.string().min(1, "Description is required"),
 	time: z.iso.datetime("Time is required"),
 	location: z.string().min(1, "Location is required"),
-	price: z.string().min(1, "Price is required"),
 });
 
 export const createEvent = createServerFn({ method: "POST" })

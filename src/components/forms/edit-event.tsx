@@ -2,9 +2,16 @@
 /** biome-ignore-all lint/correctness/noChildrenProp: using tanstack forms */
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import type z from "zod";
+import z from "zod";
 import { updateEvent } from "@/server/event";
-import { EventInputSchema } from "./create-event";
+
+const EditEventInputSchema = z.object({
+	title: z.string().min(1, "Title is required"),
+	description: z.string().min(1, "Description is required"),
+	date: z.string().min(1, "Date is required"), // YYYY-MM-DD
+	time: z.string().min(1, "Time is required"), // HH:MM
+	location: z.string().min(1, "Location is required"),
+});
 
 interface EditEventFormProps {
 	event: {
@@ -23,18 +30,26 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 		onSuccess,
 	});
 
+	const eventDate = new Date(event.time);
 	const form = useForm({
 		defaultValues: {
 			title: event.title,
 			description: event.description,
-			time: event.time.toISOString(),
+			date: eventDate.toISOString().split("T")[0], // YYYY-MM-DD
+			time: eventDate.toTimeString().slice(0, 5), // HH:MM
 			location: event.location,
-		} as z.infer<typeof EventInputSchema>,
+		} as z.infer<typeof EditEventInputSchema>,
 		onSubmit: async ({ value }) => {
+			// Combine date and time into ISO datetime string
+			const { date, time, ...rest } = value;
+			const combinedDateTime = new Date(`${date}T${time}`).toISOString();
 			await mutation.mutateAsync({
 				data: {
 					id: event.id,
-					data: value,
+					data: {
+						...rest,
+						time: combinedDateTime,
+					},
 				},
 			});
 		},
@@ -53,7 +68,7 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.title,
+							EditEventInputSchema.shape.title,
 						);
 						return errors;
 					},
@@ -81,7 +96,7 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.description,
+							EditEventInputSchema.shape.description,
 						);
 						return errors;
 					},
@@ -104,11 +119,39 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 				)}
 			/>
 			<form.Field
+				name="date"
+				validators={{
+					onBlur: ({ fieldApi }) => {
+						const errors = fieldApi.parseValueWithSchema(
+							EditEventInputSchema.shape.date,
+						);
+						return errors;
+					},
+				}}
+				children={(field) => (
+					<>
+						<label htmlFor="date">Date</label>
+						<input
+							id="date"
+							type="date"
+							value={field.state.value ?? ""}
+							onBlur={field.handleBlur}
+							onChange={(e) => field.handleChange(e.target.value)}
+						/>
+						{!field.state.meta.isValid && (
+							<p className="text-red-500 text-sm">
+								{field.state.meta.errors.map((e) => e?.message).join(", ")}
+							</p>
+						)}
+					</>
+				)}
+			/>
+			<form.Field
 				name="time"
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.time,
+							EditEventInputSchema.shape.time,
 						);
 						return errors;
 					},
@@ -118,16 +161,10 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 						<label htmlFor="time">Time</label>
 						<input
 							id="time"
-							type="datetime-local"
-							value={
-								field.state.value
-									? new Date(field.state.value).toISOString().slice(0, 16)
-									: ""
-							}
+							type="time"
+							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
-							onChange={(e) =>
-								field.handleChange(new Date(e.target.value).toISOString())
-							}
+							onChange={(e) => field.handleChange(e.target.value)}
 						/>
 						{!field.state.meta.isValid && (
 							<p className="text-red-500 text-sm">
@@ -142,7 +179,7 @@ export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.location,
+							EditEventInputSchema.shape.location,
 						);
 						return errors;
 					},

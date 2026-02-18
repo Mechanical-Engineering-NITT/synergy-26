@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { WorkshopInputSchema } from "@/components/forms/create-workshop";
 import { db } from "@/db";
 import { registrations, workshops } from "@/db/schema";
 import {
@@ -70,14 +71,6 @@ export const registerForWorkshop = createServerFn({ method: "POST" })
 		return { success: true };
 	});
 
-const WorkshopInputSchema = z.object({
-	title: z.string().min(1, "Title is required"),
-	description: z.string().min(1, "Description is required"),
-	time: z.coerce.date(),
-	location: z.string().min(1, "Location is required"),
-	price: z.string().min(1, "Price is required"),
-});
-
 export const createWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(WorkshopInputSchema)
 	.handler(async ({ data }) => {
@@ -92,7 +85,7 @@ export const createWorkshop = createServerFn({ method: "POST" })
 			await db.insert(workshops).values({
 				title: parsedData.title,
 				description: parsedData.description,
-				time: parsedData.time,
+				time: new Date(parsedData.time),
 				location: parsedData.location,
 				price: parsedData.price,
 			});
@@ -127,7 +120,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 				.set({
 					title: parsedData.title,
 					description: parsedData.description,
-					time: parsedData.time,
+					time: new Date(parsedData.time),
 					location: parsedData.location,
 					price: parsedData.price,
 				})

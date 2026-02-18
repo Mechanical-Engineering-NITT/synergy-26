@@ -2,9 +2,25 @@
 /** biome-ignore-all lint/correctness/noChildrenProp: using Tanstack forms */
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type z from "zod";
+import z from "zod";
 import { createWorkshop } from "@/server/workshop";
-import { EventInputSchema } from "./create-event";
+
+export const WorkshopInputSchema = z.object({
+	title: z.string().min(1, "Title is required"),
+	description: z.string().min(1, "Description is required"),
+	time: z.iso.datetime("Time is required"),
+	location: z.string().min(1, "Location is required"),
+	price: z.string().min(1, "Price is required"),
+});
+
+const CreateWorkshopInputSchema = z.object({
+	title: z.string().min(1, "Title is required"),
+	description: z.string().min(1, "Description is required"),
+	date: z.string().min(1, "Date is required"), // YYYY-MM-DD
+	time: z.string().min(1, "Time is required"), // HH:MM
+	location: z.string().min(1, "Location is required"),
+	price: z.string().min(1, "Price is required"),
+});
 
 export function CreateWorkshopForm() {
 	const queryClient = useQueryClient();
@@ -21,12 +37,21 @@ export function CreateWorkshopForm() {
 		defaultValues: {
 			title: "",
 			description: "",
-			time: new Date().toISOString(),
+			date: new Date().toISOString().split("T")[0], // YYYY-MM-DD
+			time: new Date().toTimeString().slice(0, 5), // HH:MM
 			location: "",
 			price: "",
-		} as z.infer<typeof EventInputSchema>,
+		} as z.infer<typeof CreateWorkshopInputSchema>,
 		onSubmit: async ({ value }) => {
-			await mutation.mutateAsync({ data: value });
+			// Combine date and time into ISO datetime string
+			const { date, time, ...rest } = value;
+			const combinedDateTime = new Date(`${date}T${time}`).toISOString();
+			await mutation.mutateAsync({
+				data: {
+					...rest,
+					time: combinedDateTime,
+				},
+			});
 		},
 	});
 
@@ -43,7 +68,7 @@ export function CreateWorkshopForm() {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.title,
+							CreateWorkshopInputSchema.shape.title,
 						);
 						return errors;
 					},
@@ -77,7 +102,7 @@ export function CreateWorkshopForm() {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.description,
+							CreateWorkshopInputSchema.shape.description,
 						);
 						return errors;
 					},
@@ -106,11 +131,45 @@ export function CreateWorkshopForm() {
 				)}
 			/>
 			<form.Field
+				name="date"
+				validators={{
+					onBlur: ({ fieldApi }) => {
+						const errors = fieldApi.parseValueWithSchema(
+							CreateWorkshopInputSchema.shape.date,
+						);
+						return errors;
+					},
+				}}
+				children={(field) => (
+					<>
+						<label
+							htmlFor="workshop-date"
+							className="block text-sm font-medium mb-1.5"
+						>
+							Date
+						</label>
+						<input
+							id="workshop-date"
+							type="date"
+							value={field.state.value ?? ""}
+							onBlur={field.handleBlur}
+							onChange={(e) => field.handleChange(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+						/>
+						{!field.state.meta.isValid && (
+							<p className="text-red-500 text-sm mt-1">
+								{field.state.meta.errors.map((e) => e?.message).join(", ")}
+							</p>
+						)}
+					</>
+				)}
+			/>
+			<form.Field
 				name="time"
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.time,
+							CreateWorkshopInputSchema.shape.time,
 						);
 						return errors;
 					},
@@ -125,16 +184,10 @@ export function CreateWorkshopForm() {
 						</label>
 						<input
 							id="workshop-time"
-							type="datetime-local"
-							value={
-								field.state.value
-									? new Date(field.state.value).toISOString().slice(0, 16)
-									: ""
-							}
+							type="time"
+							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
-							onChange={(e) =>
-								field.handleChange(new Date(e.target.value).toISOString())
-							}
+							onChange={(e) => field.handleChange(e.target.value)}
 							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
 						/>
 						{!field.state.meta.isValid && (
@@ -150,7 +203,7 @@ export function CreateWorkshopForm() {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.location,
+							CreateWorkshopInputSchema.shape.location,
 						);
 						return errors;
 					},
@@ -184,7 +237,7 @@ export function CreateWorkshopForm() {
 				validators={{
 					onBlur: ({ fieldApi }) => {
 						const errors = fieldApi.parseValueWithSchema(
-							EventInputSchema.shape.price,
+							CreateWorkshopInputSchema.shape.price,
 						);
 						return errors;
 					},
