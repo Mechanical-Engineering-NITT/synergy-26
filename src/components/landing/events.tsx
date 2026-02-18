@@ -62,7 +62,7 @@ function EventCard({
 				<img
 					src={`/events/${event.id}.webp`}
 					alt={event.title}
-					className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+					className="w-full h-full object-fill transition-transform duration-700 group-hover:scale-105"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-80"></div>
 			</div>
@@ -467,16 +467,6 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 							>
 								&times;
 							</button>
-						</div>
-
-						{/* Event Image */}
-						<div className="relative aspect-video mb-6 overflow-hidden border border-[#9D00FF]/30 shadow-[0_0_20px_rgba(157,0,255,0.2)]">
-							<img
-								src={`/events/${selectedEvent.id}.webp`}
-								alt={selectedEvent.title}
-								className="w-full h-full object-cover"
-							/>
-							<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-60"></div>
 						</div>
 
 						<div className="space-y-6 mb-8 overflow-y-auto pr-2 custom-scrollbar overscroll-behavior-contain">

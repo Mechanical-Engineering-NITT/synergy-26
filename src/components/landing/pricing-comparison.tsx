@@ -109,12 +109,6 @@ export default function PricingComparison() {
 					</div>
 				</div>
 
-				<div className="mt-16 w-full py-8 border-y border-[#9D00FF]/20 bg-[#9D00FF]/5 backdrop-blur-sm">
-					<p className="w-full text-center text-[#FFDD00] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-tight text-lg md:text-3xl drop-shadow-[0_0_15px_rgba(255,221,0,0.4)]">
-						EXCEPTIONAL VALUE. UNCOMPROMISED EXPERIENCE. MINIMUM COST.
-					</p>
-				</div>
-
 				<div className="mt-12 flex justify-center">
 					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-4 md:p-6 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
 						<div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">

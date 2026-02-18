@@ -262,7 +262,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 
 			{/* Registration Dialog */}
 			{selectedWorkshop && (
-				<div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+				<div className="fixed inset-0 flex items-center justify-center z-9999 p-4 animate-in fade-in duration-300">
 					{/* Backdrop Button */}
 					<button
 						type="button"
@@ -288,16 +288,6 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 							>
 								&times;
 							</button>
-						</div>
-
-						{/* Workshop Image */}
-						<div className="relative aspect-video mb-6 overflow-hidden border border-[#9D00FF]/30 shadow-[0_0_20px_rgba(157,0,255,0.2)]">
-							<img
-								src={`/workshops/${selectedWorkshop.id}.webp`}
-								alt={selectedWorkshop.title}
-								className="w-full h-full object-cover"
-							/>
-							<div className="absolute inset-0 bg-linear-to-t from-[#090521] via-transparent to-transparent opacity-60"></div>
 						</div>
 
 						<div className="space-y-6 mb-8 overflow-y-auto pr-2 custom-scrollbar overscroll-behavior-contain">
