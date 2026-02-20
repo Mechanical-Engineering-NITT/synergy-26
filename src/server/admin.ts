@@ -1,5 +1,6 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import {
@@ -10,29 +11,35 @@ import {
 	workshops,
 } from "@/db/schema";
 import { requireAdminUser } from "@/lib/utils";
+import { computeHasEventPassByUserId } from "@/server/admin-reporting";
 
-export const getAdminReportingData = createServerOnlyFn(async () => {
-	const users = await db.select().from(user);
-	const profiles = await db.select().from(customUser);
-	const allEvents = await db.select().from(events);
-	const allWorkshops = await db.select().from(workshops);
-	const allRegistrations = await db.select().from(registrations);
-	const paidPayments = await db
-		.select()
+const getPaidPaymentsForEventPass = createServerOnlyFn(async () => {
+	return db
+		.select({
+			userId: payments.userId,
+			isEventPass: payments.isEventPass,
+			workshopId: payments.workshopId,
+		})
 		.from(payments)
 		.where(eq(payments.status, "paid"));
+});
 
-	const hasEventPassByUserId = Object.fromEntries(
-		users.map((currentUser) => {
-			const hasEventPass = paidPayments.some(
-				(payment) =>
-					payment.userId === currentUser.id &&
-					(payment.isEventPass === true || payment.workshopId !== null),
-			);
+const getPrDataset = createServerOnlyFn(async () => {
+	const users = await db.select({ id: user.id, name: user.name }).from(user);
+	const profiles = await db
+		.select({
+			userId: customUser.userId,
+			fullname: customUser.fullname,
+			phone: customUser.phone,
+		})
+		.from(customUser);
+	const allEvents = await db.select({ title: events.title }).from(events);
+	const allWorkshops = await db
+		.select({ id: workshops.id, title: workshops.title })
+		.from(workshops);
+	const paidPayments = await getPaidPaymentsForEventPass();
 
-			return [currentUser.id, hasEventPass];
-		}),
-	);
+	const hasEventPassByUserId = computeHasEventPassByUserId(users, paidPayments);
 
 	const profilesByUserId = new Map(
 		profiles.map((profile) => [profile.userId, profile]),
@@ -86,23 +93,173 @@ export const getAdminReportingData = createServerOnlyFn(async () => {
 	});
 
 	return {
-		users,
-		profiles,
-		events: allEvents,
-		workshops: allWorkshops,
-		registrations: allRegistrations,
-		paidPayments,
-		hasEventPassByUserId,
-		prDataset: {
-			columns: prColumns,
-			rows: prRows,
-		},
+		columns: prColumns,
+		rows: prRows,
 	};
 });
 
-export const getAdminReportingDataForPages = createServerFn({
+const getMasterUsers = createServerOnlyFn(async () => {
+	const users = await db
+		.select({
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			role: user.role,
+			onBoardingComplete: user.onBoardingComplete,
+			emailVerified: user.emailVerified,
+			createdAt: user.createdAt,
+		})
+		.from(user);
+	const profiles = await db
+		.select({
+			userId: customUser.userId,
+			fullname: customUser.fullname,
+			phone: customUser.phone,
+			college: customUser.college,
+			city: customUser.city,
+			department: customUser.department,
+			year: customUser.year,
+			gender: customUser.gender,
+		})
+		.from(customUser);
+	const paidPayments = await getPaidPaymentsForEventPass();
+
+	const hasEventPassByUserId = computeHasEventPassByUserId(users, paidPayments);
+	const profilesByUserId = new Map(
+		profiles.map((profile) => [profile.userId, profile]),
+	);
+
+	return users.map((authUser) => {
+		const profile = profilesByUserId.get(authUser.id);
+		return {
+			...authUser,
+			profile: profile ?? null,
+			hasEventPass: Boolean(hasEventPassByUserId[authUser.id]),
+		};
+	});
+});
+
+const getMasterEvents = createServerOnlyFn(async () => {
+	const allEvents = await db
+		.select({
+			id: events.id,
+			title: events.title,
+			location: events.location,
+			time: events.time,
+		})
+		.from(events)
+		.orderBy(asc(events.id));
+	const allRegistrations = await db
+		.select({ eventId: registrations.eventId })
+		.from(registrations);
+	const registrationCountByEventId = new Map<number, number>();
+
+	for (const registration of allRegistrations) {
+		if (registration.eventId === null) {
+			continue;
+		}
+
+		const currentCount =
+			registrationCountByEventId.get(registration.eventId) ?? 0;
+		registrationCountByEventId.set(registration.eventId, currentCount + 1);
+	}
+
+	return allEvents.map((event) => ({
+		...event,
+		registrationCount: registrationCountByEventId.get(event.id) ?? 0,
+	}));
+});
+
+const getMasterEventDetail = createServerOnlyFn(
+	async ({ data }: { data: { eventId: number } }) => {
+		const { eventId } = data;
+
+		const [event] = await db
+			.select({
+				id: events.id,
+				title: events.title,
+				description: events.description,
+			})
+			.from(events)
+			.where(eq(events.id, eventId));
+		if (!event) {
+			throw new Error("Event not found");
+		}
+
+		const users = await db
+			.select({
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+				onBoardingComplete: user.onBoardingComplete,
+				emailVerified: user.emailVerified,
+				createdAt: user.createdAt,
+			})
+			.from(user);
+		const profiles = await db
+			.select({
+				userId: customUser.userId,
+				fullname: customUser.fullname,
+				phone: customUser.phone,
+				college: customUser.college,
+				city: customUser.city,
+				department: customUser.department,
+				year: customUser.year,
+				gender: customUser.gender,
+			})
+			.from(customUser);
+		const paidPayments = await getPaidPaymentsForEventPass();
+
+		const hasEventPassByUserId = computeHasEventPassByUserId(
+			users,
+			paidPayments,
+		);
+		const profilesByUserId = new Map(
+			profiles.map((profile) => [profile.userId, profile]),
+		);
+
+		const registeredUsers = users
+			.filter((currentUser) => Boolean(hasEventPassByUserId[currentUser.id]))
+			.map((currentUser) => ({
+				...currentUser,
+				profile: profilesByUserId.get(currentUser.id) ?? null,
+				hasEventPass: true,
+			}));
+
+		return {
+			event,
+			registeredUsers,
+		};
+	},
+);
+
+export const getPrDatasetForPage = createServerFn({
 	method: "GET",
 }).handler(async () => {
 	await requireAdminUser();
-	return getAdminReportingData();
+	return getPrDataset();
 });
+
+export const getMasterUsersForPage = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	await requireAdminUser();
+	return getMasterUsers();
+});
+
+export const getMasterEventsForPage = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	await requireAdminUser();
+	return getMasterEvents();
+});
+
+export const getMasterEventDetailForPage = createServerFn({
+	method: "GET",
+})
+	.inputValidator(z.object({ eventId: z.number() }))
+	.handler(async ({ data }) => {
+		await requireAdminUser();
+		return getMasterEventDetail({ data });
+	});

@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { enforceAdminAccess } from "@/lib/utils";
-import { getAdminReportingDataForPages } from "@/server/admin";
+import { getPrDatasetForPage } from "@/server/admin";
 
 export const Route = createFileRoute("/pr/")({
 	loader: async () => {
 		await enforceAdminAccess();
-		const reportingData = await getAdminReportingDataForPages();
-		return reportingData.prDataset;
+		return getPrDatasetForPage();
 	},
 	component: RouteComponent,
 });
