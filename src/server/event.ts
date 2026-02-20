@@ -6,6 +6,7 @@ import { events, registrations } from "@/db/schema";
 import {
 	getCurrentSession,
 	parseAndThrow,
+	requireAdminUser,
 	requireOnBoardedUser,
 } from "@/lib/utils";
 import { hasEventPass } from "./razorpay";
@@ -86,10 +87,7 @@ export const createEvent = createServerFn({ method: "POST" })
 	.inputValidator(EventInputSchema)
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			const parsedData = parseAndThrow(data, EventInputSchema);
 
@@ -117,10 +115,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 	)
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			const { id, data: eventData } = data;
 			const parsedData = parseAndThrow(eventData, EventInputSchema);
@@ -147,10 +142,7 @@ export const deleteEvent = createServerFn({ method: "POST" })
 	.inputValidator(z.object({ id: z.number() }))
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			await db.delete(events).where(eq(events.id, data.id));
 		} catch (error) {

@@ -7,6 +7,7 @@ import { registrations, workshops } from "@/db/schema";
 import {
 	getCurrentSession,
 	parseAndThrow,
+	requireAdminUser,
 	requireOnBoardedUser,
 } from "@/lib/utils";
 import { hasPaidForWorkshop } from "./razorpay";
@@ -75,10 +76,7 @@ export const createWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(WorkshopInputSchema)
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			const parsedData = parseAndThrow(data, WorkshopInputSchema);
 
@@ -107,10 +105,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 	)
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			const { id, data: workshopData } = data;
 			const parsedData = parseAndThrow(workshopData, WorkshopInputSchema);
@@ -138,10 +133,7 @@ export const deleteWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(z.object({ id: z.number() }))
 	.handler(async ({ data }) => {
 		try {
-			const session = await getCurrentSession();
-			if (!session || session.user?.role !== "ADMIN") {
-				throw new Error("Unauthorized");
-			}
+			await requireAdminUser();
 
 			await db.delete(workshops).where(eq(workshops.id, data.id));
 		} catch (error) {

@@ -1,10 +1,13 @@
 import { redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { type ClassValue, clsx } from "clsx";
+import { eq } from "drizzle-orm";
 import { twMerge } from "tailwind-merge";
 import type { ZodType } from "zod";
+import { db } from "@/db";
+import { user } from "@/db/auth-schema";
 import { auth } from "@/lib/auth";
-import { createServerFn } from "@tanstack/react-start";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -41,6 +44,38 @@ export const requireOnBoardedUser = async () => {
 		});
 	}
 	return session.user;
+};
+
+export const requireAdminUser = async () => {
+	const session = await getCurrentSession();
+	if (!session) {
+		throw new Error("Unauthorized");
+	}
+
+	const [dbUser] = await db
+		.select({
+			id: user.id,
+			role: user.role,
+		})
+		.from(user)
+		.where(eq(user.id, session.user.id))
+		.limit(1);
+
+	if (!dbUser || dbUser.role !== "ADMIN") {
+		throw new Error("Unauthorized");
+	}
+
+	return dbUser;
+};
+
+export const enforceAdminAccess = async () => {
+	try {
+		await requireAdminUser();
+	} catch {
+		throw redirect({
+			to: "/",
+		});
+	}
 };
 
 export function parseAndThrow<T>(data: T, schema: ZodType<T>) {

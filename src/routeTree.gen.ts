@@ -16,8 +16,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as PrIndexRouteImport } from './routes/pr/index'
+import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as MasterUsersRouteImport } from './routes/master/users'
+import { Route as MasterEventsIndexRouteImport } from './routes/master/events/index'
 import { Route as ApiRazorpayIndexRouteImport } from './routes/api/razorpay/index'
+import { Route as MasterEventsIdRouteImport } from './routes/master/events/$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
@@ -55,14 +60,39 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrIndexRoute = PrIndexRouteImport.update({
+  id: '/pr/',
+  path: '/pr/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasterIndexRoute = MasterIndexRouteImport.update({
+  id: '/master/',
+  path: '/master/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasterUsersRoute = MasterUsersRouteImport.update({
+  id: '/master/users',
+  path: '/master/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasterEventsIndexRoute = MasterEventsIndexRouteImport.update({
+  id: '/master/events/',
+  path: '/master/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRazorpayIndexRoute = ApiRazorpayIndexRouteImport.update({
   id: '/api/razorpay/',
   path: '/api/razorpay/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasterEventsIdRoute = MasterEventsIdRouteImport.update({
+  id: '/master/events/$id',
+  path: '/master/events/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -76,24 +106,34 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/users': typeof MasterUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/master': typeof MasterIndexRoute
+  '/pr': typeof PrIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/master/events/$id': typeof MasterEventsIdRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
+  '/master/events': typeof MasterEventsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/users': typeof MasterUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/master': typeof MasterIndexRoute
+  '/pr': typeof PrIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/master/events/$id': typeof MasterEventsIdRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
+  '/master/events': typeof MasterEventsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,12 +141,17 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/users': typeof MasterUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/master/': typeof MasterIndexRoute
+  '/pr/': typeof PrIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/master/events/$id': typeof MasterEventsIdRoute
   '/api/razorpay/': typeof ApiRazorpayIndexRoute
+  '/master/events/': typeof MasterEventsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,36 +160,51 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/users'
     | '/admin'
+    | '/master'
+    | '/pr'
     | '/profile'
     | '/register'
     | '/tickets'
     | '/api/auth/$'
+    | '/master/events/$id'
     | '/api/razorpay'
+    | '/master/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/users'
     | '/admin'
+    | '/master'
+    | '/pr'
     | '/profile'
     | '/register'
     | '/tickets'
     | '/api/auth/$'
+    | '/master/events/$id'
     | '/api/razorpay'
+    | '/master/events'
   id:
     | '__root__'
     | '/'
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/users'
     | '/admin/'
+    | '/master/'
+    | '/pr/'
     | '/profile/'
     | '/register/'
     | '/tickets/'
     | '/api/auth/$'
+    | '/master/events/$id'
     | '/api/razorpay/'
+    | '/master/events/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,12 +212,17 @@ export interface RootRouteChildren {
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  MasterUsersRoute: typeof MasterUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  MasterIndexRoute: typeof MasterIndexRoute
+  PrIndexRoute: typeof PrIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  MasterEventsIdRoute: typeof MasterEventsIdRoute
   ApiRazorpayIndexRoute: typeof ApiRazorpayIndexRoute
+  MasterEventsIndexRoute: typeof MasterEventsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,6 +276,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pr/': {
+      id: '/pr/'
+      path: '/pr'
+      fullPath: '/pr'
+      preLoaderRoute: typeof PrIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master/': {
+      id: '/master/'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof MasterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -218,11 +297,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/master/users': {
+      id: '/master/users'
+      path: '/master/users'
+      fullPath: '/master/users'
+      preLoaderRoute: typeof MasterUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master/events/': {
+      id: '/master/events/'
+      path: '/master/events'
+      fullPath: '/master/events'
+      preLoaderRoute: typeof MasterEventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/razorpay/': {
       id: '/api/razorpay/'
       path: '/api/razorpay'
       fullPath: '/api/razorpay'
       preLoaderRoute: typeof ApiRazorpayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master/events/$id': {
+      id: '/master/events/$id'
+      path: '/master/events/$id'
+      fullPath: '/master/events/$id'
+      preLoaderRoute: typeof MasterEventsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -240,12 +340,17 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
+  MasterUsersRoute: MasterUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  MasterIndexRoute: MasterIndexRoute,
+  PrIndexRoute: PrIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
   TicketsIndexRoute: TicketsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  MasterEventsIdRoute: MasterEventsIdRoute,
   ApiRazorpayIndexRoute: ApiRazorpayIndexRoute,
+  MasterEventsIndexRoute: MasterEventsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

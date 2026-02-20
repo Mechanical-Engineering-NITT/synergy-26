@@ -1,16 +1,13 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { EventsManagement } from "@/components/admin/events-management";
 import { WorkshopsManagement } from "@/components/admin/workshops-management";
-import { getCurrentSession } from "@/lib/utils";
+import { enforceAdminAccess } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/")({
 	component: Admin,
 	loader: async () => {
-		const session = await getCurrentSession();
-		if (!session || session.user?.role !== "ADMIN") {
-			throw redirect({ to: "/" });
-		}
+		await enforceAdminAccess();
 	},
 });
 
