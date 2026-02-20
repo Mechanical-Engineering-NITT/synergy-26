@@ -38,6 +38,21 @@ export const getAdminReportingData = createServerOnlyFn(async () => {
 		profiles.map((profile) => [profile.userId, profile]),
 	);
 
+	const paidWorkshopIdsByUserId = new Map<string, Set<number>>();
+	for (const payment of paidPayments) {
+		if (payment.workshopId === null) {
+			continue;
+		}
+
+		const existingWorkshopSet = paidWorkshopIdsByUserId.get(payment.userId);
+		if (existingWorkshopSet) {
+			existingWorkshopSet.add(payment.workshopId);
+			continue;
+		}
+
+		paidWorkshopIdsByUserId.set(payment.userId, new Set([payment.workshopId]));
+	}
+
 	const eventTitles = allEvents.map((event) => event.title);
 	const workshopTitles = allWorkshops.map((workshop) => workshop.title);
 
@@ -52,27 +67,12 @@ export const getAdminReportingData = createServerOnlyFn(async () => {
 
 	const prRows = users.map((currentUser) => {
 		const profile = profilesByUserId.get(currentUser.id);
-		const userRegistrations = allRegistrations.filter(
-			(registration) => registration.userId === currentUser.id,
-		);
+		const hasEventPass = Boolean(hasEventPassByUserId[currentUser.id]);
+		const paidWorkshopSet = paidWorkshopIdsByUserId.get(currentUser.id);
 
-		const eventRegistrationSet = new Set(
-			userRegistrations
-				.map((registration) => registration.eventId)
-				.filter((eventId): eventId is number => eventId !== null),
-		);
-
-		const workshopRegistrationSet = new Set(
-			userRegistrations
-				.map((registration) => registration.workshopId)
-				.filter((workshopId): workshopId is number => workshopId !== null),
-		);
-
-		const eventCells = allEvents.map((event) =>
-			eventRegistrationSet.has(event.id),
-		);
+		const eventCells = allEvents.map(() => (hasEventPass ? "yes" : "no"));
 		const workshopCells = allWorkshops.map((workshop) =>
-			workshopRegistrationSet.has(workshop.id),
+			paidWorkshopSet?.has(workshop.id) ? "yes" : "no",
 		);
 
 		return [
@@ -82,7 +82,7 @@ export const getAdminReportingData = createServerOnlyFn(async () => {
 			profile?.phone ?? "",
 			...eventCells,
 			...workshopCells,
-		] as const;
+		];
 	});
 
 	return {
