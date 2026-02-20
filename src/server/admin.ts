@@ -62,12 +62,13 @@ const getPrDataset = createServerOnlyFn(async () => {
 
 	const eventTitles = allEvents.map((event) => event.title);
 	const workshopTitles = allWorkshops.map((workshop) => workshop.title);
+	const profileColumnCount = 4;
 
 	const prColumns = [
-		"user id",
-		"user name",
-		"full name",
-		"phone",
+		"USER ID",
+		"USERNAME",
+		"FULL NAME",
+		"PHONE",
 		...eventTitles,
 		...workshopTitles,
 	] as const;
@@ -95,6 +96,9 @@ const getPrDataset = createServerOnlyFn(async () => {
 	return {
 		columns: prColumns,
 		rows: prRows,
+		profileColumnCount,
+		eventColumnCount: eventTitles.length,
+		workshopColumnCount: workshopTitles.length,
 	};
 });
 
