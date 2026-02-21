@@ -75,7 +75,7 @@ export default function PricingComparison() {
 											₹475
 										</td>
 										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-white font-black tabular-nums">
-											₹150{" "}
+											₹150<span className="text-[#9D00FF]">*</span>{" "}
 											<span className="text-[9px] md:text-[10px] text-[#9D00FF] font-bold block mt-1 tracking-widest opacity-90 uppercase">
 												(MESS)
 											</span>
@@ -89,7 +89,7 @@ export default function PricingComparison() {
 											₹280
 										</td>
 										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-[#FFDD00] font-black tabular-nums drop-shadow-[0_0_10px_rgba(255,221,0,0.4)]">
-											FREE
+											FREE<span className="text-[#FFDD00]">**</span>
 										</td>
 									</tr>
 									<tr className="bg-linear-to-r from-[#9D00FF]/10 to-transparent relative text-sm md:text-2xl">
@@ -109,11 +109,26 @@ export default function PricingComparison() {
 					</div>
 				</div>
 
-				<div className="mt-12 flex justify-center">
+				<div className="mt-12 flex flex-col items-center gap-4">
 					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-4 md:p-6 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
 						<div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
 							<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest">
-								Note
+								<span className="text-black">*</span> Note
+							</div>
+							<p className="text-gray-300 text-[10px] md:text-sm font-bold uppercase tracking-widest md:tracking-[0.15em] italic">
+								Food can be bought at NITT messes for{" "}
+								<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
+									~₹50
+								</span>{" "}
+								per meal.
+							</p>
+						</div>
+					</div>
+
+					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-4 md:p-6 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
+						<div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+							<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest">
+								<span className="text-black">**</span> Note
 							</div>
 							<p className="text-gray-300 text-[10px] md:text-sm font-bold uppercase tracking-widest md:tracking-[0.15em] italic">
 								If you don't want to attend any workshop and only need Event
