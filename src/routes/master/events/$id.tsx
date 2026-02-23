@@ -1,109 +1,136 @@
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { getMasterEventDetailForPage } from "@/server/admin";
+import {
+	EventDataHeader,
+	getEventData,
+	getUserDataByEventId,
+	UserDataByEventIdHeader,
+} from "@/server/admin.master";
+
+const masterEventsQueryOptions = queryOptions({
+	queryKey: ["master", "events"],
+	queryFn: () => getEventData(),
+});
+
+const masterUsersByEventQueryOptions = (eventId: number) =>
+	queryOptions({
+		queryKey: ["master", "event-users", eventId],
+		queryFn: () => getUserDataByEventId({ data: { eventId } }),
+	});
 
 export const Route = createFileRoute("/master/events/$id")({
-	loader: async ({ params }) => {
+	loader: async ({ params, context }) => {
 		const eventId = Number(params.id);
 		if (Number.isNaN(eventId)) {
 			throw new Error("Invalid event id");
 		}
 
-		const reportingData = await getMasterEventDetailForPage({
-			data: { eventId },
-		});
+		await context.queryClient.ensureQueryData(masterEventsQueryOptions);
+		await context.queryClient.ensureQueryData(
+			masterUsersByEventQueryOptions(eventId),
+		);
 
-		return {
-			event: reportingData.event,
-			registeredUsers: reportingData.registeredUsers,
-		};
+		return { eventId };
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const data = Route.useLoaderData();
+	const { eventId } = Route.useLoaderData();
+	const { data: events } = useSuspenseQuery(masterEventsQueryOptions);
+	const { data: registeredUsers } = useSuspenseQuery(
+		masterUsersByEventQueryOptions(eventId),
+	);
+
+	const event = events.find((currentEvent) => currentEvent.id === eventId);
+
+	if (!event) {
+		return (
+			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+				No event found.
+			</div>
+		);
+	}
 
 	return (
 		<div className="mt-6 space-y-6">
 			<div>
-				<h2 className="text-2xl font-semibold">{data.event.title}</h2>
+				<h2 className="text-2xl font-semibold">{event.title}</h2>
 				<p className="text-sm text-muted-foreground">
-					{data.event.description}
+					{event.time ? new Date(event.time).toLocaleString() : ""}
 				</p>
 			</div>
 
 			<section>
-				<h3 className="text-lg font-medium mb-3">
-					Registered Users ({data.registeredUsers.length})
+				<h3 className="mb-3 text-lg font-medium">Event Details</h3>
+				<div className="overflow-x-auto rounded-md border border-border bg-card">
+					<table className="min-w-full text-sm">
+						<thead className="bg-muted/40">
+							<tr>
+								{EventDataHeader.map((header) => (
+									<th key={header} className="px-3 py-2 text-left font-medium">
+										{header}
+									</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							<tr className="border-t border-border">
+								<td className="px-3 py-2 whitespace-nowrap">{event.id}</td>
+								<td className="px-3 py-2 whitespace-nowrap">{event.title}</td>
+								<td className="px-3 py-2 whitespace-nowrap">
+									{event.time ? new Date(event.time).toLocaleString() : ""}
+								</td>
+								<td className="px-3 py-2 whitespace-nowrap">
+									{event.registered_users}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section>
+				<h3 className="mb-3 text-lg font-medium">
+					Registered Users ({registeredUsers.length})
 				</h3>
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
 					<table className="min-w-full text-sm">
 						<thead className="bg-muted/40">
 							<tr>
-								<th className="px-3 py-2 text-left font-medium">User ID</th>
-								<th className="px-3 py-2 text-left font-medium">Name</th>
-								<th className="px-3 py-2 text-left font-medium">Email</th>
-								<th className="px-3 py-2 text-left font-medium">Role</th>
-								<th className="px-3 py-2 text-left font-medium">Onboarded</th>
-								<th className="px-3 py-2 text-left font-medium">Full Name</th>
-								<th className="px-3 py-2 text-left font-medium">Phone</th>
-								<th className="px-3 py-2 text-left font-medium">College</th>
-								<th className="px-3 py-2 text-left font-medium">City</th>
-								<th className="px-3 py-2 text-left font-medium">Department</th>
-								<th className="px-3 py-2 text-left font-medium">Year</th>
-								<th className="px-3 py-2 text-left font-medium">Gender</th>
-								<th className="px-3 py-2 text-left font-medium">
-									Email Verified
-								</th>
-								<th className="px-3 py-2 text-left font-medium">Created At</th>
+								{UserDataByEventIdHeader.map((header) => (
+									<th key={header} className="px-3 py-2 text-left font-medium">
+										{header}
+									</th>
+								))}
 							</tr>
 						</thead>
 						<tbody>
-							{data.registeredUsers.map((currentUser) => (
-								<tr key={currentUser.id} className="border-t border-border">
+							{registeredUsers.map((currentUser) => (
+								<tr key={currentUser.userId} className="border-t border-border">
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.id}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.name}
+										{currentUser.userId}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
 										{currentUser.email}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.role}
+										{currentUser.fullname ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.onBoardingComplete ? "yes" : "no"}
+										{currentUser.phone ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.fullname ?? ""}
+										{currentUser.college ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.phone ?? ""}
+										{currentUser.city ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.college ?? ""}
+										{currentUser.year ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.city ?? ""}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.department ?? ""}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.year ?? ""}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.profile?.gender ?? ""}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.emailVerified ? "yes" : "no"}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.createdAt
-											? new Date(currentUser.createdAt).toLocaleString()
-											: ""}
+										{currentUser.department ?? ""}
 									</td>
 								</tr>
 							))}

@@ -1,17 +1,57 @@
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { cn, enforceAdminAccess } from "@/lib/utils";
-import { getPrDatasetForPage } from "@/server/admin";
+import { getPRData, prHeaderRow } from "@/server/admin.pr";
+
+const prDataQueryOptions = queryOptions({
+	queryKey: ["pr", "dataset"],
+	queryFn: () => getPRData(),
+});
 
 export const Route = createFileRoute("/pr/")({
-	loader: async () => {
+	loader: async ({ context }) => {
 		await enforceAdminAccess();
-		return getPrDatasetForPage();
+		return context.queryClient.ensureQueryData(prDataQueryOptions);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const prDataset = Route.useLoaderData();
+	const { data: prData } = useSuspenseQuery(prDataQueryOptions);
+	const rows = prData.data.rows;
+
+	const eventIds = Array.from(
+		new Set(rows.flatMap((row) => Object.keys(row.events).map(Number))),
+	).sort((a, b) => a - b);
+
+	const workshopIds = Array.from(
+		new Set(rows.flatMap((row) => Object.keys(row.workshops).map(Number))),
+	).sort((a, b) => a - b);
+
+	const profileColumns = ["User ID", "Email", "Full Name", "Phone"];
+	const eventColumns = eventIds.map(
+		(eventId) => prData.data.eventMeta[eventId] ?? `Event ${eventId}`,
+	);
+	const workshopColumns = workshopIds.map(
+		(workshopId) =>
+			prData.data.workshopMeta[workshopId] ?? `Workshop ${workshopId}`,
+	);
+
+	const columns = [...profileColumns, ...eventColumns, ...workshopColumns];
+	const profileColumnCount = profileColumns.length;
+	const eventColumnCount = eventColumns.length;
+	const workshopColumnCount = workshopColumns.length;
+
+	const tableRows = rows.map((row) => [
+		row.userId,
+		row.email,
+		row.fullname ?? "",
+		row.phone ?? "",
+		...eventIds.map((eventId) => (row.events[eventId] ? "yes" : "no")),
+		...workshopIds.map((workshopId) =>
+			row.workshops[workshopId] ? "yes" : "no",
+		),
+	]);
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-6">
@@ -22,26 +62,26 @@ function RouteComponent() {
 						<thead className="bg-muted/40">
 							<tr>
 								<th
-									colSpan={prDataset.profileColumnCount}
+									colSpan={profileColumnCount}
 									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
 								>
-									PROFILE
+									{prHeaderRow[0]?.toUpperCase()}
 								</th>
 								<th
-									colSpan={prDataset.eventColumnCount}
+									colSpan={eventColumnCount}
 									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
 								>
-									EVENTS
+									{prHeaderRow[1]?.toUpperCase()}
 								</th>
 								<th
-									colSpan={prDataset.workshopColumnCount}
+									colSpan={workshopColumnCount}
 									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-border"
 								>
-									WORKSHOPS
+									{prHeaderRow[2]?.toUpperCase()}
 								</th>
 							</tr>
 							<tr>
-								{prDataset.columns.map((column) => (
+								{columns.map((column) => (
 									<th
 										key={column}
 										className="px-3 py-2 text-left font-medium whitespace-nowrap border-b border-r border-border"
@@ -52,15 +92,14 @@ function RouteComponent() {
 							</tr>
 						</thead>
 						<tbody>
-							{prDataset.rows.map((row, rowIndex) => (
+							{tableRows.map((row, rowIndex) => (
 								<tr
 									key={`${row[0]}-${rowIndex}`}
 									className="border-t border-border"
 								>
 									{row.map((cell, cellIndex) => {
 										const cellText = String(cell).toLowerCase();
-										const isPaymentCell =
-											cellIndex >= prDataset.profileColumnCount;
+										const isPaymentCell = cellIndex >= profileColumnCount;
 										const isYes = isPaymentCell && cellText === "yes";
 										const isNo = isPaymentCell && cellText === "no";
 
