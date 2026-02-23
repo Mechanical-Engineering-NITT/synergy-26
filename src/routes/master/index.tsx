@@ -1,9 +1,9 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { enforceAdminAccess } from "@/lib/utils";
+import { requireAdminMasterUser } from "@/lib/utils";
 
 export const Route = createFileRoute("/master/")({
 	loader: async () => {
-		await enforceAdminAccess();
+		await requireAdminMasterUser();
 	},
 	component: RouteComponent,
 });

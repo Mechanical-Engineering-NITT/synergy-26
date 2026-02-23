@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { CreateEventForm } from "@/components/forms/create-event";
 import { EditEventForm } from "@/components/forms/edit-event";
-import { deleteEvent, getAllEvents } from "@/server/event";
+import { getAllEvents } from "@/server/event";
 
 export function EventsManagement() {
 	const queryClient = useQueryClient();
@@ -11,13 +11,6 @@ export function EventsManagement() {
 	const { data: events = { events: [] }, isLoading } = useQuery({
 		queryKey: ["events"],
 		queryFn: getAllEvents,
-	});
-
-	const deleteEventMutation = useMutation({
-		mutationFn: deleteEvent,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["events"] });
-		},
 	});
 
 	if (isLoading) return <div>Loading events...</div>;
@@ -87,24 +80,6 @@ export function EventsManagement() {
 												className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
 											>
 												Edit
-											</button>
-											<button
-												type="button"
-												onClick={() => {
-													if (
-														confirm(
-															"Are you sure you want to delete this event?",
-														)
-													) {
-														deleteEventMutation.mutate({
-															data: { id: event.id },
-														});
-													}
-												}}
-												disabled={deleteEventMutation.isPending}
-												className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
-											>
-												Delete
 											</button>
 										</div>
 									</>

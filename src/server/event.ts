@@ -72,8 +72,6 @@ export const registerForEvent = createServerFn({ method: "POST" })
 			userId: user.id,
 			eventId: data.eventId,
 		});
-
-		return { success: true };
 	});
 
 const EventInputSchema = z.object({
@@ -86,24 +84,16 @@ const EventInputSchema = z.object({
 export const createEvent = createServerFn({ method: "POST" })
 	.inputValidator(EventInputSchema)
 	.handler(async ({ data }) => {
-		try {
-			await requireAdminUser();
+		await requireAdminUser();
 
-			const parsedData = parseAndThrow(data, EventInputSchema);
+		const parsedData = parseAndThrow(data, EventInputSchema);
 
-			await db.insert(events).values({
-				title: parsedData.title,
-				description: parsedData.description,
-				time: new Date(parsedData.time),
-				location: parsedData.location,
-			});
-		} catch (error) {
-			throw new Error(
-				`Event creation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-			);
-		}
-
-		return { ok: true };
+		await db.insert(events).values({
+			title: parsedData.title,
+			description: parsedData.description,
+			time: new Date(parsedData.time),
+			location: parsedData.location,
+		});
 	});
 
 export const updateEvent = createServerFn({ method: "POST" })
@@ -114,42 +104,18 @@ export const updateEvent = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		try {
-			await requireAdminUser();
+		await requireAdminUser();
 
-			const { id, data: eventData } = data;
-			const parsedData = parseAndThrow(eventData, EventInputSchema);
+		const { id, data: eventData } = data;
+		const parsedData = parseAndThrow(eventData, EventInputSchema);
 
-			await db
-				.update(events)
-				.set({
-					title: parsedData.title,
-					description: parsedData.description,
-					time: new Date(parsedData.time),
-					location: parsedData.location,
-				})
-				.where(eq(events.id, id));
-		} catch (error) {
-			throw new Error(
-				`Event update failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-			);
-		}
-
-		return { ok: true };
-	});
-
-export const deleteEvent = createServerFn({ method: "POST" })
-	.inputValidator(z.object({ id: z.number() }))
-	.handler(async ({ data }) => {
-		try {
-			await requireAdminUser();
-
-			await db.delete(events).where(eq(events.id, data.id));
-		} catch (error) {
-			throw new Error(
-				`Event deletion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-			);
-		}
-
-		return { ok: true };
+		await db
+			.update(events)
+			.set({
+				title: parsedData.title,
+				description: parsedData.description,
+				time: new Date(parsedData.time),
+				location: parsedData.location,
+			})
+			.where(eq(events.id, id));
 	});

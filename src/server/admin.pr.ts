@@ -3,12 +3,12 @@ import { and, eq, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { customUser, events, payments, workshops } from "@/db/schema";
-import { enforceAdminAccess } from "@/lib/utils";
+import { requireAdminPRUser } from "@/lib/utils";
 
 export const getPRData = createServerFn({ method: "GET" }).handler(async () => {
-	try {
-		await enforceAdminAccess();
+	await requireAdminPRUser();
 
+	try {
 		const userData = await db
 			.select({
 				userId: user.id,

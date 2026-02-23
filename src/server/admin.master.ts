@@ -4,13 +4,13 @@ import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { customUser, events, registrations } from "@/db/schema";
-import { enforceAdminAccess } from "@/lib/utils";
+import { requireAdminMasterUser } from "@/lib/utils";
 
 export const getEventData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		try {
-			await enforceAdminAccess();
+		await requireAdminMasterUser();
 
+		try {
 			const eventsData = await db
 				.select({
 					id: events.id,
@@ -33,9 +33,9 @@ export const EventDataHeader = ["ID", "Title", "Time", "Registered Users"];
 
 export const getUserData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		try {
-			await enforceAdminAccess();
+		await requireAdminMasterUser();
 
+		try {
 			const userData = await db
 				.select({
 					userId: user.id,
@@ -71,9 +71,9 @@ export const UserDataHeader = [
 export const getUserDataByEventId = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ eventId: z.number() }))
 	.handler(async ({ data }) => {
-		try {
-			await enforceAdminAccess();
+		await requireAdminMasterUser();
 
+		try {
 			const userDataByEventId = await db
 				.select({
 					userId: user.id,

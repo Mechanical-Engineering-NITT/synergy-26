@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { EventsManagement } from "@/components/admin/events-management";
 import { WorkshopsManagement } from "@/components/admin/workshops-management";
-import { enforceAdminAccess } from "@/lib/utils";
+import { requireAdminUser } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/")({
 	component: Admin,
 	loader: async () => {
-		await enforceAdminAccess();
+		await requireAdminUser();
 	},
 });
 

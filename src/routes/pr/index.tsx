@@ -1,6 +1,6 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { cn, enforceAdminAccess } from "@/lib/utils";
+import { cn, requireAdminPRUser } from "@/lib/utils";
 import { getPRData, prHeaderRow } from "@/server/admin.pr";
 
 const prDataQueryOptions = queryOptions({
@@ -10,7 +10,7 @@ const prDataQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/pr/")({
 	loader: async ({ context }) => {
-		await enforceAdminAccess();
+		await requireAdminPRUser();
 		return context.queryClient.ensureQueryData(prDataQueryOptions);
 	},
 	component: RouteComponent,
