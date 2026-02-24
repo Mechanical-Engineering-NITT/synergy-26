@@ -46,34 +46,6 @@ export const requireOnBoardedUser = async () => {
 	return session.user;
 };
 
-export const requireAdminUser = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await getCurrentSession();
-		if (!session) {
-			throw redirect({
-				to: "/",
-			});
-		}
-
-		const [dbUser] = await db
-			.select({
-				id: user.id,
-				role: user.role,
-			})
-			.from(user)
-			.where(eq(user.id, session.user.id))
-			.limit(1);
-
-		if (!dbUser || dbUser.role !== "ADMIN") {
-			throw redirect({
-				to: "/",
-			});
-		}
-
-		return dbUser;
-	},
-);
-
 export const requireAdminPRUser = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await getCurrentSession();
@@ -92,7 +64,7 @@ export const requireAdminPRUser = createServerFn({ method: "GET" }).handler(
 			.where(eq(user.id, session.user.id))
 			.limit(1);
 
-		if (!dbUser || dbUser.role !== "ADMIN-PR") {
+		if (!dbUser || !["ADMIN-PR", "ADMIN-MASTER"].includes(dbUser.role)) {
 			throw redirect({
 				to: "/",
 			});
