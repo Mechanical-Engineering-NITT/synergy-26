@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Instagram, Linkedin } from "lucide-react";
 
 export default function Footer() {
 	return (
@@ -87,6 +88,24 @@ export default function Footer() {
 								<br />
 								Trichy - 620015.
 							</p>
+							<div className="mt-6 flex gap-4 pt-2">
+								<a
+									href="https://www.instagram.com/synergynitt/"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-white/60 hover:text-amber-400 transition-colors group/social"
+								>
+									<Instagram className="w-5 h-5 group-hover/social:scale-110 transition-transform" />
+								</a>
+								<a
+									href="https://www.linkedin.com/company/synergy-nit-trichy/"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-white/60 hover:text-amber-400 transition-colors group/social"
+								>
+									<Linkedin className="w-5 h-5 group-hover/social:scale-110 transition-transform" />
+								</a>
+							</div>
 						</div>
 					</div>
 

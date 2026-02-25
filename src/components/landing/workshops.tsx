@@ -13,7 +13,7 @@ interface Workshop {
 	title: string;
 	description: string;
 	longDescription: string;
-	time: Date;
+	time: string;
 	location: string;
 	price: string;
 	isRegistered: boolean;
@@ -93,18 +93,8 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 		// biome-ignore lint: Static ID is required for anchor scrolling
 		<div
 			id="workshops"
-			className="min-h-screen bg-[#090521] overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
+			className="min-h-screen overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
 		>
-			{/* Background Image */}
-			<div className="absolute inset-0 z-0">
-				<img
-					src="/ewbg.webp"
-					alt="Background"
-					className="w-full h-full object-cover rotate-180 scale-x-[-1]"
-				/>
-				<div className="absolute inset-0 bg-black/40"></div>
-			</div>
-
 			<div className="relative z-30 p-6 max-w-6xl mx-auto py-20">
 				<h1
 					className="text-4xl sm:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-linear-to-b from-[#9D00FF] via-[#9D00FF] to-[#FFDD00] drop-shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-2 uppercase text-center"
@@ -174,9 +164,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 													<div className="flex items-center gap-3">
 														<span className="w-1 h-1 bg-[#FFDD00] shadow-[0_0_5px_rgba(255,221,0,0.8)]"></span>
 														<span className="text-gray-500">TIME:</span>
-														<span className="text-white">
-															{new Date(workshop.time).toLocaleString()}
-														</span>
+														<span className="text-white">{workshop.time}</span>
 													</div>
 													<div className="flex items-center gap-3">
 														<span className="w-1 h-1 bg-[#FFDD00] shadow-[0_0_5px_rgba(255,221,0,0.8)]"></span>
@@ -317,7 +305,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 										Time
 									</p>
 									<p className="text-xs text-white font-black uppercase">
-										{new Date(selectedWorkshop.time).toLocaleString()}
+										{selectedWorkshop.time}
 									</p>
 								</div>
 								<div className="bg-white/5 border border-white/10 p-3">

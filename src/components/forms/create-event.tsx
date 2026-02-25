@@ -8,15 +8,14 @@ import { createEvent } from "@/server/event";
 export const EventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	time: z.iso.datetime("Time is required"),
+	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 });
 
 const CreateEventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	date: z.string().min(1, "Date is required"), // YYYY-MM-DD
-	time: z.string().min(1, "Time is required"), // HH:MM
+	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 });
 
@@ -40,14 +39,8 @@ export function CreateEventForm() {
 			location: "",
 		} as z.infer<typeof CreateEventInputSchema>,
 		onSubmit: async ({ value }) => {
-			// Combine date and time into ISO datetime string
-			const { date, time, ...rest } = value;
-			const combinedDateTime = new Date(`${date}T${time}`).toISOString();
 			await mutation.mutateAsync({
-				data: {
-					...rest,
-					time: combinedDateTime,
-				},
+				data: value,
 			});
 		},
 	});
@@ -125,37 +118,6 @@ export function CreateEventForm() {
 				)}
 			/>
 			<form.Field
-				name="date"
-				validators={{
-					onBlur: ({ fieldApi }) => {
-						const errors = fieldApi.parseValueWithSchema(
-							CreateEventInputSchema.shape.date,
-						);
-						return errors;
-					},
-				}}
-				children={(field) => (
-					<>
-						<label htmlFor="date" className="block text-sm font-medium mb-1.5">
-							Date
-						</label>
-						<input
-							id="date"
-							type="date"
-							value={field.state.value ?? ""}
-							onBlur={field.handleBlur}
-							onChange={(e) => field.handleChange(e.target.value)}
-							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
-						/>
-						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm mt-1">
-								{field.state.meta.errors.map((e) => e?.message).join(", ")}
-							</p>
-						)}
-					</>
-				)}
-			/>
-			<form.Field
 				name="time"
 				validators={{
 					onBlur: ({ fieldApi }) => {
@@ -172,7 +134,7 @@ export function CreateEventForm() {
 						</label>
 						<input
 							id="time"
-							type="time"
+							type="text"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}

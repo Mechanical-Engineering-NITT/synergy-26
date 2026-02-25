@@ -35,7 +35,7 @@ export const events = pgTable("events", {
 	title: text("title").notNull(),
 	description: text("description").notNull(),
 	longDescription: text("long_description").notNull().default(""),
-	time: timestamp("time").notNull(),
+	time: text("time").notNull(),
 	location: text("location").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
@@ -50,7 +50,7 @@ export const workshops = pgTable("workshops", {
 	title: text("title").notNull(),
 	description: text("description").notNull(),
 	longDescription: text("long_description").notNull().default(""),
-	time: timestamp("time").notNull(),
+	time: text("time").notNull(),
 	location: text("location").notNull(),
 	price: text("price").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
