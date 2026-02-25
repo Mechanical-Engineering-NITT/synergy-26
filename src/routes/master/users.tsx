@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { getUserData, UserDataHeader } from "@/server/admin.master";
+import { requireAdminUser } from "@/lib/utils";
+import { getUserData, UserDataHeader } from "@/server/admin/admin.master";
 
 const masterUsersQueryOptions = queryOptions({
 	queryKey: ["master", "users"],
@@ -9,6 +10,9 @@ const masterUsersQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/master/users")({
 	component: RouteComponent,
+	loader: async () => {
+		await requireAdminUser("ADMIN-MASTER");
+	},
 });
 
 function RouteComponent() {

@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { cn, requireAdminUser } from "@/lib/utils";
-import { getPRData, prHeaderRow } from "@/server/admin.pr";
+import { getPRData, prHeaderRow } from "@/server/admin/admin.pr";
 
 const prDataQueryOptions = queryOptions({
 	queryKey: ["pr", "dataset"],

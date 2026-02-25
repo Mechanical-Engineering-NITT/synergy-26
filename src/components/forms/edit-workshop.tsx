@@ -30,7 +30,7 @@ export function EditWorkshopForm({ workshop }: EditWorkshopFormProps) {
 	const mutation = useMutation({
 		mutationFn: updateWorkshop,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["events"] });
+			queryClient.invalidateQueries({ queryKey: ["workshops"] });
 			form.reset();
 		},
 	});

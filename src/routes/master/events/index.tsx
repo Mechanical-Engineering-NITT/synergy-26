@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { EventDataHeader, getEventData } from "@/server/admin.master";
+import { requireAdminUser } from "@/lib/utils";
+import { EventDataHeader, getEventData } from "@/server/admin/admin.master";
 
 const masterEventsQueryOptions = queryOptions({
 	queryKey: ["master", "events"],
@@ -8,6 +9,9 @@ const masterEventsQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/master/events/")({
+	loader: async () => {
+		await requireAdminUser("ADMIN-MASTER");
+	},
 	component: RouteComponent,
 });
 

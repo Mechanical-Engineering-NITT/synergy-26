@@ -1,11 +1,12 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminUser } from "@/lib/utils";
 import {
 	getUserDataByWorkshopId,
 	getWorkshopData,
 	UserDataByWorkshopIdHeader,
 	WorkshopDataHeader,
-} from "@/server/admin.master";
+} from "@/server/admin/admin.master";
 
 const masterWorkshopsQueryOptions = queryOptions({
 	queryKey: ["master", "workshops"],
@@ -20,6 +21,7 @@ const masterUsersByWorkshopQueryOptions = (workshopId: number) =>
 
 export const Route = createFileRoute("/master/workshops/$id")({
 	loader: async ({ params }) => {
+		await requireAdminUser("ADMIN-MASTER");
 		const workshopId = Number(params.id);
 		if (Number.isNaN(workshopId)) {
 			throw new Error("Invalid workshop id");

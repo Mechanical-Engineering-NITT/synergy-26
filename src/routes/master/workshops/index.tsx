@@ -1,6 +1,10 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { getWorkshopData, WorkshopDataHeader } from "@/server/admin.master";
+import { requireAdminUser } from "@/lib/utils";
+import {
+	getWorkshopData,
+	WorkshopDataHeader,
+} from "@/server/admin/admin.master";
 
 const masterWorkshopsQueryOptions = queryOptions({
 	queryKey: ["master", "workshops"],
@@ -9,6 +13,9 @@ const masterWorkshopsQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/master/workshops/")({
 	component: RouteComponent,
+	loader: async () => {
+		await requireAdminUser("ADMIN-MASTER");
+	},
 });
 
 function RouteComponent() {

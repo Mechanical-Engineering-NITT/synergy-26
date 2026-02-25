@@ -1,11 +1,12 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminUser } from "@/lib/utils";
 import {
 	EventDataHeader,
 	getEventData,
 	getUserDataByEventId,
 	UserDataByEventIdHeader,
-} from "@/server/admin.master";
+} from "@/server/admin/admin.master";
 
 const masterEventsQueryOptions = queryOptions({
 	queryKey: ["master", "events"],
@@ -20,6 +21,7 @@ const masterUsersByEventQueryOptions = (eventId: number) =>
 
 export const Route = createFileRoute("/master/events/$id")({
 	loader: async ({ params }) => {
+		await requireAdminUser("ADMIN-MASTER");
 		const eventId = Number(params.id);
 		if (Number.isNaN(eventId)) {
 			throw new Error("Invalid event id");
