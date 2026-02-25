@@ -8,6 +8,7 @@ import Events from "@/components/landing/events";
 import Hero from "@/components/landing/hero";
 import PricingComparison from "@/components/landing/pricing-comparison";
 import MechReelSection from "@/components/landing/reel";
+import Schedule from "@/components/landing/schedule";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
 
@@ -46,6 +47,7 @@ function App() {
 					<Workshops isLoggedIn={!!data?.user} />
 					<MechReelSection />
 					<AccommodationSection />
+					<Schedule />
 				</div>
 			</div>
 
