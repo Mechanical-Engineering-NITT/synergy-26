@@ -1,10 +1,10 @@
 import { redirect } from "@tanstack/react-router";
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { type ClassValue, clsx } from "clsx";
 import { eq } from "drizzle-orm";
 import { twMerge } from "tailwind-merge";
-import type { ZodType } from "zod";
+import { type ZodType, z } from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { auth } from "@/lib/auth";
@@ -46,20 +46,24 @@ export const requireOnBoardedUser = async () => {
 	return session.user;
 };
 
-export const requireAdminUser = createServerOnlyFn(
-	async (
-		roles: "ADMIN-PR" | "ADMIN-MASTER" | Array<"ADMIN-PR" | "ADMIN-MASTER">,
-	) => {
+const adminRoleSchema = z.enum(["ADMIN-PR", "ADMIN-MASTER"]);
+const requireAdminUserInputSchema = z.object({
+	roles: z.union([adminRoleSchema, z.array(adminRoleSchema).nonempty()]),
+});
+
+export const requireAdminUser = createServerFn({ method: "GET" })
+	.inputValidator(requireAdminUserInputSchema)
+	.handler(async ({ data }) => {
+		const validatedData = parseAndThrow(data, requireAdminUserInputSchema);
 		const session = await getCurrentSession();
 		if (!session) {
 			throw redirect({
 				to: "/",
 			});
 		}
-		const allowedRoles = Array.isArray(roles) ? roles : [roles];
-		if (allowedRoles.length === 0) {
-			throw new Error("At least one role must be specified");
-		}
+		const allowedRoles = Array.isArray(validatedData.roles)
+			? validatedData.roles
+			: [validatedData.roles];
 		const [dbUser] = await db
 			.select({
 				id: user.id,
@@ -83,8 +87,7 @@ export const requireAdminUser = createServerOnlyFn(
 		}
 
 		return session.user;
-	},
-);
+	});
 
 export function parseAndThrow<T>(data: T, schema: ZodType<T>) {
 	const parsedData = schema.safeParse(data);

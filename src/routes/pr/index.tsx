@@ -10,7 +10,7 @@ const prDataQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/pr/")({
 	loader: async () => {
-		await requireAdminUser(["ADMIN-PR", "ADMIN-MASTER"]);
+		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
 	},
 	component: RouteComponent,
 });

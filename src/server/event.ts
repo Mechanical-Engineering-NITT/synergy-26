@@ -84,7 +84,7 @@ const EventInputSchema = z.object({
 export const createEvent = createServerFn({ method: "POST" })
 	.inputValidator(EventInputSchema)
 	.handler(async ({ data }) => {
-		await requireAdminUser(["ADMIN-MASTER"]);
+		await requireAdminUser({ data: { roles: ["ADMIN-MASTER"] } });
 
 		const parsedData = parseAndThrow(data, EventInputSchema);
 
@@ -104,7 +104,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		await requireAdminUser(["ADMIN-MASTER"]);
+		await requireAdminUser({ data: { roles: ["ADMIN-MASTER"] } });
 
 		const { id, data: eventData } = data;
 		const parsedData = parseAndThrow(eventData, EventInputSchema);

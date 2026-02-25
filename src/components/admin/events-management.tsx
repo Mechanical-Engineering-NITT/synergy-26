@@ -41,7 +41,10 @@ export function EventsManagement() {
 								{editingId === event.id && eventToEdit ? (
 									<div className="space-y-4">
 										<h4 className="text-lg font-semibold">Edit Event</h4>
-										<EditEventForm event={eventToEdit} />
+										<EditEventForm
+											event={eventToEdit}
+											onSuccess={() => setEditingId(null)}
+										/>
 										<button
 											type="button"
 											onClick={() => setEditingId(null)}

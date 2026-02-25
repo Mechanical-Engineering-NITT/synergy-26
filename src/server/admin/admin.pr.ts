@@ -6,7 +6,7 @@ import { customUser, events, payments, workshops } from "@/db/schema";
 import { requireAdminUser } from "@/lib/utils";
 
 export const getPRData = createServerFn({ method: "GET" }).handler(async () => {
-	await requireAdminUser(["ADMIN-PR", "ADMIN-MASTER"]);
+	await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
 
 	try {
 		const userData = await db

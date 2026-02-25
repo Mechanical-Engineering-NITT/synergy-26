@@ -10,12 +10,16 @@ import PricingComparison from "@/components/landing/pricing-comparison";
 import MechReelSection from "@/components/landing/reel";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
+import { getCurrentUserFullName } from "@/server/user";
 
 export const Route = createFileRoute("/")({
 	component: App,
 	loader: async () => {
-		const data = await enforceOnboarding();
-		return data;
+		const session = await enforceOnboarding();
+		const profile = await getCurrentUserFullName({
+			data: { userId: session?.user.id ?? null },
+		});
+		return { session: session, profile: profile };
 	},
 });
 
@@ -23,8 +27,8 @@ function App() {
 	const data = Route.useLoaderData();
 	return (
 		<div className="min-h-screen flex flex-col">
-			<Navbar user={data?.user ?? null} />
-			<Hero user={data?.user ?? null} />
+			<Navbar user={data.session?.user ?? null} />
+			<Hero user={data.profile ?? null} />
 
 			<div className="relative bg-[#090521]">
 				{/* Shared Background Layer */}
@@ -42,8 +46,8 @@ function App() {
 				<div className="relative z-10 w-full flex flex-col">
 					<About />
 					<PricingComparison />
-					<Events isLoggedIn={!!data?.user} />
-					<Workshops isLoggedIn={!!data?.user} />
+					<Events isLoggedIn={!!data?.session?.user} />
+					<Workshops isLoggedIn={!!data?.session?.user} />
 					<MechReelSection />
 					<AccommodationSection />
 				</div>

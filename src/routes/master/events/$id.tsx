@@ -21,7 +21,7 @@ const masterUsersByEventQueryOptions = (eventId: number) =>
 
 export const Route = createFileRoute("/master/events/$id")({
 	loader: async ({ params }) => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 		const eventId = Number(params.id);
 		if (Number.isNaN(eventId)) {
 			throw new Error("Invalid event id");
