@@ -9,12 +9,6 @@ export default function Hero({
 	user: {
 		id: string;
 		fullname: string;
-		college: string;
-		city: string;
-		department: string;
-		year: string;
-		phone: string;
-		gender: string;
 	} | null;
 }) {
 	return (

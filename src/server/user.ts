@@ -55,7 +55,7 @@ export const updateUserDetails = createServerFn({ method: "POST" })
 		}
 	});
 
-export const getCurrentUserProfile = createServerFn({ method: "GET" })
+export const getCurrentUserFullName = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ userId: z.string().nullable() }))
 	.handler(async ({ data }) => {
 		if (!data.userId) {
@@ -66,12 +66,6 @@ export const getCurrentUserProfile = createServerFn({ method: "GET" })
 			.select({
 				id: customUser.userId,
 				fullname: customUser.fullname,
-				college: customUser.college,
-				city: customUser.city,
-				department: customUser.department,
-				year: customUser.year,
-				phone: customUser.phone,
-				gender: customUser.gender,
 			})
 			.from(customUser)
 			.where(eq(customUser.userId, data.userId))

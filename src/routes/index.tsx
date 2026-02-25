@@ -10,13 +10,13 @@ import PricingComparison from "@/components/landing/pricing-comparison";
 import MechReelSection from "@/components/landing/reel";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
-import { getCurrentUserProfile } from "@/server/user";
+import { getCurrentUserFullName } from "@/server/user";
 
 export const Route = createFileRoute("/")({
 	component: App,
 	loader: async () => {
 		const session = await enforceOnboarding();
-		const profile = await getCurrentUserProfile({
+		const profile = await getCurrentUserFullName({
 			data: { userId: session?.user.id ?? null },
 		});
 		return { session: session, profile: profile };
