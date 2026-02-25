@@ -3,7 +3,12 @@ import { and, eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { events, registrations } from "@/db/schema";
-import { getCurrentSession, requireOnBoardedUser } from "@/lib/utils";
+import {
+	getCurrentSession,
+	parseAndThrow,
+	requireAdminUser,
+	requireOnBoardedUser,
+} from "@/lib/utils";
 import { hasEventPass } from "./razorpay";
 
 export const getAllEvents = createServerFn({ method: "GET" }).handler(
@@ -67,6 +72,50 @@ export const registerForEvent = createServerFn({ method: "POST" })
 			userId: user.id,
 			eventId: data.eventId,
 		});
+	});
 
-		return { success: true };
+const EventInputSchema = z.object({
+	title: z.string().min(1, "Title is required"),
+	description: z.string().min(1, "Description is required"),
+	time: z.iso.datetime("Time is required"),
+	location: z.string().min(1, "Location is required"),
+});
+
+export const createEvent = createServerFn({ method: "POST" })
+	.inputValidator(EventInputSchema)
+	.handler(async ({ data }) => {
+		await requireAdminUser(["ADMIN-MASTER"]);
+
+		const parsedData = parseAndThrow(data, EventInputSchema);
+
+		await db.insert(events).values({
+			title: parsedData.title,
+			description: parsedData.description,
+			time: new Date(parsedData.time),
+			location: parsedData.location,
+		});
+	});
+
+export const updateEvent = createServerFn({ method: "POST" })
+	.inputValidator(
+		z.object({
+			id: z.number(),
+			data: EventInputSchema,
+		}),
+	)
+	.handler(async ({ data }) => {
+		await requireAdminUser(["ADMIN-MASTER"]);
+
+		const { id, data: eventData } = data;
+		const parsedData = parseAndThrow(eventData, EventInputSchema);
+
+		await db
+			.update(events)
+			.set({
+				title: parsedData.title,
+				description: parsedData.description,
+				time: new Date(parsedData.time),
+				location: parsedData.location,
+			})
+			.where(eq(events.id, id));
 	});

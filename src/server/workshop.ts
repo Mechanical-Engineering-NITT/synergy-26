@@ -1,8 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { WorkshopInputSchema } from "@/components/forms/create-workshop";
 import { db } from "@/db";
 import { registrations, workshops } from "@/db/schema";
-import { getCurrentSession } from "@/lib/utils";
+import {
+	getCurrentSession,
+	parseAndThrow,
+	requireAdminUser,
+} from "@/lib/utils";
 
 export const getAllWorkshops = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -31,3 +37,44 @@ export const getAllWorkshops = createServerFn({ method: "GET" }).handler(
 		}));
 	},
 );
+
+export const createWorkshop = createServerFn({ method: "POST" })
+	.inputValidator(WorkshopInputSchema)
+	.handler(async ({ data }) => {
+		await requireAdminUser(["ADMIN-MASTER"]);
+
+		const parsedData = parseAndThrow(data, WorkshopInputSchema);
+
+		await db.insert(workshops).values({
+			title: parsedData.title,
+			description: parsedData.description,
+			time: new Date(parsedData.time),
+			location: parsedData.location,
+			price: parsedData.price,
+		});
+	});
+
+export const updateWorkshop = createServerFn({ method: "POST" })
+	.inputValidator(
+		z.object({
+			id: z.number(),
+			data: WorkshopInputSchema,
+		}),
+	)
+	.handler(async ({ data }) => {
+		await requireAdminUser(["ADMIN-MASTER"]);
+
+		const { id, data: workshopData } = data;
+		const parsedData = parseAndThrow(workshopData, WorkshopInputSchema);
+
+		await db
+			.update(workshops)
+			.set({
+				title: parsedData.title,
+				description: parsedData.description,
+				time: new Date(parsedData.time),
+				location: parsedData.location,
+				price: parsedData.price,
+			})
+			.where(eq(workshops.id, id));
+	});

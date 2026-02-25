@@ -10,6 +10,12 @@ export const auth = betterAuth({
 				defaultValue: false,
 				input: false,
 			},
+			role: {
+				type: ["USER", "ADMIN-PR", "ADMIN-MASTER"],
+				required: true,
+				defaultValue: "USER",
+				input: false,
+			},
 		},
 	},
 	database: drizzleAdapter(db, {
