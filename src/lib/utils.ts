@@ -4,9 +4,10 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { type ClassValue, clsx } from "clsx";
 import { eq } from "drizzle-orm";
 import { twMerge } from "tailwind-merge";
-import type { ZodType } from "zod";
+import { type ZodType, z } from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
+import { customUser } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export function cn(...inputs: ClassValue[]) {
@@ -20,6 +21,30 @@ export const getCurrentSession = createServerFn({ method: "GET" }).handler(
 		return response;
 	},
 );
+
+export const getCurrentUserProfile = createServerFn({ method: "GET" })
+	.inputValidator(z.object({ userId: z.string().nullable() }))
+	.handler(async ({ data }) => {
+		if (!data.userId) {
+			return null;
+		}
+
+		const [dbUser] = await db
+			.select({
+				id: customUser.userId,
+				fullname: customUser.fullname,
+				college: customUser.college,
+				city: customUser.city,
+				department: customUser.department,
+				year: customUser.year,
+				phone: customUser.phone,
+				gender: customUser.gender,
+			})
+			.from(customUser)
+			.where(eq(customUser.userId, data.userId))
+			.limit(1);
+		return dbUser;
+	});
 
 export const enforceOnboarding = async () => {
 	const session = await getCurrentSession();

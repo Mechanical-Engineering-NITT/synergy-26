@@ -8,9 +8,13 @@ export default function Hero({
 }: {
 	user: {
 		id: string;
-		email: string;
-		name: string;
-		onBoardingComplete: boolean;
+		fullname: string;
+		college: string;
+		city: string;
+		department: string;
+		year: string;
+		phone: string;
+		gender: string;
 	} | null;
 }) {
 	return (
@@ -62,7 +66,7 @@ export default function Hero({
 
 				{user && (
 					<div className="mt-8 text-xl sm:text-2xl font-bold text-[#FF2E63] tracking-wider animate-in fade-in slide-in-from-bottom-4 duration-1000 uppercase drop-shadow-[0_0_10px_rgba(255,46,99,0.8)]">
-						WELCOME, {user.name}
+						WELCOME, {user.fullname}
 					</div>
 				)}
 
