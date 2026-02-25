@@ -26,12 +26,12 @@ export default function Navbar({
 
 	const navLinks = [
 		{ name: "About Us", href: "#about" },
+		{ name: "Schedule", href: "#schedule" },
 		{ name: "What's New", href: "#pricing" },
 		{ name: "Events", href: "#events" },
 		{ name: "Workshops", href: "#workshops" },
 		{ name: "Reel Challenge", href: "#reel-challenge" },
 		{ name: "Accommodation", href: "#accommodation" },
-		{ name: "Schedule", href: "#schedule" },
 	];
 
 	const handleLinkClick = (href: string) => {

@@ -46,12 +46,12 @@ function App() {
 
 				<div className="relative z-10 w-full flex flex-col">
 					<About />
+					<Schedule />
 					<PricingComparison />
 					<Events isLoggedIn={!!data?.session?.user} />
 					<Workshops isLoggedIn={!!data?.session?.user} />
 					<MechReelSection />
 					<AccommodationSection />
-					<Schedule />
 				</div>
 			</div>
 
