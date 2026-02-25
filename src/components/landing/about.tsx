@@ -1,6 +1,10 @@
 export default function About() {
 	return (
-		<section className="min-h-screen overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30">
+		// biome-ignore lint/correctness/useUniqueElementIds: required for anchor scrolling from another section
+		<section
+			id="about"
+			className="min-h-screen overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
+		>
 			<div className="relative z-30 p-6 max-w-6xl mx-auto py-20">
 				{/* Section Header */}
 				<div className="text-center mb-12">
