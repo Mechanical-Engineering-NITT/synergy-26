@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/backups}"
+BACKUP_DIR="${BACKUP_DIR:-./backups}"
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
 BACKUP_FILE="${BACKUP_DIR}/${TIMESTAMP}.sql"
 TMP_BACKUP_FILE="${BACKUP_FILE}.tmp"

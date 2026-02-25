@@ -5,15 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { createWorkshop } from "@/server/workshop";
 
-export const WorkshopInputSchema = z.object({
-	title: z.string().min(1, "Title is required"),
-	description: z.string().min(1, "Description is required"),
-	longDescription: z.string().min(1, "Long description is required"),
-	time: z.string().min(1, "Time is required"),
-	location: z.string().min(1, "Location is required"),
-	price: z.string().min(1, "Price is required"),
-});
-
 const CreateWorkshopInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),

@@ -24,6 +24,23 @@ pnpm dev
 ### Production Database Migrations
 To run database migrations in production using the migrator tool:
 ```bash
-docker compose -f compose.prod.yaml run --rm migrator
+docker compose -f compose.prod.yaml run --build --rm migrator
 ```
 This uses the `tools` profile, so it won't run with standard `up` commands unless explicitly requested.
+
+### Zero-downtime + Rollback strategy
+Make the latest image as fallback.
+```bash
+docker tag synergy26-web26:latest synergy26-web26:fallback
+```
+
+Run the zero-downtime deployment.
+```bash
+docker compose -f compose.prod.yaml up -d --build
+```
+
+If something goes wrong, rollback to the fallback image.
+```bash
+docker tag synergy26-web26:fallback synergy26-web26:latest
+docker compose -f compose.prod.yaml up -d
+```

@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { WorkshopInputSchema } from "@/components/forms/create-workshop";
 import { db } from "@/db";
 import { registrations, workshops } from "@/db/schema";
 import {
@@ -37,6 +36,15 @@ export const getAllWorkshops = createServerFn({ method: "GET" }).handler(
 		}));
 	},
 );
+
+const WorkshopInputSchema = z.object({
+	title: z.string().min(1, "Title is required"),
+	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
+	time: z.string().min(1, "Time is required"),
+	location: z.string().min(1, "Location is required"),
+	price: z.string().min(1, "Price is required"),
+});
 
 export const createWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(WorkshopInputSchema)
