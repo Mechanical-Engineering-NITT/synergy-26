@@ -8,6 +8,7 @@ import { updateWorkshop } from "@/server/workshop";
 const EditWorkshopInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"), // HH:MM
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
@@ -18,6 +19,7 @@ interface EditWorkshopFormProps {
 		id: number;
 		title: string;
 		description: string;
+		longDescription: string;
 		time: string;
 		location: string;
 		price: string;
@@ -42,6 +44,7 @@ export function EditWorkshopForm({
 		defaultValues: {
 			title: workshop.title,
 			description: workshop.description,
+			longDescription: workshop.longDescription,
 			time: workshop.time,
 			location: workshop.location,
 			price: workshop.price,
@@ -146,6 +149,39 @@ export function EditWorkshopForm({
 						</label>
 						<textarea
 							id="time"
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
+							value={field.state.value ?? ""}
+							onBlur={field.handleBlur}
+							onChange={(e) => field.handleChange(e.target.value)}
+						/>
+						{!field.state.meta.isValid && (
+							<p className="mt-1 text-sm text-red-500">
+								{field.state.meta.errors.map((e) => e?.message).join(", ")}
+							</p>
+						)}
+					</>
+				)}
+			/>
+			<form.Field
+				name="longDescription"
+				validators={{
+					onBlur: ({ fieldApi }) => {
+						const errors = fieldApi.parseValueWithSchema(
+							EditWorkshopInputSchema.shape.longDescription,
+						);
+						return errors;
+					},
+				}}
+				children={(field) => (
+					<>
+						<label
+							htmlFor="long-description"
+							className="mb-1 block text-sm font-medium"
+						>
+							Long Description
+						</label>
+						<textarea
+							id="long-description"
 							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
