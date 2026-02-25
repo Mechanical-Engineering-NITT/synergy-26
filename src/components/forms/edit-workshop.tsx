@@ -144,10 +144,9 @@ export function EditWorkshopForm({
 						<label htmlFor="time" className="mb-1 block text-sm font-medium">
 							Time
 						</label>
-						<input
+						<textarea
 							id="time"
-							type="text"
-							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}

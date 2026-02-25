@@ -34,8 +34,7 @@ export function CreateEventForm() {
 		defaultValues: {
 			title: "",
 			description: "",
-			date: new Date().toISOString().split("T")[0], // YYYY-MM-DD
-			time: new Date().toTimeString().slice(0, 5), // HH:MM
+			time: "",
 			location: "",
 		} as z.infer<typeof CreateEventInputSchema>,
 		onSubmit: async ({ value }) => {
@@ -132,13 +131,12 @@ export function CreateEventForm() {
 						<label htmlFor="time" className="block text-sm font-medium mb-1.5">
 							Time
 						</label>
-						<input
+						<textarea
 							id="time"
-							type="text"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
 						/>
 						{!field.state.meta.isValid && (
 							<p className="text-red-500 text-sm mt-1">
