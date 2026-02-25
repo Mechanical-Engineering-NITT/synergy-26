@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { type ClassValue, clsx } from "clsx";
 import { eq } from "drizzle-orm";
@@ -7,7 +7,6 @@ import { twMerge } from "tailwind-merge";
 import { type ZodType, z } from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
-import { customUser } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export function cn(...inputs: ClassValue[]) {
@@ -21,30 +20,6 @@ export const getCurrentSession = createServerFn({ method: "GET" }).handler(
 		return response;
 	},
 );
-
-export const getCurrentUserProfile = createServerFn({ method: "GET" })
-	.inputValidator(z.object({ userId: z.string().nullable() }))
-	.handler(async ({ data }) => {
-		if (!data.userId) {
-			return null;
-		}
-
-		const [dbUser] = await db
-			.select({
-				id: customUser.userId,
-				fullname: customUser.fullname,
-				college: customUser.college,
-				city: customUser.city,
-				department: customUser.department,
-				year: customUser.year,
-				phone: customUser.phone,
-				gender: customUser.gender,
-			})
-			.from(customUser)
-			.where(eq(customUser.userId, data.userId))
-			.limit(1);
-		return dbUser;
-	});
 
 export const enforceOnboarding = async () => {
 	const session = await getCurrentSession();
@@ -71,20 +46,24 @@ export const requireOnBoardedUser = async () => {
 	return session.user;
 };
 
-export const requireAdminUser = createServerOnlyFn(
-	async (
-		roles: "ADMIN-PR" | "ADMIN-MASTER" | Array<"ADMIN-PR" | "ADMIN-MASTER">,
-	) => {
+const adminRoleSchema = z.enum(["ADMIN-PR", "ADMIN-MASTER"]);
+const requireAdminUserInputSchema = z.object({
+	roles: z.union([adminRoleSchema, z.array(adminRoleSchema).nonempty()]),
+});
+
+export const requireAdminUser = createServerFn({ method: "GET" })
+	.inputValidator(requireAdminUserInputSchema)
+	.handler(async ({ data }) => {
+		const validatedData = parseAndThrow(data, requireAdminUserInputSchema);
 		const session = await getCurrentSession();
 		if (!session) {
 			throw redirect({
 				to: "/",
 			});
 		}
-		const allowedRoles = Array.isArray(roles) ? roles : [roles];
-		if (allowedRoles.length === 0) {
-			throw new Error("At least one role must be specified");
-		}
+		const allowedRoles = Array.isArray(validatedData.roles)
+			? validatedData.roles
+			: [validatedData.roles];
 		const [dbUser] = await db
 			.select({
 				id: user.id,
@@ -108,8 +87,7 @@ export const requireAdminUser = createServerOnlyFn(
 		}
 
 		return session.user;
-	},
-);
+	});
 
 export function parseAndThrow<T>(data: T, schema: ZodType<T>) {
 	const parsedData = schema.safeParse(data);

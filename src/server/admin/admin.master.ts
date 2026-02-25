@@ -8,7 +8,7 @@ import { requireAdminUser } from "@/lib/utils";
 
 export const getEventData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 
 		try {
 			const eventsData = await db
@@ -33,7 +33,7 @@ export const EventDataHeader = ["ID", "Title", "Time", "Registered Users"];
 
 export const getWorkshopData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 
 		try {
 			const workshopsData = await db
@@ -65,7 +65,7 @@ export const WorkshopDataHeader = [
 
 export const getUserData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 
 		try {
 			const userData = await db
@@ -103,7 +103,7 @@ export const UserDataHeader = [
 export const getUserDataByEventId = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ eventId: z.number() }))
 	.handler(async ({ data }) => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 
 		try {
 			const userDataByEventId = await db
@@ -147,7 +147,7 @@ export const UserDataByEventIdHeader = [
 export const getUserDataByWorkshopId = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ workshopId: z.number() }))
 	.handler(async ({ data }) => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 
 		try {
 			const userDataByWorkshopId = await db

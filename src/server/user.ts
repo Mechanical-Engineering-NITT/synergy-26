@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
 import { customUser } from "@/db/schema";
 import { parseAndThrow, requireOnBoardedUser } from "@/lib/utils";
@@ -52,4 +53,28 @@ export const updateUserDetails = createServerFn({ method: "POST" })
 				`Failed to update profile: ${error instanceof Error ? error.message : "Unknown error"}`,
 			);
 		}
+	});
+
+export const getCurrentUserProfile = createServerFn({ method: "GET" })
+	.inputValidator(z.object({ userId: z.string().nullable() }))
+	.handler(async ({ data }) => {
+		if (!data.userId) {
+			return null;
+		}
+
+		const [dbUser] = await db
+			.select({
+				id: customUser.userId,
+				fullname: customUser.fullname,
+				college: customUser.college,
+				city: customUser.city,
+				department: customUser.department,
+				year: customUser.year,
+				phone: customUser.phone,
+				gender: customUser.gender,
+			})
+			.from(customUser)
+			.where(eq(customUser.userId, data.userId))
+			.limit(1);
+		return dbUser;
 	});

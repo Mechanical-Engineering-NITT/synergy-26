@@ -9,7 +9,8 @@ import Hero from "@/components/landing/hero";
 import PricingComparison from "@/components/landing/pricing-comparison";
 import MechReelSection from "@/components/landing/reel";
 import Workshops from "@/components/landing/workshops";
-import { enforceOnboarding, getCurrentUserProfile } from "@/lib/utils";
+import { enforceOnboarding } from "@/lib/utils";
+import { getCurrentUserProfile } from "@/server/user";
 
 export const Route = createFileRoute("/")({
 	component: App,

@@ -10,7 +10,7 @@ const masterEventsQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/master/events/")({
 	loader: async () => {
-		await requireAdminUser("ADMIN-MASTER");
+		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
 	},
 	component: RouteComponent,
 });
