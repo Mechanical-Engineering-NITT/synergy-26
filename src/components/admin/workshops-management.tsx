@@ -41,7 +41,10 @@ export function WorkshopsManagement() {
 								{editingId === workshop.id && workshopToEdit ? (
 									<div className="space-y-4">
 										<h4 className="text-lg font-semibold">Edit Workshop</h4>
-										<EditWorkshopForm workshop={workshopToEdit} />
+										<EditWorkshopForm
+											workshop={workshopToEdit}
+											onSuccess={() => setEditingId(null)}
+										/>
 										<button
 											type="button"
 											onClick={() => setEditingId(null)}

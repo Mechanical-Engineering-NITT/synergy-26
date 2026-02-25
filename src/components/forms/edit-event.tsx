@@ -20,15 +20,16 @@ interface EditEventFormProps {
 		time: string;
 		location: string;
 	};
+	onSuccess?: () => void;
 }
 
-export function EditEventForm({ event }: EditEventFormProps) {
+export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
 	const queryClient = useQueryClient();
 	const mutation = useMutation({
 		mutationFn: updateEvent,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["events"] });
-			form.reset();
+			onSuccess?.();
 		},
 	});
 
@@ -52,6 +53,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
 	return (
 		<form
 			autoComplete="off"
+			className="space-y-4 rounded-lg border border-border bg-card p-4"
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();
@@ -69,16 +71,19 @@ export function EditEventForm({ event }: EditEventFormProps) {
 				}}
 				children={(field) => (
 					<>
-						<label htmlFor="title">Title</label>
+						<label htmlFor="title" className="mb-1 block text-sm font-medium">
+							Title
+						</label>
 						<input
 							id="title"
 							type="text"
+							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
 						/>
 						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
+							<p className="mt-1 text-sm text-red-500">
 								{field.state.meta.errors.map((e) => e?.message).join(", ")}
 							</p>
 						)}
@@ -97,15 +102,21 @@ export function EditEventForm({ event }: EditEventFormProps) {
 				}}
 				children={(field) => (
 					<>
-						<label htmlFor="description">Description</label>
+						<label
+							htmlFor="description"
+							className="mb-1 block text-sm font-medium"
+						>
+							Description
+						</label>
 						<textarea
 							id="description"
+							className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
 						/>
 						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
+							<p className="mt-1 text-sm text-red-500">
 								{field.state.meta.errors.map((e) => e?.message).join(", ")}
 							</p>
 						)}
@@ -124,16 +135,19 @@ export function EditEventForm({ event }: EditEventFormProps) {
 				}}
 				children={(field) => (
 					<>
-						<label htmlFor="time">Time</label>
+						<label htmlFor="time" className="mb-1 block text-sm font-medium">
+							Time
+						</label>
 						<input
 							id="time"
 							type="text"
+							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
 						/>
 						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
+							<p className="mt-1 text-sm text-red-500">
 								{field.state.meta.errors.map((e) => e?.message).join(", ")}
 							</p>
 						)}
@@ -152,16 +166,22 @@ export function EditEventForm({ event }: EditEventFormProps) {
 				}}
 				children={(field) => (
 					<>
-						<label htmlFor="location">Location</label>
+						<label
+							htmlFor="location"
+							className="mb-1 block text-sm font-medium"
+						>
+							Location
+						</label>
 						<input
 							id="location"
 							type="text"
+							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
 						/>
 						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
+							<p className="mt-1 text-sm text-red-500">
 								{field.state.meta.errors.map((e) => e?.message).join(", ")}
 							</p>
 						)}
@@ -171,7 +191,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
 			<button
 				type="submit"
 				disabled={mutation.isPending}
-				className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+				className="mt-2 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{mutation.isPending ? "Updating..." : "Update Event"}
 			</button>
