@@ -8,7 +8,6 @@ import { updateWorkshop } from "@/server/workshop";
 const EditWorkshopInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	date: z.string().min(1, "Date is required"), // YYYY-MM-DD
 	time: z.string().min(1, "Time is required"), // HH:MM
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
@@ -35,27 +34,19 @@ export function EditWorkshopForm({ workshop }: EditWorkshopFormProps) {
 		},
 	});
 
-	const workshopDate = new Date(workshop.time);
 	const form = useForm({
 		defaultValues: {
 			title: workshop.title,
 			description: workshop.description,
-			date: workshopDate.toISOString().split("T")[0], // YYYY-MM-DD
-			time: workshopDate.toTimeString().slice(0, 5), // HH:MM
+			time: workshop.time,
 			location: workshop.location,
 			price: workshop.price,
 		} as z.infer<typeof EditWorkshopInputSchema>,
 		onSubmit: async ({ value }) => {
-			// Combine date and time into ISO datetime string
-			const { date, time, ...rest } = value;
-			const combinedDateTime = new Date(`${date}T${time}`).toISOString();
 			await mutation.mutateAsync({
 				data: {
 					id: workshop.id,
-					data: {
-						...rest,
-						time: combinedDateTime,
-					},
+					data: value,
 				},
 			});
 		},
@@ -125,34 +116,6 @@ export function EditWorkshopForm({ workshop }: EditWorkshopFormProps) {
 				)}
 			/>
 			<form.Field
-				name="date"
-				validators={{
-					onBlur: ({ fieldApi }) => {
-						const errors = fieldApi.parseValueWithSchema(
-							EditWorkshopInputSchema.shape.date,
-						);
-						return errors;
-					},
-				}}
-				children={(field) => (
-					<>
-						<label htmlFor="date">Date</label>
-						<input
-							id="date"
-							type="date"
-							value={field.state.value ?? ""}
-							onBlur={field.handleBlur}
-							onChange={(e) => field.handleChange(e.target.value)}
-						/>
-						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
-								{field.state.meta.errors.map((e) => e?.message).join(", ")}
-							</p>
-						)}
-					</>
-				)}
-			/>
-			<form.Field
 				name="time"
 				validators={{
 					onBlur: ({ fieldApi }) => {
@@ -167,7 +130,7 @@ export function EditWorkshopForm({ workshop }: EditWorkshopFormProps) {
 						<label htmlFor="time">Time</label>
 						<input
 							id="time"
-							type="time"
+							type="text"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
