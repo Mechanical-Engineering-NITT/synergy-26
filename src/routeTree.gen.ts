@@ -20,8 +20,10 @@ import { Route as PrIndexRouteImport } from './routes/pr/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as MasterUsersRouteImport } from './routes/master/users'
+import { Route as MasterWorkshopsIndexRouteImport } from './routes/master/workshops/index'
 import { Route as MasterEventsIndexRouteImport } from './routes/master/events/index'
 import { Route as ApiRazorpayIndexRouteImport } from './routes/api/razorpay/index'
+import { Route as MasterWorkshopsIdRouteImport } from './routes/master/workshops/$id'
 import { Route as MasterEventsIdRouteImport } from './routes/master/events/$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -80,6 +82,11 @@ const MasterUsersRoute = MasterUsersRouteImport.update({
   path: '/master/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasterWorkshopsIndexRoute = MasterWorkshopsIndexRouteImport.update({
+  id: '/master/workshops/',
+  path: '/master/workshops/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MasterEventsIndexRoute = MasterEventsIndexRouteImport.update({
   id: '/master/events/',
   path: '/master/events/',
@@ -88,6 +95,11 @@ const MasterEventsIndexRoute = MasterEventsIndexRouteImport.update({
 const ApiRazorpayIndexRoute = ApiRazorpayIndexRouteImport.update({
   id: '/api/razorpay/',
   path: '/api/razorpay/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasterWorkshopsIdRoute = MasterWorkshopsIdRouteImport.update({
+  id: '/master/workshops/$id',
+  path: '/master/workshops/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterEventsIdRoute = MasterEventsIdRouteImport.update({
@@ -115,8 +127,10 @@ export interface FileRoutesByFullPath {
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/master/events/$id': typeof MasterEventsIdRoute
+  '/master/workshops/$id': typeof MasterWorkshopsIdRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
   '/master/events': typeof MasterEventsIndexRoute
+  '/master/workshops': typeof MasterWorkshopsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,8 +146,10 @@ export interface FileRoutesByTo {
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/master/events/$id': typeof MasterEventsIdRoute
+  '/master/workshops/$id': typeof MasterWorkshopsIdRoute
   '/api/razorpay': typeof ApiRazorpayIndexRoute
   '/master/events': typeof MasterEventsIndexRoute
+  '/master/workshops': typeof MasterWorkshopsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -150,8 +166,10 @@ export interface FileRoutesById {
   '/tickets/': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/master/events/$id': typeof MasterEventsIdRoute
+  '/master/workshops/$id': typeof MasterWorkshopsIdRoute
   '/api/razorpay/': typeof ApiRazorpayIndexRoute
   '/master/events/': typeof MasterEventsIndexRoute
+  '/master/workshops/': typeof MasterWorkshopsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,8 +187,10 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/api/auth/$'
     | '/master/events/$id'
+    | '/master/workshops/$id'
     | '/api/razorpay'
     | '/master/events'
+    | '/master/workshops'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,8 +206,10 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/api/auth/$'
     | '/master/events/$id'
+    | '/master/workshops/$id'
     | '/api/razorpay'
     | '/master/events'
+    | '/master/workshops'
   id:
     | '__root__'
     | '/'
@@ -203,8 +225,10 @@ export interface FileRouteTypes {
     | '/tickets/'
     | '/api/auth/$'
     | '/master/events/$id'
+    | '/master/workshops/$id'
     | '/api/razorpay/'
     | '/master/events/'
+    | '/master/workshops/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -221,8 +245,10 @@ export interface RootRouteChildren {
   TicketsIndexRoute: typeof TicketsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   MasterEventsIdRoute: typeof MasterEventsIdRoute
+  MasterWorkshopsIdRoute: typeof MasterWorkshopsIdRoute
   ApiRazorpayIndexRoute: typeof ApiRazorpayIndexRoute
   MasterEventsIndexRoute: typeof MasterEventsIndexRoute
+  MasterWorkshopsIndexRoute: typeof MasterWorkshopsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -304,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/master/workshops/': {
+      id: '/master/workshops/'
+      path: '/master/workshops'
+      fullPath: '/master/workshops'
+      preLoaderRoute: typeof MasterWorkshopsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/master/events/': {
       id: '/master/events/'
       path: '/master/events'
@@ -316,6 +349,13 @@ declare module '@tanstack/react-router' {
       path: '/api/razorpay'
       fullPath: '/api/razorpay'
       preLoaderRoute: typeof ApiRazorpayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master/workshops/$id': {
+      id: '/master/workshops/$id'
+      path: '/master/workshops/$id'
+      fullPath: '/master/workshops/$id'
+      preLoaderRoute: typeof MasterWorkshopsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master/events/$id': {
@@ -349,8 +389,10 @@ const rootRouteChildren: RootRouteChildren = {
   TicketsIndexRoute: TicketsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   MasterEventsIdRoute: MasterEventsIdRoute,
+  MasterWorkshopsIdRoute: MasterWorkshopsIdRoute,
   ApiRazorpayIndexRoute: ApiRazorpayIndexRoute,
   MasterEventsIndexRoute: MasterEventsIndexRoute,
+  MasterWorkshopsIndexRoute: MasterWorkshopsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,4 +1,4 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { getUserData, UserDataHeader } from "@/server/admin.master";
 
@@ -8,13 +8,35 @@ const masterUsersQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/master/users")({
-	loader: async ({ context }) =>
-		context.queryClient.ensureQueryData(masterUsersQueryOptions),
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: users } = useSuspenseQuery(masterUsersQueryOptions);
+	const { data: users, isLoading, isError } = useQuery(masterUsersQueryOptions);
+
+	if (isLoading) {
+		return (
+			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+				Loading users...
+			</div>
+		);
+	}
+
+	if (isError) {
+		return (
+			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+				Failed to load users.
+			</div>
+		);
+	}
+
+	if (!users) {
+		return (
+			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+				No users found.
+			</div>
+		);
+	}
 
 	return (
 		<div className="mt-6 overflow-x-auto rounded-md border border-border bg-card">

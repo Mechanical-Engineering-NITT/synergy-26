@@ -7,7 +7,7 @@ import { registrations, workshops } from "@/db/schema";
 import {
 	getCurrentSession,
 	parseAndThrow,
-	requireAdminMasterUser,
+	requireAdminUser,
 } from "@/lib/utils";
 
 export const getAllWorkshops = createServerFn({ method: "GET" }).handler(
@@ -41,7 +41,7 @@ export const getAllWorkshops = createServerFn({ method: "GET" }).handler(
 export const createWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(WorkshopInputSchema)
 	.handler(async ({ data }) => {
-		await requireAdminMasterUser();
+		await requireAdminUser(["ADMIN-MASTER"]);
 
 		const parsedData = parseAndThrow(data, WorkshopInputSchema);
 
@@ -62,7 +62,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		await requireAdminMasterUser();
+		await requireAdminUser(["ADMIN-MASTER"]);
 
 		const { id, data: workshopData } = data;
 		const parsedData = parseAndThrow(workshopData, WorkshopInputSchema);

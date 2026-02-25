@@ -5,6 +5,7 @@ import { type ClassValue, clsx } from "clsx";
 import { eq } from "drizzle-orm";
 import { twMerge } from "tailwind-merge";
 import type { ZodType } from "zod";
+import { z } from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { auth } from "@/lib/auth";
@@ -20,6 +21,21 @@ export const getCurrentSession = createServerFn({ method: "GET" }).handler(
 		return response;
 	},
 );
+
+export const getCurrentUserRole = createServerFn({ method: "GET" })
+	.inputValidator(z.object({ id: z.string() }))
+	.handler(async ({ data }) => {
+		const [dbUser] = await db
+			.select({
+				id: user.id,
+				role: user.role,
+			})
+			.from(user)
+			.where(eq(user.id, data.id))
+			.limit(1);
+
+		return dbUser?.role;
+	});
 
 export const enforceOnboarding = async () => {
 	const session = await getCurrentSession();
@@ -46,61 +62,27 @@ export const requireOnBoardedUser = async () => {
 	return session.user;
 };
 
-export const requireAdminPRUser = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await getCurrentSession();
-		if (!session) {
-			throw redirect({
-				to: "/",
-			});
-		}
+export const requireAdminUser = async (
+	roles: "ADMIN-PR" | "ADMIN-MASTER" | Array<"ADMIN-PR" | "ADMIN-MASTER">,
+) => {
+	const session = await getCurrentSession();
+	if (!session) {
+		throw redirect({
+			to: "/",
+		});
+	}
+	const allowedRoles = Array.isArray(roles) ? roles : [roles];
+	const role = await getCurrentUserRole({ data: { id: session.user.id } });
+	const isAdminRole = role === "ADMIN-PR" || role === "ADMIN-MASTER";
 
-		const [dbUser] = await db
-			.select({
-				id: user.id,
-				role: user.role,
-			})
-			.from(user)
-			.where(eq(user.id, session.user.id))
-			.limit(1);
+	if (!role || !isAdminRole || !allowedRoles.includes(role)) {
+		throw redirect({
+			to: "/",
+		});
+	}
 
-		if (!dbUser || !["ADMIN-PR", "ADMIN-MASTER"].includes(dbUser.role)) {
-			throw redirect({
-				to: "/",
-			});
-		}
-
-		return dbUser;
-	},
-);
-
-export const requireAdminMasterUser = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await getCurrentSession();
-		if (!session) {
-			throw redirect({
-				to: "/",
-			});
-		}
-
-		const [dbUser] = await db
-			.select({
-				id: user.id,
-				role: user.role,
-			})
-			.from(user)
-			.where(eq(user.id, session.user.id))
-			.limit(1);
-
-		if (!dbUser || dbUser.role !== "ADMIN-MASTER") {
-			throw redirect({
-				to: "/",
-			});
-		}
-
-		return dbUser;
-	},
-);
+	return session.user;
+};
 
 export function parseAndThrow<T>(data: T, schema: ZodType<T>) {
 	const parsedData = schema.safeParse(data);

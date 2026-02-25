@@ -6,7 +6,7 @@ import { events, registrations } from "@/db/schema";
 import {
 	getCurrentSession,
 	parseAndThrow,
-	requireAdminMasterUser,
+	requireAdminUser,
 	requireOnBoardedUser,
 } from "@/lib/utils";
 import { hasEventPass } from "./razorpay";
@@ -84,7 +84,7 @@ const EventInputSchema = z.object({
 export const createEvent = createServerFn({ method: "POST" })
 	.inputValidator(EventInputSchema)
 	.handler(async ({ data }) => {
-		await requireAdminMasterUser();
+		await requireAdminUser(["ADMIN-MASTER"]);
 
 		const parsedData = parseAndThrow(data, EventInputSchema);
 
@@ -104,7 +104,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		await requireAdminMasterUser();
+		await requireAdminUser(["ADMIN-MASTER"]);
 
 		const { id, data: eventData } = data;
 		const parsedData = parseAndThrow(eventData, EventInputSchema);

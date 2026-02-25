@@ -1,9 +1,9 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { requireAdminMasterUser } from "@/lib/utils";
+import { requireAdminUser } from "@/lib/utils";
 
 export const Route = createFileRoute("/master/")({
 	loader: async () => {
-		await requireAdminMasterUser();
+		await requireAdminUser("ADMIN-MASTER");
 	},
 	component: RouteComponent,
 });
@@ -13,7 +13,7 @@ function RouteComponent() {
 		<div className="min-h-screen bg-background text-foreground p-6">
 			<div className="mx-auto max-w-6xl space-y-6">
 				<h1 className="text-3xl font-semibold">Master</h1>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<Link
 						to="/master/users"
 						className="block rounded-lg border border-border bg-card p-6 transition-colors hover:bg-muted/40"
@@ -30,6 +30,15 @@ function RouteComponent() {
 						<h2 className="text-xl font-medium">Events</h2>
 						<p className="mt-2 text-sm text-muted-foreground">
 							View and manage events data.
+						</p>
+					</Link>
+					<Link
+						to="/master/workshops"
+						className="block rounded-lg border border-border bg-card p-6 transition-colors hover:bg-muted/40"
+					>
+						<h2 className="text-xl font-medium">Workshops</h2>
+						<p className="mt-2 text-sm text-muted-foreground">
+							View and manage workshops data.
 						</p>
 					</Link>
 				</div>

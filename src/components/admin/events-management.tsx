@@ -1,11 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CreateEventForm } from "@/components/forms/create-event";
 import { EditEventForm } from "@/components/forms/edit-event";
 import { getAllEvents } from "@/server/event";
 
 export function EventsManagement() {
-	const queryClient = useQueryClient();
 	const [editingId, setEditingId] = useState<number | null>(null);
 
 	const { data: events = { events: [] }, isLoading } = useQuery({
@@ -42,13 +41,7 @@ export function EventsManagement() {
 								{editingId === event.id && eventToEdit ? (
 									<div className="space-y-4">
 										<h4 className="text-lg font-semibold">Edit Event</h4>
-										<EditEventForm
-											event={eventToEdit}
-											onSuccess={() => {
-												setEditingId(null);
-												queryClient.invalidateQueries({ queryKey: ["events"] });
-											}}
-										/>
+										<EditEventForm event={eventToEdit} />
 										<button
 											type="button"
 											onClick={() => setEditingId(null)}

@@ -1,27 +1,27 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { EventDataHeader, getEventData } from "@/server/admin.master";
+import { getWorkshopData, WorkshopDataHeader } from "@/server/admin.master";
 
-const masterEventsQueryOptions = queryOptions({
-	queryKey: ["master", "events"],
-	queryFn: () => getEventData(),
+const masterWorkshopsQueryOptions = queryOptions({
+	queryKey: ["master", "workshops"],
+	queryFn: () => getWorkshopData(),
 });
 
-export const Route = createFileRoute("/master/events/")({
+export const Route = createFileRoute("/master/workshops/")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const {
-		data: events,
+		data: workshops,
 		isLoading,
 		isError,
-	} = useQuery(masterEventsQueryOptions);
+	} = useQuery(masterWorkshopsQueryOptions);
 
 	if (isLoading) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				Loading events...
+				Loading workshops...
 			</div>
 		);
 	}
@@ -29,15 +29,15 @@ function RouteComponent() {
 	if (isError) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				Failed to load events.
+				Failed to load workshops.
 			</div>
 		);
 	}
 
-	if (!events) {
+	if (!workshops) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				No events found.
+				No workshops found.
 			</div>
 		);
 	}
@@ -47,7 +47,7 @@ function RouteComponent() {
 			<table className="min-w-full text-sm">
 				<thead className="bg-muted/40">
 					<tr>
-						{EventDataHeader.map((header) => (
+						{WorkshopDataHeader.map((header) => (
 							<th key={header} className="px-3 py-2 text-left font-medium">
 								{header}
 							</th>
@@ -56,20 +56,21 @@ function RouteComponent() {
 					</tr>
 				</thead>
 				<tbody>
-					{events.map((event) => (
-						<tr key={event.id} className="border-t border-border">
-							<td className="px-3 py-2 whitespace-nowrap">{event.id}</td>
-							<td className="px-3 py-2 whitespace-nowrap">{event.title}</td>
+					{workshops.map((workshop) => (
+						<tr key={workshop.id} className="border-t border-border">
+							<td className="px-3 py-2 whitespace-nowrap">{workshop.id}</td>
+							<td className="px-3 py-2 whitespace-nowrap">{workshop.title}</td>
 							<td className="px-3 py-2 whitespace-nowrap">
-								{event.time ? new Date(event.time).toLocaleString() : ""}
+								{workshop.time ? new Date(workshop.time).toLocaleString() : ""}
 							</td>
+							<td className="px-3 py-2 whitespace-nowrap">{workshop.price}</td>
 							<td className="px-3 py-2 whitespace-nowrap">
-								{event.registered_users}
+								{workshop.registered_users}
 							</td>
 							<td className="px-3 py-2 whitespace-nowrap">
 								<Link
-									to="/master/events/$id"
-									params={{ id: String(event.id) }}
+									to="/master/workshops/$id"
+									params={{ id: String(workshop.id) }}
 									className="text-primary underline-offset-4 hover:underline"
 								>
 									View

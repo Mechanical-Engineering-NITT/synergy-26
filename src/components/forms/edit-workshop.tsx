@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: all ids are unique */
 /** biome-ignore-all lint/correctness/noChildrenProp: using tanstack forms */
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { updateWorkshop } from "@/server/workshop";
 
@@ -23,16 +23,16 @@ interface EditWorkshopFormProps {
 		location: string;
 		price: string;
 	};
-	onSuccess?: () => void;
 }
 
-export function EditWorkshopForm({
-	workshop,
-	onSuccess,
-}: EditWorkshopFormProps) {
+export function EditWorkshopForm({ workshop }: EditWorkshopFormProps) {
+	const queryClient = useQueryClient();
 	const mutation = useMutation({
 		mutationFn: updateWorkshop,
-		onSuccess,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["events"] });
+			form.reset();
+		},
 	});
 
 	const workshopDate = new Date(workshop.time);

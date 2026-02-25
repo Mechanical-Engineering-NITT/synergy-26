@@ -1,6 +1,6 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { cn, requireAdminPRUser } from "@/lib/utils";
+import { cn, requireAdminUser } from "@/lib/utils";
 import { getPRData, prHeaderRow } from "@/server/admin.pr";
 
 const prDataQueryOptions = queryOptions({
@@ -9,15 +9,45 @@ const prDataQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/pr/")({
-	loader: async ({ context }) => {
-		await requireAdminPRUser();
-		return context.queryClient.ensureQueryData(prDataQueryOptions);
+	loader: async () => {
+		await requireAdminUser(["ADMIN-PR", "ADMIN-MASTER"]);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: prData } = useSuspenseQuery(prDataQueryOptions);
+	const { data: prData, isLoading, isError } = useQuery(prDataQueryOptions);
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					Loading PR dataset...
+				</div>
+			</div>
+		);
+	}
+
+	if (isError) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					Failed to load PR dataset.
+				</div>
+			</div>
+		);
+	}
+
+	if (!prData) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					No PR dataset found.
+				</div>
+			</div>
+		);
+	}
+
 	const rows = prData.data.rows;
 
 	const eventIds = Array.from(

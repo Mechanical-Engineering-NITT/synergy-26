@@ -3,10 +3,10 @@ import { and, eq, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { customUser, events, payments, workshops } from "@/db/schema";
-import { requireAdminPRUser } from "@/lib/utils";
+import { requireAdminUser } from "@/lib/utils";
 
 export const getPRData = createServerFn({ method: "GET" }).handler(async () => {
-	await requireAdminPRUser();
+	await requireAdminUser(["ADMIN-PR", "ADMIN-MASTER"]);
 
 	try {
 		const userData = await db

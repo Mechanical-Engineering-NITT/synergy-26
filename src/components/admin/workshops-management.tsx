@@ -1,11 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getAllWorkshops } from "@/server/workshop";
 import { CreateWorkshopForm } from "../forms/create-workshop";
 import { EditWorkshopForm } from "../forms/edit-workshop";
 
 export function WorkshopsManagement() {
-	const queryClient = useQueryClient();
 	const [editingId, setEditingId] = useState<number | null>(null);
 
 	const { data: workshops = [], isLoading } = useQuery({
@@ -42,15 +41,7 @@ export function WorkshopsManagement() {
 								{editingId === workshop.id && workshopToEdit ? (
 									<div className="space-y-4">
 										<h4 className="text-lg font-semibold">Edit Workshop</h4>
-										<EditWorkshopForm
-											workshop={workshopToEdit}
-											onSuccess={() => {
-												setEditingId(null);
-												queryClient.invalidateQueries({
-													queryKey: ["workshops"],
-												});
-											}}
-										/>
+										<EditWorkshopForm workshop={workshopToEdit} />
 										<button
 											type="button"
 											onClick={() => setEditingId(null)}

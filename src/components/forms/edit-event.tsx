@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: all ids are unique */
 /** biome-ignore-all lint/correctness/noChildrenProp: using tanstack forms */
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { updateEvent } from "@/server/event";
 
@@ -21,13 +21,16 @@ interface EditEventFormProps {
 		time: Date;
 		location: string;
 	};
-	onSuccess?: () => void;
 }
 
-export function EditEventForm({ event, onSuccess }: EditEventFormProps) {
+export function EditEventForm({ event }: EditEventFormProps) {
+	const queryClient = useQueryClient();
 	const mutation = useMutation({
 		mutationFn: updateEvent,
-		onSuccess,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["events"] });
+			form.reset();
+		},
 	});
 
 	const eventDate = new Date(event.time);
