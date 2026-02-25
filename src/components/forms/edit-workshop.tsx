@@ -19,7 +19,7 @@ interface EditWorkshopFormProps {
 		id: number;
 		title: string;
 		description: string;
-		time: Date;
+		time: string;
 		location: string;
 		price: string;
 	};

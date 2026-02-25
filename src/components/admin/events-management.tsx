@@ -59,7 +59,7 @@ export function EventsManagement() {
 										<div className="grid grid-cols-2 gap-2 mt-2 text-sm">
 											<p>
 												<span className="font-semibold">Time:</span>{" "}
-												{new Date(event.time).toLocaleString()}
+												{event.time}
 											</p>
 											<p>
 												<span className="font-semibold">Location:</span>{" "}

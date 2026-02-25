@@ -8,7 +8,6 @@ import { updateEvent } from "@/server/event";
 const EditEventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	date: z.string().min(1, "Date is required"), // YYYY-MM-DD
 	time: z.string().min(1, "Time is required"), // HH:MM
 	location: z.string().min(1, "Location is required"),
 });
@@ -18,7 +17,7 @@ interface EditEventFormProps {
 		id: number;
 		title: string;
 		description: string;
-		time: Date;
+		time: string;
 		location: string;
 	};
 }
@@ -33,26 +32,18 @@ export function EditEventForm({ event }: EditEventFormProps) {
 		},
 	});
 
-	const eventDate = new Date(event.time);
 	const form = useForm({
 		defaultValues: {
 			title: event.title,
 			description: event.description,
-			date: eventDate.toISOString().split("T")[0], // YYYY-MM-DD
-			time: eventDate.toTimeString().slice(0, 5), // HH:MM
+			time: event.time,
 			location: event.location,
 		} as z.infer<typeof EditEventInputSchema>,
 		onSubmit: async ({ value }) => {
-			// Combine date and time into ISO datetime string
-			const { date, time, ...rest } = value;
-			const combinedDateTime = new Date(`${date}T${time}`).toISOString();
 			await mutation.mutateAsync({
 				data: {
 					id: event.id,
-					data: {
-						...rest,
-						time: combinedDateTime,
-					},
+					data: value,
 				},
 			});
 		},
@@ -122,34 +113,6 @@ export function EditEventForm({ event }: EditEventFormProps) {
 				)}
 			/>
 			<form.Field
-				name="date"
-				validators={{
-					onBlur: ({ fieldApi }) => {
-						const errors = fieldApi.parseValueWithSchema(
-							EditEventInputSchema.shape.date,
-						);
-						return errors;
-					},
-				}}
-				children={(field) => (
-					<>
-						<label htmlFor="date">Date</label>
-						<input
-							id="date"
-							type="date"
-							value={field.state.value ?? ""}
-							onBlur={field.handleBlur}
-							onChange={(e) => field.handleChange(e.target.value)}
-						/>
-						{!field.state.meta.isValid && (
-							<p className="text-red-500 text-sm">
-								{field.state.meta.errors.map((e) => e?.message).join(", ")}
-							</p>
-						)}
-					</>
-				)}
-			/>
-			<form.Field
 				name="time"
 				validators={{
 					onBlur: ({ fieldApi }) => {
@@ -164,7 +127,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
 						<label htmlFor="time">Time</label>
 						<input
 							id="time"
-							type="time"
+							type="text"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}

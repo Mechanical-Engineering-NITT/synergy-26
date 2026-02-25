@@ -3,18 +3,8 @@ export default function PricingComparison() {
 		// biome-ignore lint: Static ID is required for anchor scrolling
 		<section
 			id="pricing"
-			className="min-h-[80vh] bg-[#090521] overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
+			className="min-h-[80vh] overflow-hidden relative font-sans text-white selection:bg-[#9D00FF]/30"
 		>
-			{/* Background Image Layer */}
-			<div className="absolute inset-0 z-0">
-				<img
-					src="/ewbg.webp"
-					alt="Background"
-					className="w-full h-full object-cover rotate-180 scale-x-[-1]"
-				/>
-				<div className="absolute inset-0 bg-black/40"></div>
-			</div>
-
 			<div className="relative z-10 p-6 max-w-6xl mx-auto py-20">
 				<div className="text-center mb-12">
 					<h1

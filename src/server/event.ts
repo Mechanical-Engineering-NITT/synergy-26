@@ -77,7 +77,7 @@ export const registerForEvent = createServerFn({ method: "POST" })
 const EventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	time: z.iso.datetime("Time is required"),
+	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 });
 
@@ -91,7 +91,7 @@ export const createEvent = createServerFn({ method: "POST" })
 		await db.insert(events).values({
 			title: parsedData.title,
 			description: parsedData.description,
-			time: new Date(parsedData.time),
+			time: parsedData.time,
 			location: parsedData.location,
 		});
 	});
@@ -114,7 +114,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 			.set({
 				title: parsedData.title,
 				description: parsedData.description,
-				time: new Date(parsedData.time),
+				time: parsedData.time,
 				location: parsedData.location,
 			})
 			.where(eq(events.id, id));
