@@ -8,6 +8,7 @@ import { createWorkshop } from "@/server/workshop";
 export const WorkshopInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
@@ -16,6 +17,7 @@ export const WorkshopInputSchema = z.object({
 const CreateWorkshopInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
@@ -36,6 +38,7 @@ export function CreateWorkshopForm() {
 		defaultValues: {
 			title: "",
 			description: "",
+			longDescription: "",
 			time: "",
 			location: "",
 			price: "",
@@ -142,6 +145,39 @@ export function CreateWorkshopForm() {
 						</label>
 						<textarea
 							id="workshop-time"
+							value={field.state.value ?? ""}
+							onBlur={field.handleBlur}
+							onChange={(e) => field.handleChange(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
+						/>
+						{!field.state.meta.isValid && (
+							<p className="text-red-500 text-sm mt-1">
+								{field.state.meta.errors.map((e) => e?.message).join(", ")}
+							</p>
+						)}
+					</>
+				)}
+			/>
+			<form.Field
+				name="longDescription"
+				validators={{
+					onBlur: ({ fieldApi }) => {
+						const errors = fieldApi.parseValueWithSchema(
+							CreateWorkshopInputSchema.shape.longDescription,
+						);
+						return errors;
+					},
+				}}
+				children={(field) => (
+					<>
+						<label
+							htmlFor="workshop-long-description"
+							className="block text-sm font-medium mb-1.5"
+						>
+							Long Description
+						</label>
+						<textarea
+							id="workshop-long-description"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}

@@ -48,6 +48,7 @@ export const createWorkshop = createServerFn({ method: "POST" })
 		await db.insert(workshops).values({
 			title: parsedData.title,
 			description: parsedData.description,
+			longDescription: parsedData.longDescription,
 			time: parsedData.time,
 			location: parsedData.location,
 			price: parsedData.price,
@@ -72,6 +73,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 			.set({
 				title: parsedData.title,
 				description: parsedData.description,
+				longDescription: parsedData.longDescription,
 				time: parsedData.time,
 				location: parsedData.location,
 				price: parsedData.price,

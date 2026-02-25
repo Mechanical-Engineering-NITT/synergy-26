@@ -8,6 +8,7 @@ import { createEvent } from "@/server/event";
 export const EventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 });
@@ -15,6 +16,7 @@ export const EventInputSchema = z.object({
 const CreateEventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
+	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 });
@@ -34,6 +36,7 @@ export function CreateEventForm() {
 		defaultValues: {
 			title: "",
 			description: "",
+			longDescription: "",
 			time: "",
 			location: "",
 		} as z.infer<typeof CreateEventInputSchema>,
@@ -133,6 +136,39 @@ export function CreateEventForm() {
 						</label>
 						<textarea
 							id="time"
+							value={field.state.value ?? ""}
+							onBlur={field.handleBlur}
+							onChange={(e) => field.handleChange(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-vertical min-h-32"
+						/>
+						{!field.state.meta.isValid && (
+							<p className="text-red-500 text-sm mt-1">
+								{field.state.meta.errors.map((e) => e?.message).join(", ")}
+							</p>
+						)}
+					</>
+				)}
+			/>
+			<form.Field
+				name="longDescription"
+				validators={{
+					onBlur: ({ fieldApi }) => {
+						const errors = fieldApi.parseValueWithSchema(
+							CreateEventInputSchema.shape.longDescription,
+						);
+						return errors;
+					},
+				}}
+				children={(field) => (
+					<>
+						<label
+							htmlFor="long-description"
+							className="block text-sm font-medium mb-1.5"
+						>
+							Long Description
+						</label>
+						<textarea
+							id="long-description"
 							value={field.state.value ?? ""}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
