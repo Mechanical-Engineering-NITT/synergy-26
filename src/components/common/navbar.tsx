@@ -30,7 +30,7 @@ export default function Navbar({
 		{ name: "What's New", href: "#pricing" },
 		{ name: "Events", href: "#events" },
 		{ name: "Workshops", href: "#workshops" },
-		{ name: "Reel Challenge", href: "#reel-challenge" },
+		{ name: "Pre-Fest", href: "#pre-fest" },
 		{ name: "Accommodation", href: "#accommodation" },
 	];
 
@@ -54,7 +54,7 @@ export default function Navbar({
 					: "bg-transparent py-3"
 			}`}
 		>
-			<div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
+			<div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-12">
 					{/* Logo & Links Group */}
 					<div className="flex items-center gap-6 xl:gap-10">

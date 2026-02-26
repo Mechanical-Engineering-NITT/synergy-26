@@ -13,12 +13,16 @@ import { hasEventPass } from "./razorpay";
 
 export const getAllEvents = createServerFn({ method: "GET" }).handler(
 	async () => {
+		// event id 8 is prefest event
+
 		const session = await getCurrentSession();
 		const allEvents = await db.select().from(events);
 
 		if (!session) {
 			return {
-				events: allEvents.map((event) => ({ ...event, isRegistered: false })),
+				events: allEvents
+					.filter((event) => event.id !== 8)
+					.map((event) => ({ ...event, isRegistered: false })),
 				hasEventPass: false,
 			};
 		}
@@ -35,10 +39,12 @@ export const getAllEvents = createServerFn({ method: "GET" }).handler(
 		const userHasPass = await hasEventPass(session.user.id);
 
 		return {
-			events: allEvents.map((event) => ({
-				...event,
-				isRegistered: eventIds.has(event.id),
-			})),
+			events: allEvents
+				.filter((event) => event.id !== 8)
+				.map((event) => ({
+					...event,
+					isRegistered: eventIds.has(event.id),
+				})),
 			hasEventPass: userHasPass,
 		};
 	},
@@ -73,6 +79,55 @@ export const registerForEvent = createServerFn({ method: "POST" })
 			eventId: data.eventId,
 		});
 	});
+
+export const registerForPreFestWorkshop = createServerFn({
+	method: "POST",
+}).handler(async () => {
+	const user = await requireOnBoardedUser();
+	// hard coded specific pre-fest event
+	const eventId = 8;
+
+	const existing = await db
+		.select()
+		.from(registrations)
+		.where(
+			and(
+				eq(registrations.userId, user.id),
+				eq(registrations.eventId, eventId),
+			),
+		);
+
+	if (existing.length > 0) {
+		throw new Error("Already registered for this event");
+	}
+
+	await db.insert(registrations).values({
+		userId: user.id,
+		eventId: eventId,
+	});
+});
+
+export const getPreFestRegistrationStatus = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	const session = await getCurrentSession();
+	if (!session) return { isRegistered: false };
+
+	// hard coded specific pre-fest event
+	const eventId = 8;
+
+	const existing = await db
+		.select()
+		.from(registrations)
+		.where(
+			and(
+				eq(registrations.userId, session.user.id),
+				eq(registrations.eventId, eventId),
+			),
+		);
+
+	return { isRegistered: existing.length > 0 };
+});
 
 const EventInputSchema = z.object({
 	title: z.string().min(1, "Title is required"),
