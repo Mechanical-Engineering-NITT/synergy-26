@@ -1,65 +1,41 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { requireAdminUser } from "@/lib/utils";
-import {
-	getPaginatedUserDetails,
-	getPaginatedUsers,
-} from "@/server/admin/admin.pr";
+import { getPrUserDetails, getPrUsers } from "@/server/admin/admin.pr";
 
-const PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 25;
+const REFRESH_INTERVAL_MS = 1000 * 60 * 5;
 
-const adminUsersQueryOptions = (page: number, limit: number) =>
+const prUsersQueryOptions = () =>
 	queryOptions({
-		queryKey: ["admin", "pr", "users", page, limit],
-		queryFn: () => getPaginatedUsers({ data: { page, limit } }),
+		queryKey: ["pr-users"],
+		queryFn: () => getPrUsers(),
+		staleTime: REFRESH_INTERVAL_MS,
+		refetchInterval: REFRESH_INTERVAL_MS,
+		refetchOnWindowFocus: true,
 	});
 
-const adminUserDetailsQueryOptions = (userId: string) =>
+const prUserDetailsQueryOptions = (userId: string) =>
 	queryOptions({
-		queryKey: ["admin", "pr", "user-details", userId],
-		queryFn: () => getPaginatedUserDetails({ data: { userId } }),
+		queryKey: ["pr", "user-details", userId],
+		queryFn: () => getPrUserDetails({ data: { userId } }),
 		enabled: userId.length > 0,
 	});
 
 export const Route = createFileRoute("/pr/")({
-	validateSearch: (search: { page?: unknown; limit?: unknown } | undefined) => {
-		const pageValue = Number(search?.page);
-		const limitValue = Number(search?.limit);
-
-		const page = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
-		const limit =
-			Number.isFinite(limitValue) && limitValue > 0 && limitValue <= 100
-				? limitValue
-				: PAGE_SIZE;
-
-		return { page, limit };
-	},
-	loaderDeps: ({ search }) => ({
-		page: search.page,
-		limit: search.limit,
-	}),
-	loader: async ({ deps }) => {
+	loader: async () => {
 		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
-		const page = deps.page;
-		const limit = deps.limit;
-		const initialUsers = await getPaginatedUsers({
-			data: { page, limit },
-		});
-
-		return {
-			initialUsers,
-		};
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { initialUsers } = Route.useLoaderData();
-	const search = Route.useSearch();
-	const navigate = useNavigate({ from: Route.fullPath });
-	const page = search?.page ?? 1;
-	const limit = search?.limit ?? PAGE_SIZE;
+	Route.useLoaderData();
+	const [searchInput, setSearchInput] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState("profile");
 
@@ -67,13 +43,11 @@ function RouteComponent() {
 		data: usersData,
 		isLoading: isUsersLoading,
 		isError: isUsersError,
+		isFetching: isUsersFetching,
+		error: usersError,
+		refetch: refetchPrUsers,
 	} = useQuery({
-		...adminUsersQueryOptions(page, limit),
-		initialData:
-			page === initialUsers.data.pagination.page &&
-			limit === initialUsers.data.pagination.limit
-				? initialUsers
-				: undefined,
+		...prUsersQueryOptions(),
 	});
 
 	const {
@@ -81,11 +55,64 @@ function RouteComponent() {
 		isLoading: isDetailsLoading,
 		isError: isDetailsError,
 	} = useQuery({
-		...adminUserDetailsQueryOptions(selectedUserId ?? ""),
+		...prUserDetailsQueryOptions(selectedUserId ?? ""),
 	});
 
-	const rows = usersData?.data.rows ?? [];
-	const pagination = usersData?.data.pagination;
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setDebouncedSearch(searchInput.trim());
+		}, 450);
+
+		return () => clearTimeout(timeout);
+	}, [searchInput]);
+
+	const handleSearchInputChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			setSearchInput(event.target.value);
+			setCurrentPage(1);
+		},
+		[],
+	);
+
+	const handleSearchClear = useCallback(() => {
+		setSearchInput("");
+		setDebouncedSearch("");
+		setCurrentPage(1);
+	}, []);
+
+	const handlePageSizeChange = useCallback((value: number) => {
+		setPageSize(value);
+		setCurrentPage(1);
+	}, []);
+
+	const users = usersData?.data.rows ?? [];
+	const filteredUsers = useMemo(() => {
+		if (!debouncedSearch) {
+			return users;
+		}
+
+		const loweredSearch = debouncedSearch.toLowerCase();
+		return users.filter((currentUser) =>
+			currentUser.email.toLowerCase().includes(loweredSearch),
+		);
+	}, [users, debouncedSearch]);
+
+	const totalResults = filteredUsers.length;
+	const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+	const safeCurrentPage = Math.min(currentPage, totalPages);
+
+	const paginatedUsers = useMemo(() => {
+		const start = (safeCurrentPage - 1) * pageSize;
+		return filteredUsers.slice(start, start + pageSize);
+	}, [filteredUsers, safeCurrentPage, pageSize]);
+
+	const rangeStart =
+		totalResults === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+	const rangeEnd = Math.min(safeCurrentPage * pageSize, totalResults);
+	const usersErrorMessage =
+		usersError instanceof Error
+			? usersError.message
+			: "Failed to load admin users.";
 
 	if (isUsersLoading) {
 		return (
@@ -101,13 +128,13 @@ function RouteComponent() {
 		return (
 			<div className="min-h-screen bg-background text-foreground p-6">
 				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					Failed to load admin users.
+					{usersErrorMessage}
 				</div>
 			</div>
 		);
 	}
 
-	if (!usersData || !pagination) {
+	if (!usersData) {
 		return (
 			<div className="min-h-screen bg-background text-foreground p-6">
 				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
@@ -120,11 +147,30 @@ function RouteComponent() {
 	return (
 		<div className="min-h-screen bg-background text-foreground p-6">
 			<div className="mx-auto max-w-7xl space-y-4">
+				<PrUserSearchBar
+					searchInput={searchInput}
+					onSearchInputChange={handleSearchInputChange}
+					onClear={handleSearchClear}
+					isSearchLoading={searchInput !== debouncedSearch}
+				/>
+
 				<div className="flex items-center justify-between gap-3">
-					<h1 className="text-2xl font-semibold">PR Admin Users</h1>
-					<p className="text-sm text-muted-foreground">
-						Page {pagination.page} of {pagination.totalPages}
-					</p>
+					<div>
+						<h1 className="text-2xl font-semibold">PR Admin Users</h1>
+						<p className="text-sm text-muted-foreground">
+							Showing {rangeStart}-{rangeEnd} of {totalResults} users
+						</p>
+					</div>
+					<button
+						type="button"
+						onClick={() => {
+							refetchPrUsers();
+						}}
+						disabled={isUsersFetching}
+						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isUsersFetching ? "Refreshing..." : "Refresh"}
+					</button>
 				</div>
 
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
@@ -147,7 +193,7 @@ function RouteComponent() {
 							</tr>
 						</thead>
 						<tbody>
-							{rows.map((row) => (
+							{paginatedUsers.map((row) => (
 								<tr key={row.id} className="border-t border-border">
 									<td className="px-3 py-2 whitespace-nowrap">
 										{row.fullname ?? "-"}
@@ -183,47 +229,26 @@ function RouteComponent() {
 					</table>
 				</div>
 
-				<div className="flex items-center justify-between gap-3">
-					<p className="text-sm text-muted-foreground">
-						{pagination.totalUsers} users total
-					</p>
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={() =>
-								navigate({
-									search: {
-										page: Math.max(1, page - 1),
-										limit,
-									},
-								})
-							}
-							disabled={page <= 1}
-							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							Previous
-						</button>
-						<button
-							type="button"
-							onClick={() =>
-								navigate({
-									search: {
-										page: Math.min(pagination.totalPages, page + 1),
-										limit,
-									},
-								})
-							}
-							disabled={page >= pagination.totalPages}
-							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							Next
-						</button>
+				{filteredUsers.length === 0 ? (
+					<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+						No user found.
 					</div>
-				</div>
+				) : null}
+
+				<PrUsersPagination
+					currentPage={safeCurrentPage}
+					totalPages={totalPages}
+					pageSize={pageSize}
+					onPageSizeChange={handlePageSizeChange}
+					onPrevious={() => setCurrentPage((value) => Math.max(1, value - 1))}
+					onNext={() =>
+						setCurrentPage((value) => Math.min(totalPages, value + 1))
+					}
+				/>
 			</div>
 
 			{selectedUserId ? (
-				<AdminUserDetailsModal
+				<PrUserDetailsModal
 					onClose={() => setSelectedUserId(null)}
 					activeTab={activeTab}
 					setActiveTab={setActiveTab}
@@ -236,7 +261,103 @@ function RouteComponent() {
 	);
 }
 
-function AdminUserDetailsModal({
+function PrUserSearchBar({
+	searchInput,
+	onSearchInputChange,
+	onClear,
+	isSearchLoading,
+}: {
+	searchInput: string;
+	onSearchInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+	onClear: () => void;
+	isSearchLoading: boolean;
+}) {
+	return (
+		<div className="rounded-md border border-border bg-card p-3">
+			<div className="flex flex-col gap-3 md:flex-row md:items-center">
+				<input
+					type="text"
+					value={searchInput}
+					onChange={onSearchInputChange}
+					placeholder="Search by email"
+					maxLength={200}
+					className="h-9 flex-1 rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+				/>
+				<div className="flex items-center gap-2">
+					<span className="text-sm text-muted-foreground">
+						{isSearchLoading ? "Searching..." : "Type to search"}
+					</span>
+					<button
+						type="button"
+						onClick={onClear}
+						disabled={searchInput.length === 0}
+						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						Clear
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function PrUsersPagination({
+	currentPage,
+	totalPages,
+	pageSize,
+	onPageSizeChange,
+	onPrevious,
+	onNext,
+}: {
+	currentPage: number;
+	totalPages: number;
+	pageSize: number;
+	onPageSizeChange: (value: number) => void;
+	onPrevious: () => void;
+	onNext: () => void;
+}) {
+	return (
+		<div className="flex flex-col gap-3 rounded-md border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
+			<div className="flex items-center gap-2 text-sm text-muted-foreground">
+				<span>Page size:</span>
+				<select
+					value={String(pageSize)}
+					onChange={(event) => onPageSizeChange(Number(event.target.value))}
+					className="h-8 rounded-md border border-border bg-background px-2 text-sm"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+				</select>
+			</div>
+
+			<div className="flex items-center gap-3">
+				<span className="text-sm text-muted-foreground">
+					Page {currentPage} of {totalPages}
+				</span>
+				<button
+					type="button"
+					onClick={onPrevious}
+					disabled={currentPage <= 1}
+					className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Previous
+				</button>
+				<button
+					type="button"
+					onClick={onNext}
+					disabled={currentPage >= totalPages}
+					className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Next
+				</button>
+			</div>
+		</div>
+	);
+}
+
+function PrUserDetailsModal({
 	onClose,
 	activeTab,
 	setActiveTab,
@@ -298,7 +419,7 @@ function AdminUserDetailsModal({
 					) : null}
 
 					{!isLoading && !isError && data ? (
-						<AdminUserDetailsTabs activeTab={activeTab} data={data} />
+						<PrUserDetailsTabs activeTab={activeTab} data={data} />
 					) : null}
 				</div>
 			</div>
@@ -306,7 +427,7 @@ function AdminUserDetailsModal({
 	);
 }
 
-function AdminUserDetailsTabs({
+function PrUserDetailsTabs({
 	activeTab,
 	data,
 }: {

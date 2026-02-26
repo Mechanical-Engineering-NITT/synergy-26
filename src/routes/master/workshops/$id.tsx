@@ -85,9 +85,6 @@ function RouteComponent() {
 		<div className="mt-6 space-y-6">
 			<div>
 				<h2 className="text-2xl font-semibold">{workshop.title}</h2>
-				<p className="text-sm text-muted-foreground">
-					{workshop.time ? new Date(workshop.time).toLocaleString() : ""}
-				</p>
 			</div>
 
 			<section>
@@ -108,11 +105,6 @@ function RouteComponent() {
 								<td className="px-3 py-2 whitespace-nowrap">{workshop.id}</td>
 								<td className="px-3 py-2 whitespace-nowrap">
 									{workshop.title}
-								</td>
-								<td className="px-3 py-2 whitespace-nowrap">
-									{workshop.time
-										? new Date(workshop.time).toLocaleString()
-										: ""}
 								</td>
 								<td className="px-3 py-2 whitespace-nowrap">
 									{workshop.price}

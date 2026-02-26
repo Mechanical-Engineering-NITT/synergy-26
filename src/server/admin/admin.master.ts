@@ -15,7 +15,6 @@ export const getEventData = createServerFn({ method: "GET" }).handler(
 				.select({
 					id: events.id,
 					title: events.title,
-					time: events.time,
 					registered_users: count(registrations.userId),
 				})
 				.from(events)
@@ -29,7 +28,7 @@ export const getEventData = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-export const EventDataHeader = ["ID", "Title", "Time", "Registered Users"];
+export const EventDataHeader = ["ID", "Title", "Registered Users"];
 
 export const getWorkshopData = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -40,7 +39,6 @@ export const getWorkshopData = createServerFn({ method: "GET" }).handler(
 				.select({
 					id: workshops.id,
 					title: workshops.title,
-					time: workshops.time,
 					price: workshops.price,
 					registered_users: count(registrations.userId),
 				})
@@ -55,13 +53,7 @@ export const getWorkshopData = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-export const WorkshopDataHeader = [
-	"ID",
-	"Title",
-	"Time",
-	"Price",
-	"Registered Users",
-];
+export const WorkshopDataHeader = ["ID", "Title", "Price", "Registered Users"];
 
 export const getUserData = createServerFn({ method: "GET" }).handler(
 	async () => {

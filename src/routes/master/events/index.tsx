@@ -65,9 +65,6 @@ function RouteComponent() {
 							<td className="px-3 py-2 whitespace-nowrap">{event.id}</td>
 							<td className="px-3 py-2 whitespace-nowrap">{event.title}</td>
 							<td className="px-3 py-2 whitespace-nowrap">
-								{event.time ? new Date(event.time).toLocaleString() : ""}
-							</td>
-							<td className="px-3 py-2 whitespace-nowrap">
 								{event.registered_users}
 							</td>
 							<td className="px-3 py-2 whitespace-nowrap">
