@@ -49,7 +49,7 @@ const WorkshopInputSchema = z.object({
 export const createWorkshop = createServerFn({ method: "POST" })
 	.inputValidator(WorkshopInputSchema)
 	.handler(async ({ data }) => {
-		await requireAdminUser({ data: { roles: ["ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["ADMIN"] } });
 
 		const parsedData = parseAndThrow(data, WorkshopInputSchema);
 
@@ -71,7 +71,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		await requireAdminUser({ data: { roles: ["ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["ADMIN"] } });
 
 		const { id, data: workshopData } = data;
 		const parsedData = parseAndThrow(workshopData, WorkshopInputSchema);

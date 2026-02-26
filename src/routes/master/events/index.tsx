@@ -10,7 +10,7 @@ const masterEventsQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/master/events/")({
 	loader: async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 	},
 	component: RouteComponent,
 });
@@ -64,9 +64,6 @@ function RouteComponent() {
 						<tr key={event.id} className="border-t border-border">
 							<td className="px-3 py-2 whitespace-nowrap">{event.id}</td>
 							<td className="px-3 py-2 whitespace-nowrap">{event.title}</td>
-							<td className="px-3 py-2 whitespace-nowrap">
-								{event.time ? new Date(event.time).toLocaleString() : ""}
-							</td>
 							<td className="px-3 py-2 whitespace-nowrap">
 								{event.registered_users}
 							</td>

@@ -3,7 +3,7 @@ import { requireAdminUser } from "@/lib/utils";
 
 export const Route = createFileRoute("/master/")({
 	loader: async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 	},
 	component: RouteComponent,
 });

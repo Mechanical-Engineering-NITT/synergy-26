@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { DEFAULT_ROLE, ROLE_VALUES } from "@/constants/roles";
 import { db } from "@/db";
 
 export const auth = betterAuth({
@@ -11,9 +12,9 @@ export const auth = betterAuth({
 				input: false,
 			},
 			role: {
-				type: ["USER", "ADMIN-PR", "ADMIN-MASTER"],
+				type: [...ROLE_VALUES],
 				required: true,
-				defaultValue: "USER",
+				defaultValue: DEFAULT_ROLE,
 				input: false,
 			},
 		},

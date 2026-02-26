@@ -1,159 +1,264 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { cn, requireAdminUser } from "@/lib/utils";
-import { getPRData, prHeaderRow } from "@/server/admin/admin.pr";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
+import { PrUsersPagination } from "@/components/pr/pr-pagination";
+import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
+import { requireAdminUser } from "@/lib/utils";
+import { getPrUserDetails, getPrUsers } from "@/server/admin/admin.pr";
 
-const prDataQueryOptions = queryOptions({
-	queryKey: ["pr", "dataset"],
-	queryFn: () => getPRData(),
-});
+const DEFAULT_PAGE_SIZE = 25;
+const REFRESH_INTERVAL_MS = 1000 * 60 * 5;
+
+const prUsersQueryOptions = () =>
+	queryOptions({
+		queryKey: ["pr-users"],
+		queryFn: () => getPrUsers(),
+		staleTime: REFRESH_INTERVAL_MS,
+		refetchInterval: REFRESH_INTERVAL_MS,
+		refetchOnWindowFocus: true,
+	});
+
+const prUserDetailsQueryOptions = (userId: string) =>
+	queryOptions({
+		queryKey: ["pr", "user-details", userId],
+		queryFn: () => getPrUserDetails({ data: { userId } }),
+		enabled: userId.length > 0,
+	});
 
 export const Route = createFileRoute("/pr/")({
 	loader: async () => {
-		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: prData, isLoading, isError } = useQuery(prDataQueryOptions);
+	const [searchInput, setSearchInput] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+	const [activeTab, setActiveTab] = useState("profile");
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					Loading PR dataset...
-				</div>
-			</div>
-		);
-	}
+	const {
+		data: usersData,
+		isLoading: isUsersLoading,
+		isError: isUsersError,
+		isFetching: isUsersFetching,
+		error: usersError,
+		refetch: refetchPrUsers,
+	} = useQuery({
+		...prUsersQueryOptions(),
+	});
 
-	if (isError) {
-		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					Failed to load PR dataset.
-				</div>
-			</div>
-		);
-	}
+	const {
+		data: detailsData,
+		isLoading: isDetailsLoading,
+		isError: isDetailsError,
+	} = useQuery({
+		...prUserDetailsQueryOptions(selectedUserId ?? ""),
+	});
 
-	if (!prData) {
-		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					No PR dataset found.
-				</div>
-			</div>
-		);
-	}
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setDebouncedSearch(searchInput.trim());
+		}, 450);
 
-	const rows = prData.data.rows;
+		return () => clearTimeout(timeout);
+	}, [searchInput]);
 
-	const eventIds = Array.from(
-		new Set(rows.flatMap((row) => Object.keys(row.events).map(Number))),
-	).sort((a, b) => a - b);
-
-	const workshopIds = Array.from(
-		new Set(rows.flatMap((row) => Object.keys(row.workshops).map(Number))),
-	).sort((a, b) => a - b);
-
-	const profileColumns = ["User ID", "Email", "Full Name", "Phone"];
-	const eventColumns = eventIds.map(
-		(eventId) => prData.data.eventMeta[eventId] ?? `Event ${eventId}`,
-	);
-	const workshopColumns = workshopIds.map(
-		(workshopId) =>
-			prData.data.workshopMeta[workshopId] ?? `Workshop ${workshopId}`,
+	const handleSearchInputChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			setSearchInput(event.target.value);
+			setCurrentPage(1);
+		},
+		[],
 	);
 
-	const columns = [...profileColumns, ...eventColumns, ...workshopColumns];
-	const profileColumnCount = profileColumns.length;
-	const eventColumnCount = eventColumns.length;
-	const workshopColumnCount = workshopColumns.length;
+	const handleSearchClear = useCallback(() => {
+		setSearchInput("");
+		setDebouncedSearch("");
+		setCurrentPage(1);
+	}, []);
 
-	const tableRows = rows.map((row) => [
-		row.userId,
-		row.email,
-		row.fullname ?? "",
-		row.phone ?? "",
-		...eventIds.map((eventId) => (row.events[eventId] ? "yes" : "no")),
-		...workshopIds.map((workshopId) =>
-			row.workshops[workshopId] ? "yes" : "no",
-		),
-	]);
+	const handlePageSizeChange = useCallback((value: number) => {
+		setPageSize(value);
+		setCurrentPage(1);
+	}, []);
+
+	const users = usersData?.data.rows ?? [];
+	const filteredUsers = useMemo(() => {
+		if (!debouncedSearch) {
+			return users;
+		}
+
+		const loweredSearch = debouncedSearch.toLowerCase();
+		return users.filter((currentUser) =>
+			currentUser.email.toLowerCase().includes(loweredSearch),
+		);
+	}, [users, debouncedSearch]);
+
+	const totalResults = filteredUsers.length;
+	const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+	const safeCurrentPage = Math.min(currentPage, totalPages);
+
+	const paginatedUsers = useMemo(() => {
+		const start = (safeCurrentPage - 1) * pageSize;
+		return filteredUsers.slice(start, start + pageSize);
+	}, [filteredUsers, safeCurrentPage, pageSize]);
+
+	const rangeStart =
+		totalResults === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+	const rangeEnd = Math.min(safeCurrentPage * pageSize, totalResults);
+	const usersErrorMessage =
+		usersError instanceof Error
+			? usersError.message
+			: "Failed to load admin users.";
+
+	if (isUsersLoading) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					Loading admin users...
+				</div>
+			</div>
+		);
+	}
+
+	if (isUsersError) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					{usersErrorMessage}
+				</div>
+			</div>
+		);
+	}
+
+	if (!usersData) {
+		return (
+			<div className="min-h-screen bg-background text-foreground p-6">
+				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					No admin users found.
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-6">
-			<div className="mx-auto max-w-7xl">
-				<h1 className="text-2xl font-semibold mb-4">PR Dataset</h1>
+			<div className="mx-auto max-w-7xl space-y-4">
+				<PrUserSearchBar
+					searchInput={searchInput}
+					onSearchInputChange={handleSearchInputChange}
+					onClear={handleSearchClear}
+					isSearchLoading={searchInput !== debouncedSearch}
+				/>
+
+				<div className="flex items-center justify-between gap-3">
+					<div>
+						<h1 className="text-2xl font-semibold">PR Admin Users</h1>
+						<p className="text-sm text-muted-foreground">
+							Showing {rangeStart}-{rangeEnd} of {totalResults} users
+						</p>
+					</div>
+					<button
+						type="button"
+						onClick={() => {
+							refetchPrUsers();
+						}}
+						disabled={isUsersFetching}
+						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isUsersFetching ? "Refreshing..." : "Refresh"}
+					</button>
+				</div>
+
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
 					<table className="w-full min-w-max text-sm">
 						<thead className="bg-muted/40">
 							<tr>
-								<th
-									colSpan={profileColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
-								>
-									{prHeaderRow[0]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">Full Name</th>
+								<th className="px-3 py-2 text-left font-medium">Email</th>
+								<th className="px-3 py-2 text-left font-medium">Phone</th>
+								<th className="px-3 py-2 text-left font-medium">
+									Total Events Registered
 								</th>
-								<th
-									colSpan={eventColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
-								>
-									{prHeaderRow[1]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">
+									Total Workshops Registered
 								</th>
-								<th
-									colSpan={workshopColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-border"
-								>
-									{prHeaderRow[2]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">
+									Total Paid Amount
 								</th>
-							</tr>
-							<tr>
-								{columns.map((column) => (
-									<th
-										key={column}
-										className="px-3 py-2 text-left font-medium whitespace-nowrap border-b border-r border-border"
-									>
-										{column}
-									</th>
-								))}
+								<th className="px-3 py-2 text-left font-medium">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
-							{tableRows.map((row, rowIndex) => (
-								<tr
-									key={`${row[0]}-${rowIndex}`}
-									className="border-t border-border"
-								>
-									{row.map((cell, cellIndex) => {
-										const cellText = String(cell).toLowerCase();
-										const isPaymentCell = cellIndex >= profileColumnCount;
-										const isYes = isPaymentCell && cellText === "yes";
-										const isNo = isPaymentCell && cellText === "no";
-
-										return (
-											<td
-												key={`${row[0]}-${cellIndex}`}
-												className={cn(
-													"px-3 py-2 whitespace-nowrap border-r border-border",
-													isYes &&
-														"bg-green-500/15 text-green-700 dark:text-green-300",
-													isNo &&
-														"bg-red-500/15 text-red-700 dark:text-red-300",
-												)}
-											>
-												{String(cell)}
-											</td>
-										);
-									})}
+							{paginatedUsers.map((row) => (
+								<tr key={row.id} className="border-t border-border">
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.fullname ?? "-"}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">{row.email}</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.phone ?? "-"}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.totalEvents}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.totalWorkshops}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										₹{(row.totalPaidAmount / 100).toFixed(2)}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										<button
+											type="button"
+											onClick={() => {
+												setSelectedUserId(row.id);
+												setActiveTab("profile");
+											}}
+											className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+										>
+											View
+										</button>
+									</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
+
+				{filteredUsers.length === 0 ? (
+					<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+						No user found.
+					</div>
+				) : null}
+
+				<PrUsersPagination
+					currentPage={safeCurrentPage}
+					totalPages={totalPages}
+					pageSize={pageSize}
+					onPageSizeChange={handlePageSizeChange}
+					onPrevious={() => setCurrentPage((value) => Math.max(1, value - 1))}
+					onNext={() =>
+						setCurrentPage((value) => Math.min(totalPages, value + 1))
+					}
+				/>
 			</div>
+
+			{selectedUserId ? (
+				<PrUserDetailsModal
+					onClose={() => setSelectedUserId(null)}
+					activeTab={activeTab}
+					setActiveTab={setActiveTab}
+					data={detailsData?.data}
+					isLoading={isDetailsLoading}
+					isError={isDetailsError}
+				/>
+			) : null}
 		</div>
 	);
 }

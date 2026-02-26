@@ -14,7 +14,7 @@ const masterWorkshopsQueryOptions = queryOptions({
 export const Route = createFileRoute("/master/workshops/")({
 	component: RouteComponent,
 	loader: async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 	},
 });
 
@@ -67,9 +67,6 @@ function RouteComponent() {
 						<tr key={workshop.id} className="border-t border-border">
 							<td className="px-3 py-2 whitespace-nowrap">{workshop.id}</td>
 							<td className="px-3 py-2 whitespace-nowrap">{workshop.title}</td>
-							<td className="px-3 py-2 whitespace-nowrap">
-								{workshop.time ? new Date(workshop.time).toLocaleString() : ""}
-							</td>
 							<td className="px-3 py-2 whitespace-nowrap">{workshop.price}</td>
 							<td className="px-3 py-2 whitespace-nowrap">
 								{workshop.registered_users}
