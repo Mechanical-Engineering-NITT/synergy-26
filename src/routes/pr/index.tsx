@@ -1,159 +1,461 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { cn, requireAdminUser } from "@/lib/utils";
-import { getPRData, prHeaderRow } from "@/server/admin/admin.pr";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { requireAdminUser } from "@/lib/utils";
+import {
+	getPaginatedUserDetails,
+	getPaginatedUsers,
+} from "@/server/admin/admin.pr";
 
-const prDataQueryOptions = queryOptions({
-	queryKey: ["pr", "dataset"],
-	queryFn: () => getPRData(),
-});
+const PAGE_SIZE = 20;
+
+const adminUsersQueryOptions = (page: number, limit: number) =>
+	queryOptions({
+		queryKey: ["admin", "pr", "users", page, limit],
+		queryFn: () => getPaginatedUsers({ data: { page, limit } }),
+	});
+
+const adminUserDetailsQueryOptions = (userId: string) =>
+	queryOptions({
+		queryKey: ["admin", "pr", "user-details", userId],
+		queryFn: () => getPaginatedUserDetails({ data: { userId } }),
+		enabled: userId.length > 0,
+	});
 
 export const Route = createFileRoute("/pr/")({
-	loader: async () => {
+	validateSearch: (search: { page?: unknown; limit?: unknown } | undefined) => {
+		const pageValue = Number(search?.page);
+		const limitValue = Number(search?.limit);
+
+		const page = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
+		const limit =
+			Number.isFinite(limitValue) && limitValue > 0 && limitValue <= 100
+				? limitValue
+				: PAGE_SIZE;
+
+		return { page, limit };
+	},
+	loaderDeps: ({ search }) => ({
+		page: search.page,
+		limit: search.limit,
+	}),
+	loader: async ({ deps }) => {
 		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
+		const page = deps.page;
+		const limit = deps.limit;
+		const initialUsers = await getPaginatedUsers({
+			data: { page, limit },
+		});
+
+		return {
+			initialUsers,
+		};
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: prData, isLoading, isError } = useQuery(prDataQueryOptions);
+	const { initialUsers } = Route.useLoaderData();
+	const search = Route.useSearch();
+	const navigate = useNavigate({ from: Route.fullPath });
+	const page = search?.page ?? 1;
+	const limit = search?.limit ?? PAGE_SIZE;
+	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+	const [activeTab, setActiveTab] = useState("profile");
 
-	if (isLoading) {
+	const {
+		data: usersData,
+		isLoading: isUsersLoading,
+		isError: isUsersError,
+	} = useQuery({
+		...adminUsersQueryOptions(page, limit),
+		initialData:
+			page === initialUsers.data.pagination.page &&
+			limit === initialUsers.data.pagination.limit
+				? initialUsers
+				: undefined,
+	});
+
+	const {
+		data: detailsData,
+		isLoading: isDetailsLoading,
+		isError: isDetailsError,
+	} = useQuery({
+		...adminUserDetailsQueryOptions(selectedUserId ?? ""),
+	});
+
+	const rows = usersData?.data.rows ?? [];
+	const pagination = usersData?.data.pagination;
+
+	if (isUsersLoading) {
 		return (
 			<div className="min-h-screen bg-background text-foreground p-6">
 				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					Loading PR dataset...
+					Loading admin users...
 				</div>
 			</div>
 		);
 	}
 
-	if (isError) {
+	if (isUsersError) {
 		return (
 			<div className="min-h-screen bg-background text-foreground p-6">
 				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					Failed to load PR dataset.
+					Failed to load admin users.
 				</div>
 			</div>
 		);
 	}
 
-	if (!prData) {
+	if (!usersData || !pagination) {
 		return (
 			<div className="min-h-screen bg-background text-foreground p-6">
 				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-					No PR dataset found.
+					No admin users found.
 				</div>
 			</div>
 		);
 	}
-
-	const rows = prData.data.rows;
-
-	const eventIds = Array.from(
-		new Set(rows.flatMap((row) => Object.keys(row.events).map(Number))),
-	).sort((a, b) => a - b);
-
-	const workshopIds = Array.from(
-		new Set(rows.flatMap((row) => Object.keys(row.workshops).map(Number))),
-	).sort((a, b) => a - b);
-
-	const profileColumns = ["User ID", "Email", "Full Name", "Phone"];
-	const eventColumns = eventIds.map(
-		(eventId) => prData.data.eventMeta[eventId] ?? `Event ${eventId}`,
-	);
-	const workshopColumns = workshopIds.map(
-		(workshopId) =>
-			prData.data.workshopMeta[workshopId] ?? `Workshop ${workshopId}`,
-	);
-
-	const columns = [...profileColumns, ...eventColumns, ...workshopColumns];
-	const profileColumnCount = profileColumns.length;
-	const eventColumnCount = eventColumns.length;
-	const workshopColumnCount = workshopColumns.length;
-
-	const tableRows = rows.map((row) => [
-		row.userId,
-		row.email,
-		row.fullname ?? "",
-		row.phone ?? "",
-		...eventIds.map((eventId) => (row.events[eventId] ? "yes" : "no")),
-		...workshopIds.map((workshopId) =>
-			row.workshops[workshopId] ? "yes" : "no",
-		),
-	]);
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-6">
-			<div className="mx-auto max-w-7xl">
-				<h1 className="text-2xl font-semibold mb-4">PR Dataset</h1>
+			<div className="mx-auto max-w-7xl space-y-4">
+				<div className="flex items-center justify-between gap-3">
+					<h1 className="text-2xl font-semibold">PR Admin Users</h1>
+					<p className="text-sm text-muted-foreground">
+						Page {pagination.page} of {pagination.totalPages}
+					</p>
+				</div>
+
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
 					<table className="w-full min-w-max text-sm">
 						<thead className="bg-muted/40">
 							<tr>
-								<th
-									colSpan={profileColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
-								>
-									{prHeaderRow[0]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">Full Name</th>
+								<th className="px-3 py-2 text-left font-medium">Email</th>
+								<th className="px-3 py-2 text-left font-medium">Phone</th>
+								<th className="px-3 py-2 text-left font-medium">
+									Total Events Registered
 								</th>
-								<th
-									colSpan={eventColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-r border-border"
-								>
-									{prHeaderRow[1]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">
+									Total Workshops Registered
 								</th>
-								<th
-									colSpan={workshopColumnCount}
-									className="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-border"
-								>
-									{prHeaderRow[2]?.toUpperCase()}
+								<th className="px-3 py-2 text-left font-medium">
+									Total Paid Amount
 								</th>
-							</tr>
-							<tr>
-								{columns.map((column) => (
-									<th
-										key={column}
-										className="px-3 py-2 text-left font-medium whitespace-nowrap border-b border-r border-border"
-									>
-										{column}
-									</th>
-								))}
+								<th className="px-3 py-2 text-left font-medium">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
-							{tableRows.map((row, rowIndex) => (
-								<tr
-									key={`${row[0]}-${rowIndex}`}
-									className="border-t border-border"
-								>
-									{row.map((cell, cellIndex) => {
-										const cellText = String(cell).toLowerCase();
-										const isPaymentCell = cellIndex >= profileColumnCount;
-										const isYes = isPaymentCell && cellText === "yes";
-										const isNo = isPaymentCell && cellText === "no";
-
-										return (
-											<td
-												key={`${row[0]}-${cellIndex}`}
-												className={cn(
-													"px-3 py-2 whitespace-nowrap border-r border-border",
-													isYes &&
-														"bg-green-500/15 text-green-700 dark:text-green-300",
-													isNo &&
-														"bg-red-500/15 text-red-700 dark:text-red-300",
-												)}
-											>
-												{String(cell)}
-											</td>
-										);
-									})}
+							{rows.map((row) => (
+								<tr key={row.id} className="border-t border-border">
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.fullname ?? "-"}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">{row.email}</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.phone ?? "-"}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.totalEvents}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{row.totalWorkshops}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										₹{(row.totalPaidAmount / 100).toFixed(2)}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										<button
+											type="button"
+											onClick={() => {
+												setSelectedUserId(row.id);
+												setActiveTab("profile");
+											}}
+											className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+										>
+											View
+										</button>
+									</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
+
+				<div className="flex items-center justify-between gap-3">
+					<p className="text-sm text-muted-foreground">
+						{pagination.totalUsers} users total
+					</p>
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							onClick={() =>
+								navigate({
+									search: {
+										page: Math.max(1, page - 1),
+										limit,
+									},
+								})
+							}
+							disabled={page <= 1}
+							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							Previous
+						</button>
+						<button
+							type="button"
+							onClick={() =>
+								navigate({
+									search: {
+										page: Math.min(pagination.totalPages, page + 1),
+										limit,
+									},
+								})
+							}
+							disabled={page >= pagination.totalPages}
+							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							Next
+						</button>
+					</div>
+				</div>
 			</div>
+
+			{selectedUserId ? (
+				<AdminUserDetailsModal
+					onClose={() => setSelectedUserId(null)}
+					activeTab={activeTab}
+					setActiveTab={setActiveTab}
+					data={detailsData?.data}
+					isLoading={isDetailsLoading}
+					isError={isDetailsError}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function AdminUserDetailsModal({
+	onClose,
+	activeTab,
+	setActiveTab,
+	data,
+	isLoading,
+	isError,
+}: {
+	onClose: () => void;
+	activeTab: string;
+	setActiveTab: (value: string) => void;
+	data: Record<string, unknown> | undefined;
+	isLoading: boolean;
+	isError: boolean;
+}) {
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+			<div className="w-full max-w-5xl rounded-md border border-border bg-background shadow-lg">
+				<div className="flex items-center justify-between border-b border-border px-4 py-3">
+					<h2 className="text-lg font-semibold">User Details</h2>
+					<button
+						type="button"
+						onClick={onClose}
+						className="rounded-md border border-border px-2 py-1 text-sm hover:bg-muted"
+					>
+						Close
+					</button>
+				</div>
+
+				<div className="border-b border-border px-4 py-2">
+					<div className="flex flex-wrap gap-2">
+						{["profile", "events", "workshops", "payments"].map((tab) => (
+							<button
+								type="button"
+								key={tab}
+								onClick={() => setActiveTab(tab)}
+								className={`rounded-md px-3 py-1.5 text-sm capitalize ${
+									activeTab === tab
+										? "bg-primary text-primary-foreground"
+										: "border border-border hover:bg-muted"
+								}`}
+							>
+								{tab}
+							</button>
+						))}
+					</div>
+				</div>
+
+				<div className="max-h-[70vh] overflow-auto p-4">
+					{isLoading ? (
+						<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+							Loading user details...
+						</div>
+					) : null}
+
+					{isError ? (
+						<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+							Failed to load user details.
+						</div>
+					) : null}
+
+					{!isLoading && !isError && data ? (
+						<AdminUserDetailsTabs activeTab={activeTab} data={data} />
+					) : null}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function AdminUserDetailsTabs({
+	activeTab,
+	data,
+}: {
+	activeTab: string;
+	data: Record<string, unknown>;
+}) {
+	const profile = (data.profile as Record<string, unknown> | undefined) ?? {};
+	const eventRows =
+		(data.events as Array<Record<string, unknown>> | undefined) ?? [];
+	const workshopRows =
+		(data.workshops as Array<Record<string, unknown>> | undefined) ?? [];
+	const paymentRows =
+		(data.payments as Array<Record<string, unknown>> | undefined) ?? [];
+
+	if (activeTab === "profile") {
+		return (
+			<div className="overflow-x-auto rounded-md border border-border bg-card">
+				<table className="min-w-full text-sm">
+					<thead className="bg-muted/40">
+						<tr>
+							<th className="px-3 py-2 text-left font-medium">User ID</th>
+							<th className="px-3 py-2 text-left font-medium">Full Name</th>
+							<th className="px-3 py-2 text-left font-medium">Email</th>
+							<th className="px-3 py-2 text-left font-medium">Phone</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr className="border-t border-border">
+							<td className="px-3 py-2 whitespace-nowrap">
+								{String(profile.id ?? "-")}
+							</td>
+							<td className="px-3 py-2 whitespace-nowrap">
+								{String(profile.fullname ?? "-")}
+							</td>
+							<td className="px-3 py-2 whitespace-nowrap">
+								{String(profile.email ?? "-")}
+							</td>
+							<td className="px-3 py-2 whitespace-nowrap">
+								{String(profile.phone ?? "-")}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		);
+	}
+
+	if (activeTab === "events") {
+		return (
+			<SimpleDetailsTable
+				headers={["Event ID", "Event Title", "Payment Status", "Created At"]}
+				rows={eventRows.map((eventRow) => [
+					Number(eventRow.eventId ?? 0) || "-",
+					String(eventRow.eventTitle ?? "-"),
+					String(eventRow.paymentStatus ?? "-"),
+					eventRow.createdAt
+						? new Date(String(eventRow.createdAt)).toLocaleString()
+						: "-",
+				])}
+				emptyLabel="No event registrations found."
+			/>
+		);
+	}
+
+	if (activeTab === "workshops") {
+		return (
+			<SimpleDetailsTable
+				headers={[
+					"Workshop ID",
+					"Workshop Title",
+					"Payment Status",
+					"Created At",
+				]}
+				rows={workshopRows.map((workshopRow) => [
+					Number(workshopRow.workshopId ?? 0) || "-",
+					String(workshopRow.workshopTitle ?? "-"),
+					String(workshopRow.paymentStatus ?? "-"),
+					workshopRow.createdAt
+						? new Date(String(workshopRow.createdAt)).toLocaleString()
+						: "-",
+				])}
+				emptyLabel="No workshop registrations found."
+			/>
+		);
+	}
+
+	return (
+		<SimpleDetailsTable
+			headers={["Payment ID", "Amount", "Status", "Created At"]}
+			rows={paymentRows.map((paymentRow) => [
+				String(paymentRow.id ?? "-"),
+				`₹${(Number(paymentRow.amount ?? 0) / 100).toFixed(2)}`,
+				String(paymentRow.status ?? "-"),
+				paymentRow.createdAt
+					? new Date(String(paymentRow.createdAt)).toLocaleString()
+					: "-",
+			])}
+			emptyLabel="No payments found."
+		/>
+	);
+}
+
+function SimpleDetailsTable({
+	headers,
+	rows,
+	emptyLabel,
+}: {
+	headers: string[];
+	rows: Array<Array<string | number>>;
+	emptyLabel: string;
+}) {
+	if (rows.length === 0) {
+		return (
+			<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+				{emptyLabel}
+			</div>
+		);
+	}
+
+	return (
+		<div className="overflow-x-auto rounded-md border border-border bg-card">
+			<table className="min-w-full text-sm">
+				<thead className="bg-muted/40">
+					<tr>
+						{headers.map((header) => (
+							<th key={header} className="px-3 py-2 text-left font-medium">
+								{header}
+							</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map((row) => (
+						<tr
+							key={row.map((value) => String(value)).join("|")}
+							className="border-t border-border"
+						>
+							{row.map((cell, cellIndex) => (
+								<td
+									key={`${headers[cellIndex] ?? "col"}-${String(cell)}`}
+									className="px-3 py-2 whitespace-nowrap"
+								>
+									{String(cell)}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</div>
 	);
 }
