@@ -8,7 +8,7 @@ import { requireAdminUser } from "@/lib/utils";
 
 export const getEventData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
 			const eventsData = await db
@@ -32,7 +32,7 @@ export const EventDataHeader = ["ID", "Title", "Registered Users"];
 
 export const getWorkshopData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
 			const workshopsData = await db
@@ -57,7 +57,7 @@ export const WorkshopDataHeader = ["ID", "Title", "Price", "Registered Users"];
 
 export const getUserData = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
 			const userData = await db
@@ -95,7 +95,7 @@ export const UserDataHeader = [
 export const getUserDataByEventId = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ eventId: z.number() }))
 	.handler(async ({ data }) => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
 			const userDataByEventId = await db
@@ -139,7 +139,7 @@ export const UserDataByEventIdHeader = [
 export const getUserDataByWorkshopId = createServerFn({ method: "GET" })
 	.inputValidator(z.object({ workshopId: z.number() }))
 	.handler(async ({ data }) => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
 			const userDataByWorkshopId = await db

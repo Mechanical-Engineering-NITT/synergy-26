@@ -21,7 +21,7 @@ const masterUsersByWorkshopQueryOptions = (workshopId: number) =>
 
 export const Route = createFileRoute("/master/workshops/$id")({
 	loader: async ({ params }) => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 		const workshopId = Number(params.id);
 		if (Number.isNaN(workshopId)) {
 			throw new Error("Invalid workshop id");

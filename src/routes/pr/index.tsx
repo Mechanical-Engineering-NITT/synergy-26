@@ -25,7 +25,7 @@ const prUserDetailsQueryOptions = (userId: string) =>
 
 export const Route = createFileRoute("/pr/")({
 	loader: async () => {
-		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 	},
 	component: RouteComponent,
 });

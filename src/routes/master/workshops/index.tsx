@@ -14,7 +14,7 @@ const masterWorkshopsQueryOptions = queryOptions({
 export const Route = createFileRoute("/master/workshops/")({
 	component: RouteComponent,
 	loader: async () => {
-		await requireAdminUser({ data: { roles: "ADMIN-MASTER" } });
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 	},
 });
 

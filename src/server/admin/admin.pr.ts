@@ -14,7 +14,7 @@ import { requireAdminUser } from "@/lib/utils";
 
 export const getPrUsers = createServerFn({ method: "GET" }).handler(
 	async () => {
-		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
 		try {
 			const usersRows = await db
@@ -123,7 +123,7 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 		}),
 	)
 	.handler(async ({ data }) => {
-		await requireAdminUser({ data: { roles: ["ADMIN-PR", "ADMIN-MASTER"] } });
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
 		try {
 			const profileRows = await db
