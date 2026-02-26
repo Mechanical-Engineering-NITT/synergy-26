@@ -1,5 +1,5 @@
 {
-  "id": "556ad8d1-af91-498a-9138-00b3b6872b7b",
+  "id": "af125a03-0ca7-4b84-af8e-0867c4e758b4",
   "prevId": "94417e6e-4672-4af2-a46d-58d599cce3be",
   "version": "7",
   "dialect": "postgresql",
@@ -861,8 +861,9 @@
       "schema": "public",
       "values": [
         "USER",
-        "ADMIN-PR",
-        "ADMIN-MASTER"
+        "PR",
+        "MASTER",
+        "ADMIN"
       ]
     }
   },
