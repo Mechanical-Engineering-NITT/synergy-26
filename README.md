@@ -31,7 +31,7 @@ This uses the `tools` profile, so it won't run with standard `up` commands unles
 ### Zero-downtime + Rollback strategy
 Make the latest image as fallback.
 ```bash
-docker tag synergy26-web26:latest synergy26-web26:fallback
+docker tag synergy-26-web26:latest synergy-26-web26:fallback
 ```
 
 Run the zero-downtime deployment.
@@ -41,6 +41,6 @@ docker compose -f compose.prod.yaml up -d --build
 
 If something goes wrong, rollback to the fallback image.
 ```bash
-docker tag synergy26-web26:fallback synergy26-web26:latest
+docker tag synergy-26-web26:fallback synergy-26-web26:latest
 docker compose -f compose.prod.yaml up -d
 ```

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
+import { user } from "@/db/auth-schema";
 import { events, registrations } from "@/db/schema";
 import {
 	getCurrentSession,
@@ -18,10 +19,20 @@ export const getAllEvents = createServerFn({ method: "GET" }).handler(
 		const session = await getCurrentSession();
 		const allEvents = await db.select().from(events);
 
+		let isAdminMaster = false;
+		if (session) {
+			const [dbUser] = await db
+				.select({ role: user.role })
+				.from(user)
+				.where(eq(user.id, session.user.id))
+				.limit(1);
+			isAdminMaster = dbUser?.role === "ADMIN-MASTER";
+		}
+
 		if (!session) {
 			return {
 				events: allEvents
-					.filter((event) => event.id !== 8)
+					.filter((event) => isAdminMaster || event.id !== 8)
 					.map((event) => ({ ...event, isRegistered: false })),
 				hasEventPass: false,
 			};
@@ -40,7 +51,7 @@ export const getAllEvents = createServerFn({ method: "GET" }).handler(
 
 		return {
 			events: allEvents
-				.filter((event) => event.id !== 8)
+				.filter((event) => isAdminMaster || event.id !== 8)
 				.map((event) => ({
 					...event,
 					isRegistered: eventIds.has(event.id),
