@@ -3,6 +3,7 @@ import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { getConstant } from "@/server/constants";
 import { getAllEvents, registerForEvent } from "@/server/event";
@@ -325,180 +326,184 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 				)}
 			</div>
 
-			{isPassDialogOpen && (
-				<div className="fixed h-full w-full inset-0 flex items-center justify-center z-9999 p-4 animate-in fade-in duration-300">
-					{/* Backdrop Button */}
-					<button
-						type="button"
-						onClick={() => setIsPassDialogOpen(false)}
-						className="absolute inset-0 w-full h-full bg-black/90 backdrop-blur-md cursor-pointer border-none"
-						aria-label="Close dialog"
-					/>
-					<div className="bg-[#090521] border-2 border-[#9D00FF] shadow-[0_0_80px_rgba(157,0,255,0.4)] max-w-md w-full max-h-[90vh] overflow-y-auto p-8 animate-in zoom-in-95 duration-300 relative z-9999 overscroll-behavior-contain custom-scrollbar">
-						{/* Corner Accents */}
-						<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFDD00]"></div>
-						<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFDD00]"></div>
-						<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FFDD00]"></div>
-						<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FFDD00]"></div>
+			{isPassDialogOpen &&
+				createPortal(
+					<div className="fixed h-full w-full inset-0 flex items-center justify-center z-9999 p-4 animate-in fade-in duration-300">
+						{/* Backdrop Button */}
+						<button
+							type="button"
+							onClick={() => setIsPassDialogOpen(false)}
+							className="absolute inset-0 w-full h-full bg-black/90 backdrop-blur-md cursor-pointer border-none"
+							aria-label="Close dialog"
+						/>
+						<div className="bg-[#090521] border-2 border-[#9D00FF] shadow-[0_0_80px_rgba(157,0,255,0.4)] max-w-md w-full max-h-[90vh] overflow-y-auto p-8 animate-in zoom-in-95 duration-300 relative z-9999 overscroll-behavior-contain custom-scrollbar">
+							{/* Corner Accents */}
+							<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFDD00]"></div>
+							<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFDD00]"></div>
+							<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FFDD00]"></div>
+							<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FFDD00]"></div>
 
-						<div className="flex justify-between items-start mb-6">
-							<h3 className="text-2xl font-black uppercase italic tracking-widest bg-clip-text text-transparent bg-linear-to-r from-[#9D00FF] to-[#9D00FF]">
-								Event Pass
-							</h3>
-							<button
-								type="button"
-								onClick={() => setIsPassDialogOpen(false)}
-								className="text-[#9D00FF] hover:text-[#FFDD00] transition-colors text-2xl font-bold leading-none"
-							>
-								&times;
-							</button>
-						</div>
-
-						<div className="space-y-4 mb-8">
-							{[
-								"Access to all events",
-								"Certificates for all participating events",
-							].map((text) => (
-								<div key={text} className="flex items-center gap-3 group">
-									<div className="w-5 h-5 border border-[#9D00FF] flex items-center justify-center font-bold text-[10px] text-[#9D00FF] group-hover:bg-[#9D00FF] group-hover:text-black transition-colors shadow-[0_0_10px_rgba(157,0,255,0.4)]">
-										X
-									</div>
-									<p className="text-gray-300 font-medium tracking-wide uppercase text-xs group-hover:text-white transition-colors">
-										{text}
-									</p>
-								</div>
-							))}
-						</div>
-
-						<div className="bg-white/5 border border-white/10 p-5 mb-8 -skew-x-2">
-							<div className="flex justify-between items-center bg-[#9D00FF]/10 p-2 border-l-4 border-[#9D00FF]">
-								<span className="text-[#9D00FF] font-bold uppercase text-xs tracking-widest">
-									PRICE
-								</span>
-								<span className="text-2xl font-black text-white italic drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
-									₹
-									{(passPrice / 100).toLocaleString(undefined, {
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 2,
-									})}
-								</span>
+							<div className="flex justify-between items-start mb-6">
+								<h3 className="text-2xl font-black uppercase italic tracking-widest bg-clip-text text-transparent bg-linear-to-r from-[#9D00FF] to-[#9D00FF]">
+									Event Pass
+								</h3>
+								<button
+									type="button"
+									onClick={() => setIsPassDialogOpen(false)}
+									className="text-[#9D00FF] hover:text-[#FFDD00] transition-colors text-2xl font-bold leading-none"
+								>
+									&times;
+								</button>
 							</div>
-						</div>
 
-						<div className="flex flex-col gap-4">
-							<PaymentButton
-								amount={passPrice}
-								isEventPass={true}
-								onSuccess={() => {
-									toast.success("Event Pass purchased successfully!");
-									setTimeout(() => {
-										queryClient.invalidateQueries({
-											queryKey: ["events"],
-										});
-										setIsPassDialogOpen(false);
-									}, 1000);
-								}}
-								disabled={isPriceLoading}
-								description="Event Pass"
-							/>
-							<p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest mt-2">
-								<span>
-									<a
-										href="/terms-and-conditions"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="underline font-extrabold hover:text-[#9D00FF]"
-									>
-										Terms and Conditions
-									</a>
-									{" | "}
-									<a
-										href="/refund-policy"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="underline font-extrabold hover:text-[#9D00FF]"
-									>
-										Refund Policy
-									</a>
-								</span>
-							</p>
-						</div>
-					</div>
-				</div>
-			)}
+							<div className="space-y-4 mb-8">
+								{[
+									"Access to all events",
+									"Certificates for all participating events",
+								].map((text) => (
+									<div key={text} className="flex items-center gap-3 group">
+										<div className="w-5 h-5 border border-[#9D00FF] flex items-center justify-center font-bold text-[10px] text-[#9D00FF] group-hover:bg-[#9D00FF] group-hover:text-black transition-colors shadow-[0_0_10px_rgba(157,0,255,0.4)]">
+											X
+										</div>
+										<p className="text-gray-300 font-medium tracking-wide uppercase text-xs group-hover:text-white transition-colors">
+											{text}
+										</p>
+									</div>
+								))}
+							</div>
 
-			{selectedEvent && (
-				<div className="fixed inset-0 flex items-center justify-center z-9999 p-4 animate-in fade-in duration-300">
-					{/* Backdrop Button */}
-					<button
-						type="button"
-						onClick={() => setSelectedEvent(null)}
-						className="absolute inset-0 w-full h-full bg-black/90 backdrop-blur-md cursor-pointer border-none"
-						aria-label="Close dialog"
-					/>
-					<div className="bg-[#090521] border-2 border-[#9D00FF]/50 shadow-[0_0_80px_rgba(157,0,255,0.2)] max-w-lg w-full max-h-[90vh] flex flex-col p-8 animate-in zoom-in-95 duration-300 relative">
-						{/* Corner Accents */}
-						<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFDD00]"></div>
-						<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFDD00]"></div>
-						<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FFDD00]"></div>
-						<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FFDD00]"></div>
+							<div className="bg-white/5 border border-white/10 p-5 mb-8 -skew-x-2">
+								<div className="flex justify-between items-center bg-[#9D00FF]/10 p-2 border-l-4 border-[#9D00FF]">
+									<span className="text-[#9D00FF] font-bold uppercase text-xs tracking-widest">
+										PRICE
+									</span>
+									<span className="text-2xl font-black text-white italic drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+										₹
+										{(passPrice / 100).toLocaleString(undefined, {
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 2,
+										})}
+									</span>
+								</div>
+							</div>
 
-						<div className="flex justify-between items-start mb-6">
-							<h3 className="text-2xl font-black uppercase italic tracking-widest bg-clip-text text-transparent bg-linear-to-r from-[#9D00FF] to-[#9D00FF]">
-								{selectedEvent.title}
-							</h3>
-							<button
-								type="button"
-								onClick={() => setSelectedEvent(null)}
-								className="text-[#9D00FF] hover:text-[#FFDD00] transition-colors text-2xl font-bold leading-none"
-							>
-								&times;
-							</button>
-						</div>
-
-						<div className="space-y-6 mb-8 overflow-y-auto pr-2 custom-scrollbar overscroll-behavior-contain">
-							<div>
-								<h4 className="text-[#9D00FF] text-xs font-black uppercase tracking-[0.2em] mb-2 drop-shadow-[0_0_5px_rgba(157,0,255,0.5)]">
-									Description
-								</h4>
-								<p className="text-gray-300 text-sm leading-relaxed uppercase tracking-tight">
-									{selectedEvent.description}
+							<div className="flex flex-col gap-4">
+								<PaymentButton
+									amount={passPrice}
+									isEventPass={true}
+									onSuccess={() => {
+										toast.success("Event Pass purchased successfully!");
+										setTimeout(() => {
+											queryClient.invalidateQueries({
+												queryKey: ["events"],
+											});
+											setIsPassDialogOpen(false);
+										}, 1000);
+									}}
+									disabled={isPriceLoading}
+									description="Event Pass"
+								/>
+								<p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest mt-2">
+									<span>
+										<a
+											href="/terms-and-conditions"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline font-extrabold hover:text-[#9D00FF]"
+										>
+											Terms and Conditions
+										</a>
+										{" | "}
+										<a
+											href="/refund-policy"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline font-extrabold hover:text-[#9D00FF]"
+										>
+											Refund Policy
+										</a>
+									</span>
 								</p>
 							</div>
+						</div>
+					</div>,
+					document.body,
+				)}
 
-							{selectedEvent.longDescription && (
+			{selectedEvent &&
+				createPortal(
+					<div className="fixed inset-0 flex items-center justify-center z-9999 p-4 animate-in fade-in duration-300">
+						{/* Backdrop Button */}
+						<button
+							type="button"
+							onClick={() => setSelectedEvent(null)}
+							className="absolute inset-0 w-full h-full bg-black/90 backdrop-blur-md cursor-pointer border-none"
+							aria-label="Close dialog"
+						/>
+						<div className="bg-[#090521] border-2 border-[#9D00FF]/50 shadow-[0_0_80px_rgba(157,0,255,0.2)] max-w-lg w-full max-h-[90vh] flex flex-col p-8 animate-in zoom-in-95 duration-300 relative">
+							{/* Corner Accents */}
+							<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFDD00]"></div>
+							<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFDD00]"></div>
+							<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FFDD00]"></div>
+							<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FFDD00]"></div>
+
+							<div className="flex justify-between items-start mb-6">
+								<h3 className="text-2xl font-black uppercase italic tracking-widest bg-clip-text text-transparent bg-linear-to-r from-[#9D00FF] to-[#9D00FF]">
+									{selectedEvent.title}
+								</h3>
+								<button
+									type="button"
+									onClick={() => setSelectedEvent(null)}
+									className="text-[#9D00FF] hover:text-[#FFDD00] transition-colors text-2xl font-bold leading-none"
+								>
+									&times;
+								</button>
+							</div>
+
+							<div className="space-y-6 mb-8 overflow-y-auto pr-2 custom-scrollbar overscroll-behavior-contain">
 								<div>
 									<h4 className="text-[#9D00FF] text-xs font-black uppercase tracking-[0.2em] mb-2 drop-shadow-[0_0_5px_rgba(157,0,255,0.5)]">
-										Details
+										Description
 									</h4>
-									<p className="text-gray-300 text-sm leading-relaxed uppercase tracking-tight whitespace-pre-wrap">
-										{selectedEvent.longDescription}
+									<p className="text-gray-300 text-sm leading-relaxed uppercase tracking-tight">
+										{selectedEvent.description}
 									</p>
 								</div>
-							)}
 
-							<div className="grid grid-cols-2 gap-4">
-								<div className="bg-white/5 border border-white/10 p-3">
-									<p className="text-[10px] text-gray-500 font-bold uppercase mb-1">
-										Time
-									</p>
-									<p className="text-xs text-white font-black uppercase">
-										{selectedEvent.time}
-									</p>
-								</div>
-								<div className="bg-white/5 border border-white/10 p-3">
-									<p className="text-[10px] text-gray-500 font-bold uppercase mb-1">
-										Location
-									</p>
-									<p className="text-xs text-white font-black uppercase">
-										{selectedEvent.location}
-									</p>
+								{selectedEvent.longDescription && (
+									<div>
+										<h4 className="text-[#9D00FF] text-xs font-black uppercase tracking-[0.2em] mb-2 drop-shadow-[0_0_5px_rgba(157,0,255,0.5)]">
+											Details
+										</h4>
+										<p className="text-gray-300 text-sm leading-relaxed uppercase tracking-tight whitespace-pre-wrap">
+											{selectedEvent.longDescription}
+										</p>
+									</div>
+								)}
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="bg-white/5 border border-white/10 p-3">
+										<p className="text-[10px] text-gray-500 font-bold uppercase mb-1">
+											Time
+										</p>
+										<p className="text-xs text-white font-black uppercase">
+											{selectedEvent.time}
+										</p>
+									</div>
+									<div className="bg-white/5 border border-white/10 p-3">
+										<p className="text-[10px] text-gray-500 font-bold uppercase mb-1">
+											Location
+										</p>
+										<p className="text-xs text-white font-black uppercase">
+											{selectedEvent.location}
+										</p>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</div>
-			)}
+					</div>,
+					document.body,
+				)}
 		</div>
 	);
 }

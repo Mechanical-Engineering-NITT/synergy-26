@@ -97,9 +97,14 @@ export default function PreFestSection({
 							</p>
 
 							<div className="flex flex-wrap gap-6 items-center mt-auto">
-								<div className="group/btn relative px-8 py-4 bg-[#9D00FF] hover:bg-[#B333FF] text-white font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(157,0,255,0.4)] hover:shadow-[0_0_30px_rgba(157,0,255,0.6)] cursor-not-allowed">
-									Coming Soon...
-								</div>
+								<a
+									href="/reel.pdf"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="group/btn relative px-8 py-4 bg-[#9D00FF] hover:bg-[#B333FF] text-white font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(157,0,255,0.4)] hover:shadow-[0_0_30px_rgba(157,0,255,0.6)]"
+								>
+									Rulebook
+								</a>
 								<div className="flex flex-col">
 									<span className="text-xs font-bold text-[#9D00FF] uppercase tracking-[0.2em] mb-1">
 										Contact
