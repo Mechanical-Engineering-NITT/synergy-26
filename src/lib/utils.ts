@@ -5,6 +5,7 @@ import { type ClassValue, clsx } from "clsx";
 import { eq } from "drizzle-orm";
 import { twMerge } from "tailwind-merge";
 import { type ZodType, z } from "zod";
+import { ADMIN_ROLE_VALUES } from "@/constants/roles";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { auth } from "@/lib/auth";
@@ -46,7 +47,7 @@ export const requireOnBoardedUser = async () => {
 	return session.user;
 };
 
-const adminRoleSchema = z.enum(["ADMIN-PR", "ADMIN-MASTER"]);
+const adminRoleSchema = z.enum(ADMIN_ROLE_VALUES);
 const requireAdminUserInputSchema = z.object({
 	roles: z.union([adminRoleSchema, z.array(adminRoleSchema).nonempty()]),
 });
