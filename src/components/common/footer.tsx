@@ -3,7 +3,7 @@ import { Instagram, Linkedin } from "lucide-react";
 
 export default function Footer() {
 	return (
-		<footer className="w-full bg-black border-t border-white/10 pt-16 pb-12 mt-auto relative overflow-hidden">
+		<footer className="w-full bg-black border-t border-white/10 pt-16 mt-auto relative overflow-hidden">
 			{/* Subtle grid overlap for consistency */}
 			<div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-screen"></div>
 
@@ -134,11 +134,40 @@ export default function Footer() {
 					</div>
 				</div>
 
-				<div className="border-t border-white/5 pt-8 text-center">
+				<div className="border-t border-white/5 pt-8 text-center pb-12">
 					<p className="text-gray-600 text-[10px] font-bold uppercase tracking-[0.4em]">
 						&copy; {new Date().getFullYear()} MEA NIT TRICHY {"//"} SYNTHESIZING
 						EXCELLENCE
 					</p>
+				</div>
+			</div>
+			{/* Credit Bar */}
+			<div className="w-full bg-amber-400 py-5 relative z-10 shadow-[0_-10px_30px_rgba(251,191,36,0.2)]">
+				<div className="container mx-auto px-6">
+					<div className="flex flex-col md:flex-row items-center justify-center gap-4 text-xs font-black uppercase tracking-[0.4em] text-black">
+						<span className="opacity-70">Made with love by</span>
+						<div className="flex items-center gap-4">
+							<a
+								href="https://www.linkedin.com/in/arjun-gk/"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="hover:-translate-y-px transition-all duration-300 active:scale-95 relative group"
+							>
+								Arjun
+								<span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all duration-300 group-hover:w-full"></span>
+							</a>
+							<span className="w-2.5 h-2.5 bg-cyan-600 rotate-45 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"></span>
+							<a
+								href="https://www.linkedin.com/in/kat-exe"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="hover:-translate-y-px transition-all duration-300 active:scale-95 relative group"
+							>
+								Ajay
+								<span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all duration-300 group-hover:w-full"></span>
+							</a>
+						</div>
+					</div>
 				</div>
 			</div>
 		</footer>

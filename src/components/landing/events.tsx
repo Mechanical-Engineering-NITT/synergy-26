@@ -152,7 +152,10 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 		queryFn: getAllEvents,
 	});
 
-	const events = (eventsData?.events as Event[]) || [];
+	// Ignore pre-fest event
+	const events =
+		(eventsData?.events as Event[] | undefined)?.filter((e) => e.id !== 8) ??
+		[];
 	const hasEventPass = eventsData?.hasEventPass || false;
 
 	const { data: passPriceStr, isLoading: isPriceLoading } = useQuery({

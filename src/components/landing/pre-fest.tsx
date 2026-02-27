@@ -1,15 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-	getPreFestRegistrationStatus,
-	registerForPreFestWorkshop,
-} from "@/server/event";
-
-export default function PreFestSection({
-	isLoggedIn,
-}: {
-	isLoggedIn: boolean;
-}) {
+export default function PreFestSection() {
 	return (
 		// biome-ignore lint: Static ID is required for anchor scrolling
 		<div
@@ -66,7 +55,14 @@ export default function PreFestSection({
 							</p>
 
 							<div className="flex flex-wrap gap-6 items-center mt-auto">
-								<RegistrationButton isLoggedIn={isLoggedIn} />
+								<a
+									href="https://teams.microsoft.com/meet/42045356141968?p=R31UnzwdHcb9rgJK5j"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="group/btn relative px-8 py-4 bg-[#9D00FF] hover:bg-[#B333FF] text-white font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(157,0,255,0.4)] hover:shadow-[0_0_30px_rgba(157,0,255,0.6)]"
+								>
+									Meeting Link
+								</a>
 							</div>
 						</div>
 					</div>
@@ -90,10 +86,15 @@ export default function PreFestSection({
 								</p>
 							</div>
 
-							<p className="text-gray-300 text-sm md:text-base font-bold leading-relaxed tracking-tighter mb-10 grow">
-								Showcase your engineering creativity through video! Create a
-								compelling reel that captures the essence of mechanical marvels
-								and engineering excellence.
+							<p className="flex flex-col text-gray-300 text-sm md:text-base font-bold leading-relaxed tracking-tighter mb-10 grow">
+								<span>
+									Showcase your engineering creativity through video! Create a
+									compelling reel that captures the essence of mechanical
+									marvels and engineering excellence.
+								</span>
+								<span className="text-[#FFDD00] text-sm md:text-base font-bold leading-relaxed tracking-tighter mt-5">
+									DEADLINE : 04/03/2026
+								</span>
 							</p>
 
 							<div className="flex flex-wrap gap-6 items-center mt-auto">
@@ -104,6 +105,14 @@ export default function PreFestSection({
 									className="group/btn relative px-8 py-4 bg-[#9D00FF] hover:bg-[#B333FF] text-white font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(157,0,255,0.4)] hover:shadow-[0_0_30px_rgba(157,0,255,0.6)]"
 								>
 									Rulebook
+								</a>
+								<a
+									href="https://docs.google.com/forms/d/e/1FAIpQLSfOgEudQmpD6Nc6tGoWEPTsEbbpgcnb9niofNvmH1kYc7l15Q/viewform?usp=publish-editor"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="group/btn relative px-8 py-4 bg-[#FFDD00] hover:bg-[#FFEA00] text-[#090521] font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(255,221,0,0.4)] hover:shadow-[0_0_30px_rgba(255,221,0,0.6)]"
+								>
+									Register
 								</a>
 								<div className="flex flex-col">
 									<span className="text-xs font-bold text-[#9D00FF] uppercase tracking-[0.2em] mb-1">
@@ -122,60 +131,5 @@ export default function PreFestSection({
 				</div>
 			</div>
 		</div>
-	);
-}
-
-function RegistrationButton({ isLoggedIn }: { isLoggedIn: boolean }) {
-	const queryClient = useQueryClient();
-
-	const { data: status, isLoading: isStatusLoading } = useQuery({
-		queryKey: ["pre-fest-status"],
-		queryFn: getPreFestRegistrationStatus,
-	});
-
-	const { mutate: register, isPending: isRegistering } = useMutation({
-		mutationFn: registerForPreFestWorkshop,
-		onSuccess: () => {
-			toast.success("Registered for CREO Workshop successfully!");
-			queryClient.invalidateQueries({ queryKey: ["pre-fest-status"] });
-		},
-		onError: (error) => {
-			toast.error(`Registration failed: ${error.message}`);
-		},
-	});
-
-	const isRegistered = status?.isRegistered || false;
-
-	return (
-		<button
-			type="button"
-			onClick={() => {
-				if (!isLoggedIn) {
-					toast.error("Please sign in to register");
-					return;
-				}
-				register({ data: undefined });
-			}}
-			disabled={isRegistering || isStatusLoading || isRegistered}
-			className={`group/btn inline-flex relative px-8 py-4 font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 shadow-[0_0_20px_rgba(157,0,255,0.4)]
-                ${
-									isRegistered
-										? "bg-[#9D00FF]/20 text-[#FFDD00] border border-[#9D00FF]/50 cursor-default"
-										: "bg-[#9D00FF] hover:bg-[#B333FF] text-white hover:-translate-y-1"
-								}
-                disabled:opacity-80`}
-		>
-			<span className="relative z-10 flex items-center gap-2">
-				{isRegistering ? (
-					"Processing..."
-				) : isRegistered ? (
-					<>
-						<span className="text-[10px]">●</span> REGISTERED
-					</>
-				) : (
-					"REGISTER"
-				)}
-			</span>
-		</button>
 	);
 }

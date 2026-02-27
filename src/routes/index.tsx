@@ -50,7 +50,7 @@ function App() {
 					<PricingComparison />
 					<Events isLoggedIn={!!data?.session?.user} />
 					<Workshops isLoggedIn={!!data?.session?.user} />
-					<PreFestSection isLoggedIn={!!data?.session?.user} />
+					<PreFestSection />
 					<AccommodationSection />
 				</div>
 			</div>

@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
-import { user } from "@/db/auth-schema";
 import { events, registrations } from "@/db/schema";
 import {
 	getCurrentSession,
@@ -14,26 +13,12 @@ import { hasEventPass } from "./razorpay";
 
 export const getAllEvents = createServerFn({ method: "GET" }).handler(
 	async () => {
-		// event id 8 is prefest event
-
 		const session = await getCurrentSession();
 		const allEvents = await db.select().from(events);
 
-		let isAdminMaster = false;
-		if (session) {
-			const [dbUser] = await db
-				.select({ role: user.role })
-				.from(user)
-				.where(eq(user.id, session.user.id))
-				.limit(1);
-			isAdminMaster = dbUser?.role === "ADMIN-MASTER";
-		}
-
 		if (!session) {
 			return {
-				events: allEvents
-					.filter((event) => isAdminMaster || event.id !== 8)
-					.map((event) => ({ ...event, isRegistered: false })),
+				events: allEvents.map((event) => ({ ...event, isRegistered: false })),
 				hasEventPass: false,
 			};
 		}
@@ -50,12 +35,10 @@ export const getAllEvents = createServerFn({ method: "GET" }).handler(
 		const userHasPass = await hasEventPass(session.user.id);
 
 		return {
-			events: allEvents
-				.filter((event) => isAdminMaster || event.id !== 8)
-				.map((event) => ({
-					...event,
-					isRegistered: eventIds.has(event.id),
-				})),
+			events: allEvents.map((event) => ({
+				...event,
+				isRegistered: eventIds.has(event.id),
+			})),
 			hasEventPass: userHasPass,
 		};
 	},
