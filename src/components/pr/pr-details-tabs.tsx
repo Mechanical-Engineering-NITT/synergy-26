@@ -51,6 +51,7 @@ export function PrUserDetailsTabs({
 	if (activeTab === "events") {
 		return (
 			<SimpleDetailsTable
+				key="events"
 				headers={["Event ID", "Event Title", "Payment Status", "Created At"]}
 				rows={eventRows.map((eventRow) => [
 					Number(eventRow.eventId ?? 0) || "-",
@@ -68,6 +69,7 @@ export function PrUserDetailsTabs({
 	if (activeTab === "workshops") {
 		return (
 			<SimpleDetailsTable
+				key="workshops"
 				headers={[
 					"Workshop ID",
 					"Workshop Title",
@@ -87,18 +89,27 @@ export function PrUserDetailsTabs({
 		);
 	}
 
+	if (activeTab === "payments") {
+		return (
+			<SimpleDetailsTable
+				key="payments"
+				headers={["Payment ID", "Amount", "Status", "Created At"]}
+				rows={paymentRows.map((paymentRow) => [
+					String(paymentRow.id ?? "-"),
+					`₹${(Number(paymentRow.amount ?? 0) / 100).toFixed(2)}`,
+					String(paymentRow.status ?? "-"),
+					paymentRow.createdAt
+						? new Date(String(paymentRow.createdAt)).toLocaleString()
+						: "-",
+				])}
+				emptyLabel="No payments found."
+			/>
+		);
+	}
+
 	return (
-		<SimpleDetailsTable
-			headers={["Payment ID", "Amount", "Status", "Created At"]}
-			rows={paymentRows.map((paymentRow) => [
-				String(paymentRow.id ?? "-"),
-				`₹${(Number(paymentRow.amount ?? 0) / 100).toFixed(2)}`,
-				String(paymentRow.status ?? "-"),
-				paymentRow.createdAt
-					? new Date(String(paymentRow.createdAt)).toLocaleString()
-					: "-",
-			])}
-			emptyLabel="No payments found."
-		/>
+		<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+			Invalid tab selected.
+		</div>
 	);
 }

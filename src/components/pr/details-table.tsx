@@ -28,9 +28,9 @@ export function SimpleDetailsTable({
 					</tr>
 				</thead>
 				<tbody>
-					{rows.map((row) => (
+					{rows.map((row, rowIndex) => (
 						<tr
-							key={row.map((value) => String(value)).join("|")}
+							key={`${rowIndex}-${row.map((value) => String(value)).join("|")}`}
 							className="border-t border-border"
 						>
 							{row.map((cell, cellIndex) => (
