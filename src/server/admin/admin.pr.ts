@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, countDistinct, desc, eq, isNotNull, sum } from "drizzle-orm";
+import { and, countDistinct, desc, eq, isNotNull, or, sum } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
@@ -111,7 +111,7 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				},
 			};
 		} catch {
-			throw new Error("Failed to fetch admin users");
+			throw new Error("Failed to fetch users");
 		}
 	},
 );
@@ -142,8 +142,11 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 				throw new Error("User not found");
 			}
 
+			// Events: User must have registered for the specific event AND have paid for either:
+			// 1. An event pass (isEventPass = true), OR
+			// 2. Any workshop
 			const eventRegistrations = await db
-				.select({
+				.selectDistinct({
 					eventId: events.id,
 					eventTitle: events.title,
 					paymentStatus: payments.status,
@@ -155,15 +158,16 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 					payments,
 					and(
 						eq(payments.userId, registrations.userId),
-						eq(payments.isEventPass, true),
+						eq(payments.status, "paid"),
+						or(eq(payments.isEventPass, true), isNotNull(payments.workshopId)),
 					),
 				)
 				.where(
 					and(
 						eq(registrations.userId, data.userId),
-						isNotNull(registrations.eventId),
-						isNotNull(events.id),
-						isNotNull(payments.id),
+						isNotNull(registrations.eventId), // Must have registered for this specific event
+						isNotNull(events.id), // Event must exist
+						isNotNull(payments.id), // Must have paid for event pass OR workshop
 					),
 				)
 				.orderBy(desc(registrations.createdAt));
@@ -182,6 +186,7 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 					and(
 						eq(payments.userId, registrations.userId),
 						eq(payments.workshopId, registrations.workshopId),
+						eq(payments.status, "paid"),
 					),
 				)
 				.where(
@@ -214,6 +219,6 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 				},
 			};
 		} catch {
-			throw new Error("Failed to fetch admin user details");
+			throw new Error("Failed to fetch user details");
 		}
 	});
