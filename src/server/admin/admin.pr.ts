@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, countDistinct, desc, eq, isNotNull, or, sum } from "drizzle-orm";
+import { and, countDistinct, desc, eq, isNotNull, sum } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
@@ -43,15 +43,7 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				})
 				.from(registrations)
 				.leftJoin(events, eq(events.id, registrations.eventId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.status, "paid"),
-						eq(payments.isEventPass, true),
-					),
-				)
-				.where(and(isNotNull(registrations.eventId), isNotNull(payments.id)))
+				.where(and(isNotNull(registrations.eventId), isNotNull(events.id)))
 				.groupBy(registrations.userId);
 
 			const workshopAggRows = await db
@@ -61,15 +53,9 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				})
 				.from(registrations)
 				.leftJoin(workshops, eq(workshops.id, registrations.workshopId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.workshopId, registrations.workshopId),
-						eq(payments.status, "paid"),
-					),
+				.where(
+					and(isNotNull(registrations.workshopId), isNotNull(workshops.id)),
 				)
-				.where(and(isNotNull(registrations.workshopId), isNotNull(payments.id)))
 				.groupBy(registrations.userId);
 
 			const paymentAggRows = await db
@@ -142,62 +128,49 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 				throw new Error("User not found");
 			}
 
-			// Events: User must have registered for the specific event AND have paid for either:
-			// 1. An event pass (isEventPass = true), OR
-			// 2. Any workshop
 			const eventRegistrations = await db
 				.selectDistinct({
-					eventId: events.id,
-					eventTitle: events.title,
-					paymentStatus: payments.status,
-					createdAt: registrations.createdAt,
+					id: events.id,
+					title: events.title,
 				})
 				.from(registrations)
 				.leftJoin(events, eq(events.id, registrations.eventId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.status, "paid"),
-						or(eq(payments.isEventPass, true), isNotNull(payments.workshopId)),
-					),
-				)
 				.where(
 					and(
 						eq(registrations.userId, data.userId),
-						isNotNull(registrations.eventId), // Must have registered for this specific event
-						isNotNull(events.id), // Event must exist
-						isNotNull(payments.id), // Must have paid for event pass OR workshop
+						isNotNull(registrations.eventId),
+						isNotNull(events.id),
 					),
 				)
-				.orderBy(desc(registrations.createdAt));
+				.then((rows) =>
+					rows.map((entry) => ({
+						id: entry.id,
+						title: entry.title,
+						isRegistered: true,
+					})),
+				);
 
 			const workshopRegistrations = await db
-				.select({
-					workshopId: workshops.id,
-					workshopTitle: workshops.title,
-					paymentStatus: payments.status,
-					createdAt: registrations.createdAt,
+				.selectDistinct({
+					id: workshops.id,
+					title: workshops.title,
 				})
 				.from(registrations)
 				.leftJoin(workshops, eq(workshops.id, registrations.workshopId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.workshopId, registrations.workshopId),
-						eq(payments.status, "paid"),
-					),
-				)
 				.where(
 					and(
 						eq(registrations.userId, data.userId),
 						isNotNull(registrations.workshopId),
 						isNotNull(workshops.id),
-						isNotNull(payments.id),
 					),
 				)
-				.orderBy(desc(registrations.createdAt));
+				.then((rows) =>
+					rows.map((entry) => ({
+						id: entry.id,
+						title: entry.title,
+						isRegistered: true,
+					})),
+				);
 
 			const paymentRows = await db
 				.select({

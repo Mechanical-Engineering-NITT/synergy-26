@@ -52,14 +52,11 @@ export function PrUserDetailsTabs({
 		return (
 			<SimpleDetailsTable
 				key="events"
-				headers={["Event ID", "Event Title", "Payment Status", "Created At"]}
+				headers={["Event ID", "Event Title", "Registered"]}
 				rows={eventRows.map((eventRow) => [
-					Number(eventRow.eventId ?? 0) || "-",
-					String(eventRow.eventTitle ?? "-"),
-					String(eventRow.paymentStatus ?? "-"),
-					eventRow.createdAt
-						? new Date(String(eventRow.createdAt)).toLocaleString()
-						: "-",
+					String(eventRow.id ?? "-"),
+					String(eventRow.title ?? "-"),
+					eventRow.isRegistered ? "Yes" : "No",
 				])}
 				emptyLabel="No event registrations found."
 			/>
@@ -70,19 +67,11 @@ export function PrUserDetailsTabs({
 		return (
 			<SimpleDetailsTable
 				key="workshops"
-				headers={[
-					"Workshop ID",
-					"Workshop Title",
-					"Payment Status",
-					"Created At",
-				]}
+				headers={["Workshop ID", "Workshop Title", "Registered"]}
 				rows={workshopRows.map((workshopRow) => [
-					Number(workshopRow.workshopId ?? 0) || "-",
-					String(workshopRow.workshopTitle ?? "-"),
-					String(workshopRow.paymentStatus ?? "-"),
-					workshopRow.createdAt
-						? new Date(String(workshopRow.createdAt)).toLocaleString()
-						: "-",
+					String(workshopRow.id ?? "-"),
+					String(workshopRow.title ?? "-"),
+					workshopRow.isRegistered ? "Yes" : "No",
 				])}
 				emptyLabel="No workshop registrations found."
 			/>
