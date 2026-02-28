@@ -24,7 +24,6 @@ type CheckInState = {
 	depositVerified: boolean;
 	hostelName: string | null;
 	floor: string | null;
-	roomNumber: string | null;
 	roomPrice: number;
 	accommodationPreviewTotal: number;
 };
@@ -43,7 +42,6 @@ type CheckInAction =
 	| { type: "setDepositVerified"; value: boolean }
 	| { type: "setHostelName"; value: string | null }
 	| { type: "setFloor"; value: string | null }
-	| { type: "setRoomNumber"; value: string | null }
 	| {
 			type: "setPricingPreview";
 			roomPrice: number;
@@ -69,7 +67,6 @@ const initialCheckInState: CheckInState = {
 	depositVerified: false,
 	hostelName: null,
 	floor: null,
-	roomNumber: null,
 	roomPrice: 0,
 	accommodationPreviewTotal: 0,
 };
@@ -144,7 +141,6 @@ function checkInReducer(
 					nightsRequested: 0,
 					hostelName: null,
 					floor: null,
-					roomNumber: null,
 					paymentVerified: true,
 					depositVerified: true,
 					roomPrice: 0,
@@ -159,7 +155,6 @@ function checkInReducer(
 					nightsRequested: 0,
 					hostelName: null,
 					floor: null,
-					roomNumber: null,
 					paymentVerified: false,
 					depositVerified: false,
 					roomPrice: 0,
@@ -174,7 +169,6 @@ function checkInReducer(
 				nightsRequested: 0,
 				hostelName: null,
 				floor: null,
-				roomNumber: null,
 				paymentVerified: false,
 				depositVerified: false,
 				roomPrice: 0,
@@ -195,8 +189,6 @@ function checkInReducer(
 			return { ...state, hostelName: action.value };
 		case "setFloor":
 			return { ...state, floor: action.value };
-		case "setRoomNumber":
-			return { ...state, roomNumber: action.value };
 		case "setPricingPreview":
 			return {
 				...state,
@@ -302,7 +294,6 @@ function CheckInWizard({
 	const idBase = useId();
 	const hostelInputId = `${idBase}-review-hostel`;
 	const floorInputId = `${idBase}-review-floor`;
-	const roomInputId = `${idBase}-review-room`;
 	const normalizeNullableText = (value: string | null) => value?.trim() || null;
 	const isCalculatingPreview =
 		state.step === 2 &&
@@ -319,7 +310,6 @@ function CheckInWizard({
 						state.accommodationRequired === true ? state.nightsRequested : 0,
 					hostelName: normalizeNullableText(state.hostelName),
 					floor: normalizeNullableText(state.floor),
-					roomNumber: normalizeNullableText(state.roomNumber),
 					paymentVerified:
 						state.accommodationRequired === true
 							? state.paymentVerified && state.depositVerified
@@ -357,9 +347,7 @@ function CheckInWizard({
 	const totalPayable = previewTotal + depositAmount;
 
 	const isRoomAllotmentValid =
-		Boolean(state.hostelName?.trim()) &&
-		Boolean(state.floor?.trim()) &&
-		Boolean(state.roomNumber?.trim());
+		Boolean(state.hostelName?.trim()) && Boolean(state.floor?.trim());
 
 	const isStepValid = () => {
 		if (state.accommodationRequired === false) {
@@ -623,27 +611,6 @@ function CheckInWizard({
 								disabled={disabled || createStayMutation.isPending}
 								className="w-full rounded-md border border-border bg-background px-3 py-2"
 							/>
-
-							<label
-								htmlFor={roomInputId}
-								className="block text-xs text-muted-foreground"
-							>
-								Room Number
-							</label>
-							<input
-								id={roomInputId}
-								type="text"
-								placeholder="Room number"
-								value={state.roomNumber ?? ""}
-								onChange={(event) =>
-									dispatch({
-										type: "setRoomNumber",
-										value: event.target.value,
-									})
-								}
-								disabled={disabled || createStayMutation.isPending}
-								className="w-full rounded-md border border-border bg-background px-3 py-2"
-							/>
 						</div>
 					</div>
 				) : null}
@@ -706,10 +673,6 @@ function CheckInWizard({
 										<span className="text-muted-foreground">Floor</span>
 										<span className="text-right font-medium">
 											{state.floor}
-										</span>
-										<span className="text-muted-foreground">Room Number</span>
-										<span className="text-right font-medium">
-											{state.roomNumber}
 										</span>
 									</div>
 								</div>

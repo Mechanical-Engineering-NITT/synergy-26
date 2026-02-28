@@ -107,7 +107,6 @@ export const accommodation = pgTable(
 		cautionDeposit: integer("caution_deposit").notNull().default(0),
 		hostelName: text("hostel_name"),
 		floor: text("floor"),
-		roomNumber: text("room_number"),
 		paymentVerified: boolean("payment_verified").notNull().default(false),
 		checkedInAt: timestamp("checked_in_at"),
 		fineAmount: integer("fine_amount"),

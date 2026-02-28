@@ -1,5 +1,5 @@
 {
-  "id": "76455e94-1222-4cca-9e57-5fdaa6212dc9",
+  "id": "7eed252c-3aab-421b-a07c-de154331ff2f",
   "prevId": "af125a03-0ca7-4b84-af8e-0867c4e758b4",
   "version": "7",
   "dialect": "postgresql",
@@ -57,12 +57,6 @@
         },
         "floor": {
           "name": "floor",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "room_number": {
-          "name": "room_number",
           "type": "text",
           "primaryKey": false,
           "notNull": false

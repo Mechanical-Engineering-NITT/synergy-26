@@ -7,7 +7,6 @@ CREATE TABLE "accommodation" (
 	"caution_deposit" integer DEFAULT 0 NOT NULL,
 	"hostel_name" text,
 	"floor" text,
-	"room_number" text,
 	"payment_verified" boolean DEFAULT false NOT NULL,
 	"checked_in_at" timestamp,
 	"fine_amount" integer,

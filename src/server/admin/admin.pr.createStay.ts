@@ -12,7 +12,6 @@ const CreateStayInputSchema = z
 		nightsRequested: z.number().int().min(0),
 		hostelName: z.string().nullable(),
 		floor: z.string().nullable(),
-		roomNumber: z.string().nullable(),
 		paymentVerified: z.boolean(),
 	})
 	.refine((data) => !data.accommodationRequired || data.nightsRequested > 0, {
@@ -49,7 +48,6 @@ export const createStay = createServerFn({ method: "POST" })
 				cautionDeposit: depositAmount,
 				hostelName: data.hostelName,
 				floor: data.floor,
-				roomNumber: data.roomNumber,
 				paymentVerified: true,
 				checkedInAt: new Date(),
 			})
