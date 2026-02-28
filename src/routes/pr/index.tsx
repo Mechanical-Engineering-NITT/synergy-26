@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { OnboardingModal } from "@/components/pr/onboarding-modal.tsx";
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
 import { PrUsersPagination } from "@/components/pr/pr-pagination";
 import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
@@ -39,6 +40,9 @@ function RouteComponent() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+	const [selectedOnboardingUserId, setSelectedOnboardingUserId] = useState<
+		string | null
+	>(null);
 	const [activeTab, setActiveTab] = useState("profile");
 
 	const {
@@ -214,16 +218,25 @@ function RouteComponent() {
 										₹{(row.totalPaidAmount / 100).toFixed(2)}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										<button
-											type="button"
-											onClick={() => {
-												setSelectedUserId(row.id);
-												setActiveTab("profile");
-											}}
-											className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
-										>
-											View
-										</button>
+										<div className="flex items-center gap-2">
+											<button
+												type="button"
+												onClick={() => {
+													setSelectedUserId(row.id);
+													setActiveTab("profile");
+												}}
+												className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+											>
+												View
+											</button>
+											<button
+												type="button"
+												onClick={() => setSelectedOnboardingUserId(row.id)}
+												className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+											>
+												Onboarding
+											</button>
+										</div>
 									</td>
 								</tr>
 							))}
@@ -257,6 +270,13 @@ function RouteComponent() {
 					data={detailsData?.data}
 					isLoading={isDetailsLoading}
 					isError={isDetailsError}
+				/>
+			) : null}
+
+			{selectedOnboardingUserId ? (
+				<OnboardingModal
+					userId={selectedOnboardingUserId}
+					onClose={() => setSelectedOnboardingUserId(null)}
 				/>
 			) : null}
 		</div>

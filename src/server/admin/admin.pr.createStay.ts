@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
@@ -27,17 +26,7 @@ export const createStay = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
-		const [existingStay] = await db
-			.select({ id: accommodation.id })
-			.from(accommodation)
-			.where(eq(accommodation.userId, data.userId))
-			.limit(1);
-
-		if (existingStay) {
-			throw new Error("Stay record already exists for this user");
-		}
-
-		if (!data.paymentVerified) {
+		if (data.accommodationRequired && !data.paymentVerified) {
 			throw new Error("Payment must be verified before check-in");
 		}
 
@@ -64,6 +53,7 @@ export const createStay = createServerFn({ method: "POST" })
 				paymentVerified: true,
 				checkedInAt: new Date(),
 			})
+			.onConflictDoNothing({ target: accommodation.userId })
 			.returning({
 				id: accommodation.id,
 				userId: accommodation.userId,
@@ -73,6 +63,10 @@ export const createStay = createServerFn({ method: "POST" })
 				cautionDeposit: accommodation.cautionDeposit,
 				checkedInAt: accommodation.checkedInAt,
 			});
+
+		if (!createdStay) {
+			throw new Error("Stay record already exists for this user");
+		}
 
 		return createdStay;
 	});

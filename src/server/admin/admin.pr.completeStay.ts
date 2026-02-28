@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
@@ -48,7 +48,13 @@ export const completeStay = createServerFn({ method: "POST" })
 				checkedOutAt: new Date(),
 				updatedAt: new Date(),
 			})
-			.where(eq(accommodation.id, stayRecord.id))
+			.where(
+				and(
+					eq(accommodation.id, stayRecord.id),
+					isNotNull(accommodation.checkedInAt),
+					isNull(accommodation.checkedOutAt),
+				),
+			)
 			.returning({
 				id: accommodation.id,
 				userId: accommodation.userId,
@@ -57,6 +63,10 @@ export const completeStay = createServerFn({ method: "POST" })
 				cautionReturned: accommodation.cautionReturned,
 				checkedOutAt: accommodation.checkedOutAt,
 			});
+
+		if (!updatedStay) {
+			throw new Error("Stay cannot be modified after checkout");
+		}
 
 		return updatedStay;
 	});

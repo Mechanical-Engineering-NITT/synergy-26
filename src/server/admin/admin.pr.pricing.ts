@@ -1,3 +1,5 @@
+import { createServerFn } from "@tanstack/react-start";
+import * as z from "zod";
 import { getConstantValue } from "../constants";
 
 type PricingResult = {
@@ -29,3 +31,19 @@ export const getAccommodationPricing = async (): Promise<PricingResult> => {
 		depositAmount: parsePrices("deposit", depositValue),
 	};
 };
+
+const CheckInPricingPreviewInputSchema = z.object({
+	accommodationRequired: z.boolean(),
+	nightsRequested: z.number().int().min(0),
+});
+
+export const getCheckInPricingPreview = createServerFn({ method: "POST" })
+	.inputValidator(CheckInPricingPreviewInputSchema)
+	.handler(async () => {
+		const { roomPrice, depositAmount } = await getAccommodationPricing();
+
+		return {
+			roomPrice,
+			depositAmount,
+		};
+	});
