@@ -39,6 +39,28 @@ export const completeStay = createServerFn({ method: "POST" })
 			throw new Error("User has already checked out");
 		}
 
+		const fineApplicable = data.fineAmount > 0;
+
+		if (fineApplicable) {
+			if (!data.finePaid) {
+				throw new Error(
+					"Fine must be marked as paid when fine amount is greater than 0",
+				);
+			}
+
+			if (data.cautionReturned) {
+				throw new Error("Deposit must be retained when a fine is applied");
+			}
+		} else {
+			if (data.finePaid) {
+				throw new Error("Fine cannot be marked as paid when fine amount is 0");
+			}
+
+			if (!data.cautionReturned) {
+				throw new Error("Deposit must be returned when no fine is applied");
+			}
+		}
+
 		const [updatedStay] = await db
 			.update(accommodation)
 			.set({

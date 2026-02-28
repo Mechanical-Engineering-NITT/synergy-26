@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { accommodation } from "@/db/schema";
 import { requireAdminUser } from "@/lib/utils";
 
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 const GetStayStatusInputSchema = z.object({
 	userId: z.string().min(1),
 });
@@ -16,6 +18,13 @@ export const getStayStatus = createServerFn({ method: "GET" })
 
 		const [stay] = await db
 			.select({
+				accommodationRequired: accommodation.accommodationRequired,
+				nightsRequested: accommodation.nightsRequested,
+				accommodationFee: accommodation.accommodationFee,
+				cautionDeposit: accommodation.cautionDeposit,
+				fineAmount: accommodation.fineAmount,
+				finePaid: accommodation.finePaid,
+				cautionReturned: accommodation.cautionReturned,
 				checkedInAt: accommodation.checkedInAt,
 				checkedOutAt: accommodation.checkedOutAt,
 			})
@@ -23,9 +32,31 @@ export const getStayStatus = createServerFn({ method: "GET" })
 			.where(eq(accommodation.userId, data.userId))
 			.limit(1);
 
+		const elapsedDays = stay?.checkedInAt
+			? Math.max(
+					0,
+					Math.floor((Date.now() - stay.checkedInAt.getTime()) / ONE_DAY_IN_MS),
+				)
+			: 0;
+
+		const nightsRequested = stay?.nightsRequested ?? 0;
+		const overstayed =
+			!!stay?.checkedInAt && !stay?.checkedOutAt
+				? elapsedDays > nightsRequested
+				: false;
+
 		return {
 			exists: !!stay,
+			accommodationRequired: stay?.accommodationRequired ?? false,
+			nightsRequested,
+			accommodationFee: stay?.accommodationFee ?? 0,
+			cautionDeposit: stay?.cautionDeposit ?? 0,
+			fineAmount: stay?.fineAmount ?? 0,
+			finePaid: stay?.finePaid ?? false,
+			cautionReturned: stay?.cautionReturned ?? false,
 			checkedInAt: stay?.checkedInAt || null,
 			checkedOutAt: stay?.checkedOutAt || null,
+			elapsedDays,
+			overstayed,
 		};
 	});

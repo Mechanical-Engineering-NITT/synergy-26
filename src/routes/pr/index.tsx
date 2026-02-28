@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { OnboardingModal } from "@/components/pr/onboarding-modal.tsx";
+import { OnboardingModal } from "@/components/pr/onboarding";
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
 import { PrUsersPagination } from "@/components/pr/pr-pagination";
 import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
