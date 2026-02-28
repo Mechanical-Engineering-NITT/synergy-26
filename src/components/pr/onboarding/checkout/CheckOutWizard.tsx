@@ -111,7 +111,6 @@ export function CheckOutWizard({
 
 	return (
 		<div className="rounded-md border border-border bg-card p-4">
-			<h4 className="text-sm font-medium">CheckOutWizard</h4>
 			<p className="mt-2 text-xs text-muted-foreground">
 				Step {currentFlowStep} of {totalFlowSteps}
 			</p>

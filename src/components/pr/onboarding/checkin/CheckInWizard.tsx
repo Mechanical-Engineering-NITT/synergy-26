@@ -264,7 +264,6 @@ export function CheckInWizard({
 
 	return (
 		<div className="rounded-md border border-border bg-card p-4">
-			<h4 className="text-sm font-medium">CheckInWizard</h4>
 			{mode === "edit" && isEditLoading ? (
 				<p className="mt-2 text-xs text-muted-foreground">
 					Loading existing check-in...

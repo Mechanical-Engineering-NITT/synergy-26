@@ -53,8 +53,6 @@ export function ControlsPanel({
 
 	return (
 		<div className="space-y-3 rounded-md border border-border bg-card p-4">
-			<h3 className="text-sm font-medium">ControlsPanel</h3>
-
 			<div className="flex items-center gap-2">
 				<button
 					type="button"
