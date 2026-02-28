@@ -43,6 +43,13 @@
       "when": 1772117899952,
       "tag": "0005_loving_power_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772289600000,
+      "tag": "0006_mellow_mandrill",
+      "breakpoints": true
     }
   ]
 }
