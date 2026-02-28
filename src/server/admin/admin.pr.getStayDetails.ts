@@ -35,7 +35,9 @@ export const getStayDetails = createServerFn({ method: "GET" })
 			Math.floor((Date.now() - stayData.checkedInAt.getTime()) / ONE_DAY_IN_MS),
 		);
 
-		const overstayed = elapsedDays > stayData.nightsRequested;
+		const overstayed = stayData.accommodationRequired
+			? elapsedDays > stayData.nightsRequested
+			: false;
 
 		return {
 			nightsRequested: stayData.nightsRequested,

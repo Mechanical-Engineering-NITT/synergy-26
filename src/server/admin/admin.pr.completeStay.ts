@@ -20,6 +20,7 @@ export const completeStay = createServerFn({ method: "POST" })
 		const [stayRecord] = await db
 			.select({
 				id: accommodation.id,
+				accommodationRequired: accommodation.accommodationRequired,
 				checkedInAt: accommodation.checkedInAt,
 				checkedOutAt: accommodation.checkedOutAt,
 			})
@@ -39,9 +40,27 @@ export const completeStay = createServerFn({ method: "POST" })
 			throw new Error("User has already checked out");
 		}
 
+		const isNoAccommodation = !stayRecord.accommodationRequired;
+
+		if (isNoAccommodation) {
+			if (data.fineAmount !== 0) {
+				throw new Error("Fine amount must be 0 for no-accommodation stays");
+			}
+
+			if (data.finePaid !== false) {
+				throw new Error("Fine paid must be false for no-accommodation stays");
+			}
+
+			if (data.cautionReturned !== false) {
+				throw new Error(
+					"Caution status must be false for no-accommodation stays",
+				);
+			}
+		}
+
 		const fineApplicable = data.fineAmount > 0;
 
-		if (fineApplicable) {
+		if (!isNoAccommodation && fineApplicable) {
 			if (!data.finePaid) {
 				throw new Error(
 					"Fine must be marked as paid when fine amount is greater than 0",
@@ -51,7 +70,7 @@ export const completeStay = createServerFn({ method: "POST" })
 			if (data.cautionReturned) {
 				throw new Error("Deposit must be retained when a fine is applied");
 			}
-		} else {
+		} else if (!isNoAccommodation) {
 			if (data.finePaid) {
 				throw new Error("Fine cannot be marked as paid when fine amount is 0");
 			}

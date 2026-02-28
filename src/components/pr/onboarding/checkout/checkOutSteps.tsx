@@ -8,6 +8,64 @@ type StepProps = {
 	completePending: boolean;
 };
 
+export function Step1NoAccommodationInfo() {
+	return (
+		<div className="rounded-xl border bg-muted/40 p-6 text-center space-y-3">
+			<p className="text-lg font-semibold">No Accommodation Stay</p>
+			<p className="text-sm text-muted-foreground">
+				This user did not request accommodation.
+			</p>
+			<p className="text-sm text-muted-foreground">
+				No overstay, fine, or deposit processing required.
+			</p>
+		</div>
+	);
+}
+
+export function Step2NoAccommodationReview({
+	checkedInAt,
+}: {
+	checkedInAt: Date | null;
+}) {
+	return (
+		<div className="space-y-6">
+			<p className="font-medium">2. Detailed review</p>
+
+			<div className="space-y-4 rounded-xl border bg-card p-5 shadow-sm">
+				<h5 className="text-sm font-semibold">Stay Summary</h5>
+				<div className="grid grid-cols-2 gap-y-3 text-sm">
+					<span className="text-muted-foreground">Check-In Timestamp</span>
+					<span className="text-right font-medium">
+						{checkedInAt ? new Date(checkedInAt).toLocaleString() : "N/A"}
+					</span>
+					<span className="text-muted-foreground">Check-Out</span>
+					<span className="text-right font-medium">Pending</span>
+					<span className="text-muted-foreground">Accommodation</span>
+					<span className="text-right font-medium">Not Requested</span>
+					<span className="text-muted-foreground">Charges</span>
+					<span className="text-right font-medium">₹0</span>
+					<span className="text-muted-foreground">Deposit</span>
+					<span className="text-right font-medium">Not Applicable</span>
+					<span className="text-muted-foreground">Fine</span>
+					<span className="text-right font-medium">Not Applicable</span>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export function Step3NoAccommodationConfirm() {
+	return (
+		<div className="max-w-md mx-auto bg-card border rounded-2xl shadow-md p-8 text-center space-y-6">
+			<p className="text-xl font-semibold">Confirm Check-Out</p>
+			<p className="text-base">No accommodation was requested.</p>
+			<p className="text-sm text-muted-foreground">
+				No charges or deposits involved.
+			</p>
+		</div>
+	);
+}
+
 export function Step1Overstay({
 	isDetailsLoading,
 	isDetailsError,

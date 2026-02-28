@@ -41,7 +41,9 @@ export const getStayStatus = createServerFn({ method: "GET" })
 
 		const nightsRequested = stay?.nightsRequested ?? 0;
 		const overstayed =
-			!!stay?.checkedInAt && !stay?.checkedOutAt
+			!!stay?.checkedInAt &&
+			!stay?.checkedOutAt &&
+			stay?.accommodationRequired === true
 				? elapsedDays > nightsRequested
 				: false;
 

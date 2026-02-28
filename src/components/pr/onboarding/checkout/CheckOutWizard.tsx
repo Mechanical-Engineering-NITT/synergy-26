@@ -8,8 +8,11 @@ import {
 	isCheckOutFinalStateValid,
 } from "./checkOutReducer";
 import {
+	Step1NoAccommodationInfo,
 	Step1Overstay,
 	Step2FineApplicable,
+	Step2NoAccommodationReview,
+	Step3NoAccommodationConfirm,
 	Step3SetFine,
 	Step4FinePaid,
 	Step5DepositReturn,
@@ -47,9 +50,9 @@ export function CheckOutWizard({
 			completeStay({
 				data: {
 					userId,
-					fineAmount: state.fineAmount,
-					finePaid: state.finePaid,
-					cautionReturned: state.cautionReturned,
+					fineAmount: isNoAccommodation ? 0 : state.fineAmount,
+					finePaid: isNoAccommodation ? false : state.finePaid,
+					cautionReturned: isNoAccommodation ? false : state.cautionReturned,
 				},
 			}),
 		onSuccess: () => {
@@ -65,29 +68,46 @@ export function CheckOutWizard({
 	const checkedInAt = detailsData?.stayData?.checkedInAt ?? null;
 	const checkedOutAt = detailsData?.stayData?.checkedOutAt ?? null;
 	const overstayDays = Math.max(0, elapsedDays - nightsRequested);
+	const stay = detailsData?.stayData;
+	const isNoAccommodation = stay?.accommodationRequired === false;
 
-	const isFinalStateValid = isCheckOutFinalStateValid({
-		checkedInAt,
-		checkedOutAt,
-		state,
-	});
+	const isFinalStateValid = isNoAccommodation
+		? Boolean(checkedInAt) &&
+			!checkedOutAt &&
+			state.fineAmount === 0 &&
+			state.finePaid === false &&
+			state.cautionReturned === false
+		: isCheckOutFinalStateValid({
+				checkedInAt,
+				checkedOutAt,
+				state,
+			});
 
 	const canProceedFromCurrentStep =
-		state.step === 1
-			? !isDetailsLoading && !isDetailsError
-			: state.step === 2
-				? state.fineApplicable !== null
-				: state.step === 3
-					? state.fineAmount > 0
-					: state.step === 4
-						? state.finePaid
-						: state.step === 5
-							? state.cautionReturned
-							: true;
+		isNoAccommodation && state.step === 1
+			? true
+			: isNoAccommodation && state.step === 2
+				? true
+				: state.step === 1
+					? !isDetailsLoading && !isDetailsError
+					: state.step === 2
+						? state.fineApplicable !== null
+						: state.step === 3
+							? state.fineAmount > 0
+							: state.step === 4
+								? state.finePaid
+								: state.step === 5
+									? state.cautionReturned
+									: true;
 
-	const totalFlowSteps = state.fineApplicable === false ? 5 : 6;
-	const currentFlowStep =
-		state.fineApplicable === false
+	const totalFlowSteps = isNoAccommodation
+		? 3
+		: state.fineApplicable === false
+			? 5
+			: 6;
+	const currentFlowStep = isNoAccommodation
+		? state.step
+		: state.fineApplicable === false
 			? state.step === 1
 				? 1
 				: state.step === 2
@@ -109,6 +129,36 @@ export function CheckOutWizard({
 								? 5
 								: 6;
 
+	const isFinalStep = isNoAccommodation ? state.step === 3 : state.step === 7;
+
+	const handleNext = () => {
+		if (isNoAccommodation) {
+			if (state.step === 1) {
+				dispatch({ type: "nextStep" });
+				return;
+			}
+
+			if (state.step === 2) {
+				dispatch({ type: "nextStep" });
+			}
+
+			return;
+		}
+
+		dispatch({ type: "nextStep" });
+	};
+
+	const handleBack = () => {
+		if (isNoAccommodation) {
+			if (state.step === 3 || state.step === 2) {
+				dispatch({ type: "prevStep" });
+			}
+			return;
+		}
+
+		dispatch({ type: "prevStep" });
+	};
+
 	return (
 		<div className="rounded-md border border-border bg-card p-4">
 			<p className="mt-2 text-xs text-muted-foreground">
@@ -116,7 +166,11 @@ export function CheckOutWizard({
 			</p>
 
 			<div className="mt-3 space-y-3 text-sm">
-				{state.step === 1 ? (
+				{isNoAccommodation && state.step === 1 ? (
+					<Step1NoAccommodationInfo />
+				) : null}
+
+				{!isNoAccommodation && state.step === 1 ? (
 					<Step1Overstay
 						isDetailsLoading={isDetailsLoading}
 						isDetailsError={isDetailsError}
@@ -126,7 +180,11 @@ export function CheckOutWizard({
 					/>
 				) : null}
 
-				{state.step === 2 ? (
+				{isNoAccommodation && state.step === 2 ? (
+					<Step2NoAccommodationReview checkedInAt={checkedInAt} />
+				) : null}
+
+				{!isNoAccommodation && state.step === 2 ? (
 					<Step2FineApplicable
 						state={state}
 						dispatch={dispatch}
@@ -135,13 +193,17 @@ export function CheckOutWizard({
 					/>
 				) : null}
 
-				{state.step === 3 ? (
+				{!isNoAccommodation && state.step === 3 ? (
 					<Step3SetFine
 						state={state}
 						dispatch={dispatch}
 						disabled={disabled}
 						completePending={completeStayMutation.isPending}
 					/>
+				) : null}
+
+				{isNoAccommodation && state.step === 3 ? (
+					<Step3NoAccommodationConfirm />
 				) : null}
 
 				{state.step === 4 && state.fineApplicable === true ? (
@@ -185,7 +247,7 @@ export function CheckOutWizard({
 			<div className="mt-4 flex items-center gap-2">
 				<button
 					type="button"
-					onClick={() => dispatch({ type: "prevStep" })}
+					onClick={handleBack}
 					disabled={
 						disabled || state.step === 1 || completeStayMutation.isPending
 					}
@@ -194,10 +256,10 @@ export function CheckOutWizard({
 					Back
 				</button>
 
-				{state.step < 7 ? (
+				{!isFinalStep ? (
 					<button
 						type="button"
-						onClick={() => dispatch({ type: "nextStep" })}
+						onClick={handleNext}
 						disabled={
 							disabled ||
 							!canProceedFromCurrentStep ||

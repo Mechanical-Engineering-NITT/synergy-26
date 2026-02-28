@@ -19,6 +19,7 @@ export function StatusPanel({
 	}
 
 	const isStayActive = !!stayData.checkedInAt && !stayData.checkedOutAt;
+	const isNoAccommodation = !stayData.accommodationRequired;
 	const hasFineApplied = stayData.fineAmount > 0;
 
 	return (
@@ -49,7 +50,18 @@ export function StatusPanel({
 
 			<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
 				<h3 className="text-sm font-semibold">Accommodation Summary</h3>
-				{stayData.accommodationRequired ? (
+				{isNoAccommodation ? (
+					<div className="grid grid-cols-2 gap-y-3 text-sm">
+						<span className="text-muted-foreground">Accommodation</span>
+						<span className="text-right font-medium">Not Requested</span>
+						<span className="text-muted-foreground">Accommodation Fee</span>
+						<span className="text-right font-medium">₹0</span>
+						<span className="text-muted-foreground">Deposit</span>
+						<span className="text-right font-medium">Not Applicable</span>
+						<span className="text-muted-foreground">Fine</span>
+						<span className="text-right font-medium">Not Applicable</span>
+					</div>
+				) : stayData.accommodationRequired ? (
 					<div className="grid grid-cols-2 gap-y-3 text-sm">
 						<span className="text-muted-foreground">Accommodation Fee</span>
 						<span className="text-right font-medium">
@@ -71,54 +83,60 @@ export function StatusPanel({
 				)}
 			</div>
 
-			<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
-				<h3 className="text-sm font-semibold">Deposit & Fine Status</h3>
-				<div className="grid grid-cols-2 gap-y-3 text-sm">
-					<span className="text-muted-foreground">Fine Applied</span>
-					<span className="text-right font-medium">
-						{hasFineApplied ? "Yes" : "No"}
-					</span>
-					{hasFineApplied ? (
-						<>
-							<span className="text-muted-foreground">Fine Amount</span>
-							<span className="text-right font-medium">
-								₹{stayData.fineAmount}
-							</span>
-							<span className="text-muted-foreground">Fine Paid</span>
-							<span
-								className={`text-right font-medium ${
-									stayData.finePaid ? "text-emerald-600" : "text-yellow-600"
-								}`}
-							>
-								{stayData.finePaid ? "Yes" : "No"}
-							</span>
-							<span className="text-muted-foreground">Deposit Status</span>
-							<span className="text-right font-medium text-red-600">
-								Retained
-							</span>
-						</>
-					) : (
-						<>
-							<span className="text-muted-foreground">Deposit Returned</span>
-							<span
-								className={`text-right font-medium ${
-									stayData.cautionReturned
-										? "text-emerald-600"
-										: "text-yellow-600"
-								}`}
-							>
-								{stayData.cautionReturned ? "Yes" : "No"}
-							</span>
-						</>
-					)}
+			{isNoAccommodation ? (
+				<div className="bg-muted/40 border rounded-lg p-4 text-center">
+					<p className="font-medium">No Financial Activity for This Stay</p>
 				</div>
-			</div>
+			) : (
+				<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
+					<h3 className="text-sm font-semibold">Deposit & Fine Status</h3>
+					<div className="grid grid-cols-2 gap-y-3 text-sm">
+						<span className="text-muted-foreground">Fine Applied</span>
+						<span className="text-right font-medium">
+							{hasFineApplied ? "Yes" : "No"}
+						</span>
+						{hasFineApplied ? (
+							<>
+								<span className="text-muted-foreground">Fine Amount</span>
+								<span className="text-right font-medium">
+									₹{stayData.fineAmount}
+								</span>
+								<span className="text-muted-foreground">Fine Paid</span>
+								<span
+									className={`text-right font-medium ${
+										stayData.finePaid ? "text-emerald-600" : "text-yellow-600"
+									}`}
+								>
+									{stayData.finePaid ? "Yes" : "No"}
+								</span>
+								<span className="text-muted-foreground">Deposit Status</span>
+								<span className="text-right font-medium text-red-600">
+									Retained
+								</span>
+							</>
+						) : (
+							<>
+								<span className="text-muted-foreground">Deposit Returned</span>
+								<span
+									className={`text-right font-medium ${
+										stayData.cautionReturned
+											? "text-emerald-600"
+											: "text-yellow-600"
+									}`}
+								>
+									{stayData.cautionReturned ? "Yes" : "No"}
+								</span>
+							</>
+						)}
+					</div>
+				</div>
+			)}
 
 			{stayData.checkedOutAt ? (
 				<div className="rounded-lg border bg-muted/40 p-4 text-center">
 					<p className="font-semibold">Stay Completed</p>
 				</div>
-			) : stayData.overstayed ? (
+			) : !isNoAccommodation && stayData.overstayed ? (
 				<div className="rounded-lg border border-red-400 bg-red-100 p-4 text-center">
 					<p className="font-semibold text-red-700">Overstay Detected</p>
 					<p className="text-sm text-red-600">
