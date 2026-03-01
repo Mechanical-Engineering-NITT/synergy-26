@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { getStayStatus } from "@/server/admin/admin.pr.getStayStatus";
 import { ControlsPanel, StatusPanel } from "./panels";
 import type { StayFullDetails } from "./types";
@@ -41,19 +41,37 @@ function TabButton({
 }
 
 export function OnboardingModal({
+	open,
 	userId,
 	onClose,
 }: {
-	userId: string;
+	open: boolean;
+	userId: string | null;
 	onClose: () => void;
 }) {
-	const [activeTab, setActiveTab] = useState<"status" | "controls">("status");
+	const resolvedUserId = userId ?? "";
+	const { data, isLoading, isError, refetch } = useQuery({
+		queryKey: ["pr", "onboarding", "stay-status", resolvedUserId],
+		queryFn: () => getStayStatus({ data: { userId: resolvedUserId } }),
+		enabled: open && Boolean(userId),
+	});
+
+	const stay = data;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: initial tab is intentionally computed once on mount
+	const initialTab = useMemo<"status" | "controls">(() => {
+		if (!stay) {
+			return "controls";
+		}
+
+		if (stay.checkedOutAt) {
+			return "status";
+		}
+
+		return "controls";
+	}, []);
+	const [activeTab, setActiveTab] = useState<"status" | "controls">(initialTab);
 	const [checkInResetSignal, setCheckInResetSignal] = useState(0);
 	const [checkOutResetSignal, setCheckOutResetSignal] = useState(0);
-	const { data, isLoading, isError, refetch } = useQuery({
-		queryKey: ["pr", "onboarding", "stay-status", userId],
-		queryFn: () => getStayStatus({ data: { userId } }),
-	});
 
 	const stayData: StayFullDetails = {
 		exists: data?.exists ?? false,
@@ -61,27 +79,33 @@ export function OnboardingModal({
 		nightsRequested: data?.nightsRequested ?? 0,
 		accommodationFee: data?.accommodationFee ?? 0,
 		cautionDeposit: data?.cautionDeposit ?? 0,
+		hostelName: data?.hostelName ?? null,
+		floor: data?.floor ?? null,
+		paymentVerified: data?.paymentVerified ?? false,
 		fineAmount: data?.fineAmount ?? 0,
 		finePaid: data?.finePaid ?? false,
 		cautionReturned: data?.cautionReturned ?? false,
 		checkedInAt: data?.checkedInAt ?? null,
 		checkedOutAt: data?.checkedOutAt ?? null,
+		updatedAt: data?.updatedAt ?? null,
 		elapsedDays: data?.elapsedDays ?? 0,
 		overstayed: data?.overstayed ?? false,
 	};
-	const controlsTabDisabled = !!stayData.checkedOutAt;
-
-	useEffect(() => {
-		if (controlsTabDisabled && activeTab === "controls") {
-			setActiveTab("status");
-		}
-	}, [controlsTabDisabled, activeTab]);
 
 	const handleModalClose = () => {
 		setCheckInResetSignal((currentValue) => currentValue + 1);
 		setCheckOutResetSignal((currentValue) => currentValue + 1);
 		onClose();
 	};
+
+	const handleActionComplete = async () => {
+		await refetch();
+		setActiveTab("status");
+	};
+
+	if (!open) {
+		return null;
+	}
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -124,20 +148,8 @@ export function OnboardingModal({
 									value="controls"
 									activeTab={activeTab}
 									onClick={setActiveTab}
-									disabled={controlsTabDisabled}
-									title={
-										controlsTabDisabled
-											? "Stay completed. No further changes allowed."
-											: undefined
-									}
 								/>
 							</div>
-
-							{controlsTabDisabled ? (
-								<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-									Stay completed. No further changes allowed.
-								</div>
-							) : null}
 
 							{activeTab === "status" ? (
 								<StatusPanel stayData={stayData} />
@@ -145,16 +157,9 @@ export function OnboardingModal({
 
 							{activeTab === "controls" ? (
 								<ControlsPanel
-									userId={userId}
+									userId={resolvedUserId}
 									stayData={stayData}
-									onCheckInSuccess={async () => {
-										await refetch();
-										handleModalClose();
-									}}
-									onCheckOutSuccess={async () => {
-										await refetch();
-										setCheckOutResetSignal((currentValue) => currentValue + 1);
-									}}
+									onActionComplete={handleActionComplete}
 									checkInResetSignal={checkInResetSignal}
 									checkOutResetSignal={checkOutResetSignal}
 								/>

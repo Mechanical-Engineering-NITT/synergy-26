@@ -6,11 +6,15 @@ export type StayFullDetails = {
 	nightsRequested: number;
 	accommodationFee: number;
 	cautionDeposit: number;
+	hostelName: string | null;
+	floor: string | null;
+	paymentVerified: boolean;
 	fineAmount: number;
 	finePaid: boolean;
 	cautionReturned: boolean;
 	checkedInAt: Date | null;
 	checkedOutAt: Date | null;
+	updatedAt: Date | null;
 	elapsedDays: number;
 	overstayed: boolean;
 };
@@ -41,6 +45,17 @@ export type CheckOutState = {
 };
 
 export type CheckInAction =
+	| {
+			type: "INITIALIZE_FROM_STAY";
+			payload: {
+				accommodationRequired: boolean;
+				nightsRequested: number;
+				accommodationFee: number;
+				paymentVerified: boolean;
+				hostelName: string | null;
+				floor: string | null;
+			};
+	  }
 	| { type: "setAccommodationRequired"; value: boolean | null }
 	| { type: "setNightsRequested"; value: number }
 	| { type: "setPaymentVerified"; value: boolean }
@@ -71,10 +86,34 @@ export type CheckInAction =
 	| { type: "reset" };
 
 export type CheckOutAction =
+	| {
+			type: "INITIALIZE_FROM_STAY";
+			payload: {
+				accommodationRequired: boolean;
+				fineAmount: number;
+				finePaid: boolean;
+				cautionReturned: boolean;
+			};
+	  }
 	| { type: "setFineApplicable"; value: boolean | null }
 	| { type: "setFineAmount"; value: number }
 	| { type: "setFinePaid"; value: boolean }
 	| { type: "setCautionReturned"; value: boolean }
-	| { type: "nextStep" }
-	| { type: "prevStep" }
+	| {
+			type: "hydrateFromEdit";
+			value: {
+				fineApplicable: boolean | null;
+				fineAmount: number;
+				finePaid: boolean;
+				cautionReturned: boolean;
+			};
+	  }
+	| {
+			type: "nextStep";
+			stay: { accommodationRequired: boolean } | null | undefined;
+	  }
+	| {
+			type: "prevStep";
+			stay: { accommodationRequired: boolean } | null | undefined;
+	  }
 	| { type: "reset" };

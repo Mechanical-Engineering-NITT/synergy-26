@@ -1,11 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useReducer, useState } from "react";
+import { useEffect, useId, useReducer } from "react";
 import { calculateAccommodationTotal } from "@/server/admin/admin.pr.calculateAccommodationTotal";
 import { createStay } from "@/server/admin/admin.pr.createStay";
-import { getStayDetails } from "@/server/admin/admin.pr.getStayDetails";
 import { getCheckInPricingPreview } from "@/server/admin/admin.pr.pricing";
 import { updateStay } from "@/server/admin/admin.pr.updateStay";
-import type { CheckInMode } from "../types";
+import type { CheckInMode, StayFullDetails } from "../types";
 import {
 	checkInReducer,
 	createInitialCheckInState,
@@ -23,21 +22,21 @@ import {
 
 export function CheckInWizard({
 	userId,
+	stay,
 	mode,
 	disabled,
-	onSuccess,
+	onComplete,
 }: {
 	userId: string;
+	stay: StayFullDetails;
 	mode: CheckInMode;
 	disabled: boolean;
-	onSuccess: () => void;
+	onComplete: () => Promise<void>;
 }) {
 	const [state, dispatch] = useReducer(
 		checkInReducer,
-		undefined,
-		createInitialCheckInState,
+		createInitialCheckInState(),
 	);
-	const [prefilled, setPrefilled] = useState(false);
 	const idBase = useId();
 	const hostelInputId = `${idBase}-review-hostel`;
 	const floorInputId = `${idBase}-review-floor`;
@@ -63,10 +62,6 @@ export function CheckInWizard({
 							: true,
 				},
 			}),
-		onSuccess: () => {
-			onSuccess();
-			dispatch({ type: "reset" });
-		},
 	});
 
 	const updateStayMutation = useMutation({
@@ -78,48 +73,42 @@ export function CheckInWizard({
 						state.accommodationRequired === true ? state.nightsRequested : 0,
 					hostelName: normalizeNullableText(state.hostelName),
 					floor: normalizeNullableText(state.floor),
+					paymentVerified: state.paymentVerified,
 				},
 			}),
-		onSuccess: () => {
-			onSuccess();
-			dispatch({ type: "reset" });
-		},
 	});
 
-	const {
-		data: editDetails,
-		isLoading: isEditLoading,
-		isError: isEditError,
-		error: editError,
-	} = useQuery({
-		queryKey: ["pr", "onboarding", "checkin-edit-details", userId],
-		queryFn: () => getStayDetails({ data: { userId } }),
-		enabled: mode === "edit",
-	});
+	const handleFinalSubmit = async () => {
+		try {
+			if (mode === "edit") {
+				await updateStayMutation.mutateAsync();
+			} else {
+				await createStayMutation.mutateAsync();
+			}
+
+			await onComplete();
+			dispatch({ type: "reset" });
+		} catch {}
+	};
 
 	useEffect(() => {
-		if (mode !== "edit") {
-			setPrefilled(false);
+		if (!stay.exists) {
+			dispatch({ type: "reset" });
 			return;
 		}
 
-		if (editDetails?.stayData && !prefilled) {
-			dispatch({
-				type: "hydrateFromEdit",
-				value: {
-					accommodationRequired: editDetails.stayData.accommodationRequired,
-					nightsRequested: editDetails.stayData.nightsRequested,
-					originalNightsRequested: editDetails.stayData.nightsRequested,
-					originalAccommodationFee: editDetails.stayData.accommodationFee,
-					accommodationPreviewTotal: editDetails.stayData.accommodationFee,
-					paymentVerified: editDetails.stayData.paymentVerified,
-					hostelName: editDetails.stayData.hostelName,
-					floor: editDetails.stayData.floor,
-				},
-			});
-			setPrefilled(true);
-		}
-	}, [mode, editDetails, prefilled]);
+		dispatch({
+			type: "INITIALIZE_FROM_STAY",
+			payload: {
+				accommodationRequired: stay.accommodationRequired,
+				nightsRequested: stay.nightsRequested,
+				accommodationFee: stay.accommodationFee,
+				paymentVerified: stay.paymentVerified,
+				hostelName: stay.hostelName,
+				floor: stay.floor,
+			},
+		});
+	}, [stay]);
 
 	const calculateTotalMutation = useMutation({
 		mutationFn: async (nightsRequested: number) =>
@@ -264,18 +253,6 @@ export function CheckInWizard({
 
 	return (
 		<div className="rounded-md border border-border bg-card p-4">
-			{mode === "edit" && isEditLoading ? (
-				<p className="mt-2 text-xs text-muted-foreground">
-					Loading existing check-in...
-				</p>
-			) : null}
-			{mode === "edit" && isEditError ? (
-				<p className="mt-2 text-xs text-muted-foreground">
-					{editError instanceof Error
-						? editError.message
-						: "Failed to load check-in details."}
-				</p>
-			) : null}
 			<p className="mt-2 text-xs text-muted-foreground">
 				Step {currentFlowStep} of {totalFlowSteps}
 			</p>
@@ -425,12 +402,7 @@ export function CheckInWizard({
 						<button
 							type="button"
 							onClick={() => {
-								if (mode === "edit") {
-									updateStayMutation.mutate();
-									return;
-								}
-
-								createStayMutation.mutate();
+								void handleFinalSubmit();
 							}}
 							disabled={
 								disabled ||

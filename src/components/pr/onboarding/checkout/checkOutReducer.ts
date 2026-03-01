@@ -1,47 +1,119 @@
 import type { CheckOutAction, CheckOutState, WizardStep } from "../types";
 
-export const createInitialCheckOutState = (): CheckOutState => ({
+export const createInitialCheckOutState = ({
+	isNoAccommodation = false,
+}: {
+	isNoAccommodation?: boolean;
+} = {}): CheckOutState => ({
 	step: 1,
-	fineApplicable: null,
+	fineApplicable: isNoAccommodation ? false : null,
 	fineAmount: 0,
 	finePaid: false,
 	cautionReturned: false,
 });
 
-export const getCheckOutNextStep = (
-	currentStep: WizardStep,
-	currentState: CheckOutState,
-) => {
-	if (currentStep === 2 && currentState.fineApplicable === false) {
-		return 5 as WizardStep;
+export const buildInitialCheckoutStateFromStay = (stay: {
+	accommodationRequired: boolean;
+	fineAmount: number;
+	finePaid: boolean;
+	cautionReturned: boolean;
+}): CheckOutState => {
+	if (!stay.accommodationRequired) {
+		return {
+			step: 1,
+			fineApplicable: false,
+			fineAmount: 0,
+			finePaid: false,
+			cautionReturned: false,
+		};
 	}
 
-	if (currentStep === 4 && currentState.fineApplicable === true) {
-		return 6 as WizardStep;
-	}
+	const fineAmount = stay.fineAmount ?? 0;
 
-	const defaultFlow: Record<1 | 2 | 3 | 4 | 5 | 6, WizardStep> = {
-		1: 2,
-		2: 3,
-		3: 4,
-		4: 5,
-		5: 6,
-		6: 7,
+	return {
+		step: 1,
+		fineApplicable: fineAmount > 0,
+		fineAmount,
+		finePaid: stay.finePaid ?? false,
+		cautionReturned: stay.cautionReturned ?? false,
 	};
+};
 
-	return defaultFlow[currentStep as 1 | 2 | 3 | 4 | 5 | 6] ?? 7;
+export const getCheckOutNextStep = (
+	state: CheckOutState,
+	stay: { accommodationRequired: boolean } | null | undefined,
+) => {
+	const isNoAccommodation = stay?.accommodationRequired === false;
+
+	if (isNoAccommodation) {
+		switch (state.step) {
+			case 1:
+				return 2;
+			case 2:
+				return 3;
+			default:
+				return state.step;
+		}
+	}
+
+	if (state.step === 1) {
+		return 2;
+	}
+
+	if (state.step === 2) {
+		if (state.fineApplicable === false) {
+			return 5;
+		}
+
+		if (state.fineApplicable === true) {
+			return 3;
+		}
+
+		return 2;
+	}
+
+	if (state.step === 3) {
+		return 4;
+	}
+
+	if (state.step === 4) {
+		return 6;
+	}
+
+	if (state.step === 5) {
+		return 6;
+	}
+
+	if (state.step === 6) {
+		return 7;
+	}
+
+	return state.step;
 };
 
 export const getCheckOutPreviousStep = (
-	currentStep: WizardStep,
-	currentState: CheckOutState,
+	state: CheckOutState,
+	stay: { accommodationRequired: boolean } | null | undefined,
 ) => {
-	if (currentStep === 5 && currentState.fineApplicable === false) {
-		return 2 as WizardStep;
+	const isNoAccommodation = stay?.accommodationRequired === false;
+
+	if (isNoAccommodation) {
+		switch (state.step) {
+			case 3:
+				return 2;
+			case 2:
+				return 1;
+			default:
+				return 1;
+		}
 	}
 
-	if (currentStep === 6 && currentState.fineApplicable === true) {
-		return 4 as WizardStep;
+	if (state.step === 5 && state.fineApplicable === false) {
+		return 2;
+	}
+
+	if (state.step === 6 && state.fineApplicable === true) {
+		return 4;
 	}
 
 	const defaultBack: Record<2 | 3 | 4 | 5 | 6 | 7, WizardStep> = {
@@ -53,20 +125,17 @@ export const getCheckOutPreviousStep = (
 		7: 6,
 	};
 
-	return defaultBack[currentStep as 2 | 3 | 4 | 5 | 6 | 7] ?? 1;
+	return defaultBack[state.step as 2 | 3 | 4 | 5 | 6 | 7] ?? 1;
 };
 
 export const isCheckOutFinalStateValid = ({
 	checkedInAt,
-	checkedOutAt,
 	state,
 }: {
 	checkedInAt: Date | null;
-	checkedOutAt: Date | null;
 	state: CheckOutState;
 }) =>
 	Boolean(checkedInAt) &&
-	!checkedOutAt &&
 	(state.fineApplicable === true
 		? state.fineAmount > 0 &&
 			state.finePaid === true &&
@@ -82,6 +151,8 @@ export const checkOutReducer = (
 	action: CheckOutAction,
 ): CheckOutState => {
 	switch (action.type) {
+		case "INITIALIZE_FROM_STAY":
+			return buildInitialCheckoutStateFromStay(action.payload);
 		case "setFineApplicable":
 			if (action.value === false) {
 				return {
@@ -126,10 +197,22 @@ export const checkOutReducer = (
 			}
 
 			return { ...state, cautionReturned: action.value };
+		case "hydrateFromEdit":
+			return {
+				...state,
+				step: 1,
+				fineApplicable: action.value.fineApplicable,
+				fineAmount: action.value.fineAmount,
+				finePaid: action.value.finePaid,
+				cautionReturned: action.value.cautionReturned,
+			};
 		case "nextStep":
-			return { ...state, step: getCheckOutNextStep(state.step, state) };
+			return { ...state, step: getCheckOutNextStep(state, action.stay) };
 		case "prevStep":
-			return { ...state, step: getCheckOutPreviousStep(state.step, state) };
+			return {
+				...state,
+				step: getCheckOutPreviousStep(state, action.stay),
+			};
 		case "reset":
 			return createInitialCheckOutState();
 		default:

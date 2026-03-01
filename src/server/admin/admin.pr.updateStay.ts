@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
@@ -11,6 +11,7 @@ const UpdateStayInputSchema = z.object({
 	nightsRequested: z.number().int().min(0),
 	hostelName: z.string().nullable(),
 	floor: z.string().nullable(),
+	paymentVerified: z.boolean(),
 });
 
 export const updateStay = createServerFn({ method: "POST" })
@@ -22,6 +23,7 @@ export const updateStay = createServerFn({ method: "POST" })
 			.select({
 				id: accommodation.id,
 				accommodationRequired: accommodation.accommodationRequired,
+				nightsRequested: accommodation.nightsRequested,
 				checkedInAt: accommodation.checkedInAt,
 				checkedOutAt: accommodation.checkedOutAt,
 			})
@@ -37,10 +39,6 @@ export const updateStay = createServerFn({ method: "POST" })
 			throw new Error("User is not checked in");
 		}
 
-		if (stayRecord.checkedOutAt) {
-			throw new Error("Stay cannot be modified after checkout");
-		}
-
 		const normalizedNightsRequested = stayRecord.accommodationRequired
 			? data.nightsRequested
 			: 0;
@@ -48,6 +46,15 @@ export const updateStay = createServerFn({ method: "POST" })
 		if (stayRecord.accommodationRequired && normalizedNightsRequested <= 0) {
 			throw new Error(
 				"nightsRequested must be greater than 0 for accommodation stays",
+			);
+		}
+
+		const nightsChanged =
+			normalizedNightsRequested !== stayRecord.nightsRequested;
+
+		if (nightsChanged && !data.paymentVerified) {
+			throw new Error(
+				"Payment verification is required when nights requested changes",
 			);
 		}
 
@@ -63,14 +70,13 @@ export const updateStay = createServerFn({ method: "POST" })
 				accommodationFee: totalAccommodationFee,
 				hostelName: data.hostelName,
 				floor: data.floor,
-				paymentVerified: false,
+				paymentVerified: data.paymentVerified,
 				updatedAt: new Date(),
 			})
 			.where(
 				and(
 					eq(accommodation.id, stayRecord.id),
 					isNotNull(accommodation.checkedInAt),
-					isNull(accommodation.checkedOutAt),
 				),
 			)
 			.returning({
@@ -85,7 +91,7 @@ export const updateStay = createServerFn({ method: "POST" })
 			});
 
 		if (!updatedStay) {
-			throw new Error("Stay cannot be modified after checkout");
+			throw new Error("Failed to update stay details");
 		}
 
 		return updatedStay;

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
@@ -36,46 +36,37 @@ export const completeStay = createServerFn({ method: "POST" })
 			throw new Error("User is not checked in");
 		}
 
-		if (stayRecord.checkedOutAt) {
-			throw new Error("User has already checked out");
-		}
-
 		const isNoAccommodation = !stayRecord.accommodationRequired;
+		const normalizedData = isNoAccommodation
+			? {
+					fineAmount: 0,
+					finePaid: false,
+					cautionReturned: false,
+				}
+			: {
+					fineAmount: data.fineAmount,
+					finePaid: data.finePaid,
+					cautionReturned: data.cautionReturned,
+				};
 
-		if (isNoAccommodation) {
-			if (data.fineAmount !== 0) {
-				throw new Error("Fine amount must be 0 for no-accommodation stays");
-			}
-
-			if (data.finePaid !== false) {
-				throw new Error("Fine paid must be false for no-accommodation stays");
-			}
-
-			if (data.cautionReturned !== false) {
-				throw new Error(
-					"Caution status must be false for no-accommodation stays",
-				);
-			}
-		}
-
-		const fineApplicable = data.fineAmount > 0;
+		const fineApplicable = normalizedData.fineAmount > 0;
 
 		if (!isNoAccommodation && fineApplicable) {
-			if (!data.finePaid) {
+			if (!normalizedData.finePaid) {
 				throw new Error(
 					"Fine must be marked as paid when fine amount is greater than 0",
 				);
 			}
 
-			if (data.cautionReturned) {
+			if (normalizedData.cautionReturned) {
 				throw new Error("Deposit must be retained when a fine is applied");
 			}
 		} else if (!isNoAccommodation) {
-			if (data.finePaid) {
+			if (normalizedData.finePaid) {
 				throw new Error("Fine cannot be marked as paid when fine amount is 0");
 			}
 
-			if (!data.cautionReturned) {
+			if (!normalizedData.cautionReturned) {
 				throw new Error("Deposit must be returned when no fine is applied");
 			}
 		}
@@ -83,17 +74,16 @@ export const completeStay = createServerFn({ method: "POST" })
 		const [updatedStay] = await db
 			.update(accommodation)
 			.set({
-				fineAmount: data.fineAmount,
-				finePaid: data.finePaid,
-				cautionReturned: data.cautionReturned,
-				checkedOutAt: new Date(),
+				fineAmount: normalizedData.fineAmount,
+				finePaid: normalizedData.finePaid,
+				cautionReturned: normalizedData.cautionReturned,
+				checkedOutAt: stayRecord.checkedOutAt ?? new Date(),
 				updatedAt: new Date(),
 			})
 			.where(
 				and(
 					eq(accommodation.id, stayRecord.id),
 					isNotNull(accommodation.checkedInAt),
-					isNull(accommodation.checkedOutAt),
 				),
 			)
 			.returning({
@@ -106,7 +96,7 @@ export const completeStay = createServerFn({ method: "POST" })
 			});
 
 		if (!updatedStay) {
-			throw new Error("Stay cannot be modified after checkout");
+			throw new Error("Failed to update stay checkout details");
 		}
 
 		return updatedStay;

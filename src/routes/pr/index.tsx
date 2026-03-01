@@ -273,12 +273,11 @@ function RouteComponent() {
 				/>
 			) : null}
 
-			{selectedOnboardingUserId ? (
-				<OnboardingModal
-					userId={selectedOnboardingUserId}
-					onClose={() => setSelectedOnboardingUserId(null)}
-				/>
-			) : null}
+			<OnboardingModal
+				open={Boolean(selectedOnboardingUserId)}
+				userId={selectedOnboardingUserId}
+				onClose={() => setSelectedOnboardingUserId(null)}
+			/>
 		</div>
 	);
 }

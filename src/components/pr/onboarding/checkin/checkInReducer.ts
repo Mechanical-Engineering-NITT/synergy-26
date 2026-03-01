@@ -15,6 +15,35 @@ export const createInitialCheckInState = (): CheckInState => ({
 	remainingToPay: 0,
 });
 
+export const buildInitialStateFromStay = (stay: {
+	accommodationRequired: boolean;
+	nightsRequested: number;
+	accommodationFee: number;
+	paymentVerified: boolean;
+	hostelName: string | null;
+	floor: string | null;
+}): CheckInState => {
+	const roomPrice =
+		stay.nightsRequested > 0
+			? Math.floor(stay.accommodationFee / stay.nightsRequested)
+			: 0;
+
+	return {
+		step: 1,
+		accommodationRequired: stay.accommodationRequired,
+		nightsRequested: stay.nightsRequested,
+		originalNightsRequested: stay.nightsRequested,
+		originalAccommodationFee: stay.accommodationFee,
+		paymentVerified: stay.paymentVerified,
+		depositVerified: true,
+		hostelName: stay.hostelName,
+		floor: stay.floor,
+		roomPrice,
+		accommodationPreviewTotal: stay.accommodationFee,
+		remainingToPay: 0,
+	};
+};
+
 export const getCheckInNextStep = (
 	currentStep: WizardStep,
 	currentState: CheckInState,
@@ -73,6 +102,8 @@ export const checkInReducer = (
 	action: CheckInAction,
 ): CheckInState => {
 	switch (action.type) {
+		case "INITIALIZE_FROM_STAY":
+			return buildInitialStateFromStay(action.payload);
 		case "setAccommodationRequired":
 			if (action.value === false) {
 				return {

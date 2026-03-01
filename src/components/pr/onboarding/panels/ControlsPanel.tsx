@@ -6,30 +6,28 @@ import type { CheckInMode, StayFullDetails } from "../types";
 export function ControlsPanel({
 	userId,
 	stayData,
-	onCheckInSuccess,
-	onCheckOutSuccess,
+	onActionComplete,
 	checkInResetSignal,
 	checkOutResetSignal,
 }: {
 	userId: string;
 	stayData: StayFullDetails;
-	onCheckInSuccess: () => void;
-	onCheckOutSuccess: () => void;
+	onActionComplete: () => Promise<void>;
 	checkInResetSignal: number;
 	checkOutResetSignal: number;
 }) {
-	const hasCheckedOut = !!stayData.checkedOutAt;
-	const hasCheckedInOnly = !!stayData.checkedInAt && !hasCheckedOut;
 	const hasNoRecord = !stayData.exists;
-	const checkInMode: CheckInMode = hasCheckedInOnly ? "edit" : "create";
-	const checkInTabLabel = hasCheckedInOnly ? "Edit Check-In" : "Check-In";
-	const checkInTabDisabled = hasCheckedOut;
+	const checkInMode: CheckInMode = stayData.exists ? "edit" : "create";
+	const checkOutMode: "create" | "edit" = stayData.exists ? "edit" : "create";
+	const checkInTabLabel = stayData.exists ? "Edit Check-In" : "Check-In";
+	const checkOutTabLabel = stayData.checkedOutAt
+		? "Edit Check-Out"
+		: "Check-Out";
 	const [activeWizardTab, setActiveWizardTab] = useState<
 		"checkin" | "checkout"
 	>(stayData.checkedInAt ? "checkout" : "checkin");
 
-	const checkoutDisabled =
-		!stayData.exists || !stayData.checkedInAt || !!stayData.checkedOutAt;
+	const checkoutDisabled = !stayData.exists || !stayData.checkedInAt;
 
 	useEffect(() => {
 		if (checkoutDisabled && activeWizardTab === "checkout") {
@@ -38,18 +36,23 @@ export function ControlsPanel({
 	}, [checkoutDisabled, activeWizardTab]);
 
 	useEffect(() => {
-		if (hasCheckedOut) {
-			setActiveWizardTab("checkin");
-			return;
-		}
-
 		setActiveWizardTab(stayData.checkedInAt ? "checkout" : "checkin");
-	}, [hasCheckedOut, stayData.checkedInAt]);
+	}, [stayData.checkedInAt]);
 
-	const disableAllControls = hasCheckedOut;
-	const isCheckInDisabled = disableAllControls;
-	const isCheckOutDisabled =
-		disableAllControls || hasNoRecord || !hasCheckedInOnly;
+	const isCheckInDisabled = false;
+	const isCheckOutDisabled = hasNoRecord;
+	const checkInStayKey = stayData.updatedAt
+		? new Date(stayData.updatedAt).toISOString()
+		: stayData.checkedInAt
+			? new Date(stayData.checkedInAt).toISOString()
+			: "new";
+	const checkOutStayKey = stayData.checkedOutAt
+		? new Date(stayData.checkedOutAt).toISOString()
+		: stayData.updatedAt
+			? new Date(stayData.updatedAt).toISOString()
+			: stayData.checkedInAt
+				? new Date(stayData.checkedInAt).toISOString()
+				: "new";
 
 	return (
 		<div className="space-y-3 rounded-md border border-border bg-card p-4">
@@ -57,21 +60,13 @@ export function ControlsPanel({
 				<button
 					type="button"
 					onClick={() => {
-						if (!checkInTabDisabled) {
-							setActiveWizardTab("checkin");
-						}
+						setActiveWizardTab("checkin");
 					}}
-					disabled={checkInTabDisabled}
-					title={
-						checkInTabDisabled
-							? "Stay completed. No further changes allowed."
-							: undefined
-					}
 					className={`rounded-md px-3 py-1.5 text-sm ${
 						activeWizardTab === "checkin"
 							? "bg-primary text-primary-foreground"
 							: "border border-border hover:bg-muted"
-					} ${checkInTabDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+					}`}
 				>
 					{checkInTabLabel}
 				</button>
@@ -93,26 +88,29 @@ export function ControlsPanel({
 							: "border border-border hover:bg-muted"
 					} ${checkoutDisabled ? "cursor-not-allowed opacity-50" : ""}`}
 				>
-					Check-Out
+					{checkOutTabLabel}
 				</button>
 			</div>
 
 			{activeWizardTab === "checkin" ? (
 				<CheckInWizard
-					key={`check-in-${userId}-${checkInMode}-${checkInResetSignal}`}
+					key={`check-in-${userId}-${checkInMode}-${checkInStayKey}-${checkInResetSignal}`}
 					userId={userId}
+					stay={stayData}
 					mode={checkInMode}
 					disabled={isCheckInDisabled}
-					onSuccess={onCheckInSuccess}
+					onComplete={onActionComplete}
 				/>
 			) : null}
 
 			{activeWizardTab === "checkout" ? (
 				<CheckOutWizard
-					key={`check-out-${userId}-${checkOutResetSignal}`}
+					key={`check-out-${userId}-${checkOutMode}-${checkOutStayKey}-${checkOutResetSignal}`}
 					userId={userId}
+					stay={stayData}
+					mode={checkOutMode}
 					disabled={isCheckOutDisabled}
-					onSuccess={onCheckOutSuccess}
+					onComplete={onActionComplete}
 				/>
 			) : null}
 		</div>

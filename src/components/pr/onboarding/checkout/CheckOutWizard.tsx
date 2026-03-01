@@ -1,10 +1,10 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useReducer } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useReducer } from "react";
 import { completeStay } from "@/server/admin/admin.pr.completeStay";
-import { getStayDetails } from "@/server/admin/admin.pr.getStayDetails";
+import type { StayFullDetails } from "../types";
 import {
+	buildInitialCheckoutStateFromStay,
 	checkOutReducer,
-	createInitialCheckOutState,
 	isCheckOutFinalStateValid,
 } from "./checkOutReducer";
 import {
@@ -22,28 +22,21 @@ import {
 
 export function CheckOutWizard({
 	userId,
+	mode: _mode,
+	stay,
 	disabled,
-	onSuccess,
+	onComplete,
 }: {
 	userId: string;
+	stay: StayFullDetails;
+	mode: "create" | "edit";
 	disabled: boolean;
-	onSuccess: () => void;
+	onComplete: () => Promise<void>;
 }) {
 	const [state, dispatch] = useReducer(
 		checkOutReducer,
-		undefined,
-		createInitialCheckOutState,
+		buildInitialCheckoutStateFromStay(stay),
 	);
-
-	const {
-		data: detailsData,
-		isLoading: isDetailsLoading,
-		isError: isDetailsError,
-		error: detailsError,
-	} = useQuery({
-		queryKey: ["pr", "onboarding", "stay-details", userId],
-		queryFn: () => getStayDetails({ data: { userId } }),
-	});
 
 	const completeStayMutation = useMutation({
 		mutationFn: async () =>
@@ -55,31 +48,43 @@ export function CheckOutWizard({
 					cautionReturned: isNoAccommodation ? false : state.cautionReturned,
 				},
 			}),
-		onSuccess: () => {
-			onSuccess();
-			dispatch({ type: "reset" });
-		},
 	});
 
-	const overstayed = detailsData?.overstayed ?? false;
-	const elapsedDays = detailsData?.elapsedDays ?? 0;
-	const nightsRequested = detailsData?.nightsRequested ?? 0;
-	const cautionDeposit = detailsData?.stayData?.cautionDeposit ?? 0;
-	const checkedInAt = detailsData?.stayData?.checkedInAt ?? null;
-	const checkedOutAt = detailsData?.stayData?.checkedOutAt ?? null;
+	const handleFinalSubmit = async () => {
+		try {
+			await completeStayMutation.mutateAsync();
+			await onComplete();
+			dispatch({ type: "reset" });
+		} catch {}
+	};
+
+	const overstayed = stay.overstayed ?? false;
+	const elapsedDays = stay.elapsedDays ?? 0;
+	const nightsRequested = stay.nightsRequested ?? 0;
+	const cautionDeposit = stay.cautionDeposit ?? 0;
+	const checkedInAt = stay.checkedInAt ?? null;
 	const overstayDays = Math.max(0, elapsedDays - nightsRequested);
-	const stay = detailsData?.stayData;
 	const isNoAccommodation = stay?.accommodationRequired === false;
+
+	useEffect(() => {
+		dispatch({
+			type: "INITIALIZE_FROM_STAY",
+			payload: {
+				accommodationRequired: stay.accommodationRequired,
+				fineAmount: stay.fineAmount,
+				finePaid: stay.finePaid,
+				cautionReturned: stay.cautionReturned,
+			},
+		});
+	}, [stay]);
 
 	const isFinalStateValid = isNoAccommodation
 		? Boolean(checkedInAt) &&
-			!checkedOutAt &&
 			state.fineAmount === 0 &&
 			state.finePaid === false &&
 			state.cautionReturned === false
 		: isCheckOutFinalStateValid({
 				checkedInAt,
-				checkedOutAt,
 				state,
 			});
 
@@ -89,7 +94,7 @@ export function CheckOutWizard({
 			: isNoAccommodation && state.step === 2
 				? true
 				: state.step === 1
-					? !isDetailsLoading && !isDetailsError
+					? true
 					: state.step === 2
 						? state.fineApplicable !== null
 						: state.step === 3
@@ -100,122 +105,146 @@ export function CheckOutWizard({
 									? state.cautionReturned
 									: true;
 
-	const totalFlowSteps = isNoAccommodation
-		? 3
-		: state.fineApplicable === false
-			? 5
-			: 6;
-	const currentFlowStep = isNoAccommodation
-		? state.step
-		: state.fineApplicable === false
-			? state.step === 1
-				? 1
-				: state.step === 2
-					? 2
-					: state.step === 5
-						? 3
-						: state.step === 6
-							? 4
-							: 5
-			: state.step === 1
-				? 1
-				: state.step === 2
-					? 2
-					: state.step === 3
-						? 3
-						: state.step === 4
-							? 4
-							: state.step === 6
-								? 5
-								: 6;
+	const getTotalSteps = () => {
+		if (isNoAccommodation) {
+			return 3;
+		}
+
+		if (state.fineApplicable === false) {
+			return 5;
+		}
+
+		if (state.fineApplicable === true) {
+			return 6;
+		}
+
+		return 2;
+	};
+
+	const getDisplayStepNumber = () => {
+		if (isNoAccommodation) {
+			if (state.step === 1) {
+				return 1;
+			}
+
+			if (state.step === 2) {
+				return 2;
+			}
+
+			return 3;
+		}
+
+		if (state.fineApplicable === false) {
+			if (state.step === 1) {
+				return 1;
+			}
+
+			if (state.step === 2) {
+				return 2;
+			}
+
+			if (state.step === 5) {
+				return 3;
+			}
+
+			if (state.step === 6) {
+				return 4;
+			}
+
+			return 5;
+		}
+
+		if (state.fineApplicable === true) {
+			if (state.step === 1) {
+				return 1;
+			}
+
+			if (state.step === 2) {
+				return 2;
+			}
+
+			if (state.step === 3) {
+				return 3;
+			}
+
+			if (state.step === 4) {
+				return 4;
+			}
+
+			if (state.step === 6) {
+				return 5;
+			}
+
+			return 6;
+		}
+
+		if (state.step === 1) {
+			return 1;
+		}
+
+		return 2;
+	};
+
+	const totalSteps = getTotalSteps();
+	const displayStepNumber = getDisplayStepNumber();
 
 	const isFinalStep = isNoAccommodation ? state.step === 3 : state.step === 7;
 
 	const handleNext = () => {
-		if (isNoAccommodation) {
-			if (state.step === 1) {
-				dispatch({ type: "nextStep" });
-				return;
-			}
-
-			if (state.step === 2) {
-				dispatch({ type: "nextStep" });
-			}
-
-			return;
-		}
-
-		dispatch({ type: "nextStep" });
+		dispatch({ type: "nextStep", stay });
 	};
 
 	const handleBack = () => {
-		if (isNoAccommodation) {
-			if (state.step === 3 || state.step === 2) {
-				dispatch({ type: "prevStep" });
-			}
-			return;
-		}
-
-		dispatch({ type: "prevStep" });
+		dispatch({ type: "prevStep", stay });
 	};
 
-	return (
-		<div className="rounded-md border border-border bg-card p-4">
-			<p className="mt-2 text-xs text-muted-foreground">
-				Step {currentFlowStep} of {totalFlowSteps}
-			</p>
-
-			<div className="mt-3 space-y-3 text-sm">
-				{isNoAccommodation && state.step === 1 ? (
+	const renderStepContent = () => {
+		switch (state.step) {
+			case 1:
+				return isNoAccommodation ? (
 					<Step1NoAccommodationInfo />
-				) : null}
-
-				{!isNoAccommodation && state.step === 1 ? (
+				) : (
 					<Step1Overstay
-						isDetailsLoading={isDetailsLoading}
-						isDetailsError={isDetailsError}
-						detailsError={detailsError}
+						isDetailsLoading={false}
+						isDetailsError={false}
+						detailsError={null}
 						overstayed={overstayed}
 						overstayDays={overstayDays}
 					/>
-				) : null}
-
-				{isNoAccommodation && state.step === 2 ? (
+				);
+			case 2:
+				return isNoAccommodation ? (
 					<Step2NoAccommodationReview checkedInAt={checkedInAt} />
-				) : null}
-
-				{!isNoAccommodation && state.step === 2 ? (
+				) : (
 					<Step2FineApplicable
 						state={state}
 						dispatch={dispatch}
 						disabled={disabled}
 						completePending={completeStayMutation.isPending}
 					/>
-				) : null}
-
-				{!isNoAccommodation && state.step === 3 ? (
+				);
+			case 3:
+				return isNoAccommodation ? (
+					<Step3NoAccommodationConfirm />
+				) : (
 					<Step3SetFine
 						state={state}
 						dispatch={dispatch}
 						disabled={disabled}
 						completePending={completeStayMutation.isPending}
 					/>
-				) : null}
-
-				{isNoAccommodation && state.step === 3 ? (
-					<Step3NoAccommodationConfirm />
-				) : null}
-
-				{state.step === 4 && state.fineApplicable === true ? (
+				);
+			case 4:
+				return state.fineApplicable === true ? (
 					<Step4FinePaid
 						state={state}
 						dispatch={dispatch}
 						disabled={disabled}
 						completePending={completeStayMutation.isPending}
 					/>
-				) : null}
-
-				{state.step === 5 && state.fineApplicable === false ? (
+				) : null;
+			case 5:
+				return state.fineApplicable === false ? (
 					<Step5DepositReturn
 						state={state}
 						dispatch={dispatch}
@@ -223,18 +252,29 @@ export function CheckOutWizard({
 						completePending={completeStayMutation.isPending}
 						cautionDeposit={cautionDeposit}
 					/>
-				) : null}
-
-				{state.step === 6 ? (
+				) : null;
+			case 6:
+				return (
 					<Step6Review
 						state={state}
 						checkedInAt={checkedInAt}
 						elapsedDays={elapsedDays}
 					/>
-				) : null}
+				);
+			case 7:
+				return <Step7Confirm state={state} />;
+			default:
+				return null;
+		}
+	};
 
-				{state.step === 7 ? <Step7Confirm state={state} /> : null}
-			</div>
+	return (
+		<div className="rounded-md border border-border bg-card p-4">
+			<p className="mt-2 text-xs text-muted-foreground">
+				Step {displayStepNumber} of {totalSteps}
+			</p>
+
+			<div className="mt-3 space-y-3 text-sm">{renderStepContent()}</div>
 
 			{completeStayMutation.isError ? (
 				<p className="mt-3 text-xs text-muted-foreground">
@@ -272,7 +312,9 @@ export function CheckOutWizard({
 				) : (
 					<button
 						type="button"
-						onClick={() => completeStayMutation.mutate()}
+						onClick={() => {
+							void handleFinalSubmit();
+						}}
 						disabled={
 							disabled || !isFinalStateValid || completeStayMutation.isPending
 						}
