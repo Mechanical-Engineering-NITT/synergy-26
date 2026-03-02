@@ -17,7 +17,7 @@ export const completeStay = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
-		const [stayRecord] = await db
+		const [stay] = await db
 			.select({
 				id: accommodation.id,
 				accommodationRequired: accommodation.accommodationRequired,
@@ -28,15 +28,15 @@ export const completeStay = createServerFn({ method: "POST" })
 			.where(eq(accommodation.userId, data.userId))
 			.limit(1);
 
-		if (!stayRecord) {
-			throw new Error("Stay record not found for this user");
+		if (!stay) {
+			throw new Error("Stay not found");
 		}
 
-		if (!stayRecord.checkedInAt) {
-			throw new Error("User is not checked in");
+		if (!stay.checkedInAt) {
+			throw new Error("User not checked in");
 		}
 
-		const isNoAccommodation = !stayRecord.accommodationRequired;
+		const isNoAccommodation = !stay.accommodationRequired;
 		const normalizedData = isNoAccommodation
 			? {
 					fineAmount: 0,
@@ -77,12 +77,12 @@ export const completeStay = createServerFn({ method: "POST" })
 				fineAmount: normalizedData.fineAmount,
 				finePaid: normalizedData.finePaid,
 				cautionReturned: normalizedData.cautionReturned,
-				checkedOutAt: stayRecord.checkedOutAt ?? new Date(),
+				checkedOutAt: stay.checkedOutAt ?? new Date(),
 				updatedAt: new Date(),
 			})
 			.where(
 				and(
-					eq(accommodation.id, stayRecord.id),
+					eq(accommodation.id, stay.id),
 					isNotNull(accommodation.checkedInAt),
 				),
 			)

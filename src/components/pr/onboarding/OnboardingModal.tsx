@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Edit, Info, Receipt } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getStayStatus } from "@/server/admin/admin.pr.getStayStatus";
-import { ControlsPanel, StatusPanel } from "./panels";
+import { ControlsPanel } from "./panels/ControlsPanel";
+import { StatusPanel } from "./panels/StatusPanel";
 import type { StayFullDetails } from "./types";
 
 function TabButton({
@@ -11,6 +13,7 @@ function TabButton({
 	onClick,
 	disabled,
 	title,
+	icon,
 }: {
 	label: string;
 	value: "status" | "controls";
@@ -18,7 +21,11 @@ function TabButton({
 	onClick: (value: "status" | "controls") => void;
 	disabled?: boolean;
 	title?: string;
+	icon: typeof Info;
 }) {
+	const Icon = icon;
+	const isActive = activeTab === value;
+
 	return (
 		<button
 			type="button"
@@ -29,12 +36,20 @@ function TabButton({
 			}}
 			disabled={disabled}
 			title={title}
-			className={`rounded-md px-3 py-1.5 text-sm ${
-				activeTab === value
-					? "bg-primary text-primary-foreground"
-					: "border border-border hover:bg-muted"
-			} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+			className={`relative inline-flex items-center rounded-md px-3 py-1.5 text-sm ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+			style={{
+				backgroundColor: isActive ? "#1f1f1f" : "transparent",
+				color: isActive ? "#ffffff" : "#71717a",
+				border: isActive ? "1px solid #2a2a2a" : "1px solid transparent",
+				transition: "all 0.2s ease",
+			}}
 		>
+			<Icon
+				size={16}
+				strokeWidth={1.5}
+				color="#a1a1aa"
+				style={{ marginRight: "8px" }}
+			/>
 			{label}
 		</button>
 	);
@@ -108,46 +123,107 @@ export function OnboardingModal({
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-			<div className="w-full max-w-2xl rounded-md border border-border bg-background shadow-lg">
-				<div className="flex items-center justify-between border-b border-border px-4 py-3">
-					<h2 className="text-lg font-semibold">Onboarding</h2>
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center p-4"
+			style={{ backgroundColor: "rgba(10,10,10,0.8)" }}
+		>
+			<div
+				className="w-full max-w-2xl"
+				style={{
+					backgroundColor: "#111111",
+					borderRadius: "24px",
+					border: "1px solid #222222",
+					padding: "28px",
+					boxShadow: "0 20px 80px rgba(0,0,0,0.6)",
+				}}
+			>
+				<div
+					className="mb-4 flex items-center justify-between"
+					style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: "16px" }}
+				>
+					<h2
+						className="inline-flex items-center"
+						style={{
+							fontSize: "22px",
+							fontWeight: 600,
+							letterSpacing: "-0.02em",
+							color: "#fafafa",
+							gap: "8px",
+						}}
+					>
+						<Receipt size={20} strokeWidth={1.5} color="#a1a1aa" />
+						Onboarding
+					</h2>
 					<button
 						type="button"
 						onClick={handleModalClose}
-						className="rounded-md border border-border px-2 py-1 text-sm hover:bg-muted"
+						className="text-sm"
+						style={{
+							backgroundColor: "transparent",
+							color: "#fafafa",
+							borderRadius: "10px",
+							padding: "8px 16px",
+							border: "1px solid #2a2a2a",
+							transition: "all 0.2s ease",
+						}}
 					>
 						Close
 					</button>
 				</div>
 
-				<div className="space-y-3 p-4">
+				<div className="space-y-3">
 					{isLoading ? (
-						<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+						<div
+							className="rounded-md p-4 text-sm"
+							style={{
+								backgroundColor: "#141414",
+								color: "#71717a",
+								border: "1px solid #222222",
+							}}
+						>
 							Loading onboarding status...
 						</div>
 					) : null}
 
 					{isError ? (
-						<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+						<div
+							className="rounded-md p-4 text-sm"
+							style={{
+								backgroundColor: "#141414",
+								color: "#ef4444",
+								borderLeft: "3px solid #ef4444",
+								borderTop: "1px solid #222222",
+								borderRight: "1px solid #222222",
+								borderBottom: "1px solid #222222",
+							}}
+						>
 							Failed to load onboarding status.
 						</div>
 					) : null}
 
 					{!isLoading && !isError ? (
 						<>
-							<div className="flex items-center gap-2">
+							<div
+								className="inline-flex items-center gap-2"
+								style={{
+									backgroundColor: "#141414",
+									borderRadius: "999px",
+									padding: "4px",
+								}}
+							>
 								<TabButton
 									label="Status"
 									value="status"
 									activeTab={activeTab}
 									onClick={setActiveTab}
+									icon={Info}
 								/>
 								<TabButton
 									label="Controls"
 									value="controls"
 									activeTab={activeTab}
 									onClick={setActiveTab}
+									icon={Edit}
 								/>
 							</div>
 

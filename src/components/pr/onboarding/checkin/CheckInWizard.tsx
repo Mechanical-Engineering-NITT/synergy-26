@@ -252,8 +252,16 @@ export function CheckInWizard({
 	};
 
 	return (
-		<div className="rounded-md border border-border bg-card p-4">
-			<p className="mt-2 text-xs text-muted-foreground">
+		<div
+			className="rounded-md p-4"
+			style={{
+				backgroundColor: "#141414",
+				color: "#fafafa",
+				border: "1px solid #222222",
+				transition: "all 0.2s ease",
+			}}
+		>
+			<p style={{ fontSize: "12px", color: "#71717a", marginTop: "8px" }}>
 				Step {currentFlowStep} of {totalFlowSteps}
 			</p>
 
@@ -338,7 +346,15 @@ export function CheckInWizard({
 			</div>
 
 			{calculateTotalMutation.isError ? (
-				<p className="mt-3 text-xs text-muted-foreground">
+				<p
+					style={{
+						marginTop: "12px",
+						fontSize: "12px",
+						color: "#ef4444",
+						borderLeft: "3px solid #ef4444",
+						paddingLeft: "8px",
+					}}
+				>
 					{calculateTotalMutation.error instanceof Error
 						? calculateTotalMutation.error.message
 						: "Failed to calculate accommodation total."}
@@ -346,7 +362,15 @@ export function CheckInWizard({
 			) : null}
 
 			{createStayMutation.isError ? (
-				<p className="mt-3 text-xs text-muted-foreground">
+				<p
+					style={{
+						marginTop: "12px",
+						fontSize: "12px",
+						color: "#ef4444",
+						borderLeft: "3px solid #ef4444",
+						paddingLeft: "8px",
+					}}
+				>
 					{createStayMutation.error instanceof Error
 						? createStayMutation.error.message
 						: "Failed to create stay."}
@@ -354,7 +378,15 @@ export function CheckInWizard({
 			) : null}
 
 			{updateStayMutation.isError ? (
-				<p className="mt-3 text-xs text-muted-foreground">
+				<p
+					style={{
+						marginTop: "12px",
+						fontSize: "12px",
+						color: "#ef4444",
+						borderLeft: "3px solid #ef4444",
+						paddingLeft: "8px",
+					}}
+				>
 					{updateStayMutation.error instanceof Error
 						? updateStayMutation.error.message
 						: "Failed to update stay."}
@@ -373,7 +405,27 @@ export function CheckInWizard({
 								createStayMutation.isPending ||
 								updateStayMutation.isPending
 							}
-							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+							className="text-sm disabled:cursor-not-allowed"
+							style={{
+								backgroundColor:
+									disabled ||
+									state.step === 1 ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending
+										? "#141414"
+										: "transparent",
+								color:
+									disabled ||
+									state.step === 1 ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending
+										? "#71717a"
+										: "#fafafa",
+								borderRadius: "10px",
+								padding: "8px 16px",
+								border: "1px solid #2a2a2a",
+								transition: "all 0.2s ease",
+							}}
 						>
 							Back
 						</button>
@@ -390,7 +442,37 @@ export function CheckInWizard({
 								updateStayMutation.isPending ||
 								calculateTotalMutation.isPending
 							}
-							className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+							className="text-sm disabled:cursor-not-allowed"
+							style={{
+								backgroundColor:
+									disabled ||
+									!canProceedFromCurrentStep ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									calculateTotalMutation.isPending
+										? "#141414"
+										: "#ffffff",
+								color:
+									disabled ||
+									!canProceedFromCurrentStep ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									calculateTotalMutation.isPending
+										? "#71717a"
+										: "#000000",
+								borderRadius: "10px",
+								padding: "8px 16px",
+								fontWeight: 500,
+								border:
+									disabled ||
+									!canProceedFromCurrentStep ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									calculateTotalMutation.isPending
+										? "1px solid #2a2a2a"
+										: "1px solid #ffffff",
+								transition: "opacity 0.2s ease",
+							}}
 						>
 							{isCalculatingPreview && calculateTotalMutation.isPending
 								? "Calculating..."
@@ -410,7 +492,33 @@ export function CheckInWizard({
 								updateStayMutation.isPending ||
 								(state.accommodationRequired === true && !isStepValid())
 							}
-							className="w-full rounded-xl bg-primary py-3 text-base font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+							className="w-full text-base font-semibold disabled:cursor-not-allowed"
+							style={{
+								backgroundColor:
+									disabled ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									(state.accommodationRequired === true && !isStepValid())
+										? "#141414"
+										: "#ffffff",
+								color:
+									disabled ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									(state.accommodationRequired === true && !isStepValid())
+										? "#71717a"
+										: "#000000",
+								borderRadius: "10px",
+								padding: "8px 16px",
+								border:
+									disabled ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending ||
+									(state.accommodationRequired === true && !isStepValid())
+										? "1px solid #2a2a2a"
+										: "1px solid #ffffff",
+								transition: "opacity 0.2s ease",
+							}}
 						>
 							{createStayMutation.isPending || updateStayMutation.isPending
 								? "Saving..."
@@ -427,7 +535,25 @@ export function CheckInWizard({
 								createStayMutation.isPending ||
 								updateStayMutation.isPending
 							}
-							className="w-full rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+							className="w-full text-sm disabled:cursor-not-allowed"
+							style={{
+								backgroundColor:
+									disabled ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending
+										? "#141414"
+										: "transparent",
+								color:
+									disabled ||
+									createStayMutation.isPending ||
+									updateStayMutation.isPending
+										? "#71717a"
+										: "#a1a1aa",
+								borderRadius: "10px",
+								padding: "8px 16px",
+								border: "1px solid #2a2a2a",
+								transition: "all 0.2s ease",
+							}}
 						>
 							Back
 						</button>

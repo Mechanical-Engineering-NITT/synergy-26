@@ -1,3 +1,4 @@
+import { DoorOpen, Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CheckInWizard } from "../checkin";
 import { CheckOutWizard } from "../checkout";
@@ -53,21 +54,45 @@ export function ControlsPanel({
 			: stayData.checkedInAt
 				? new Date(stayData.checkedInAt).toISOString()
 				: "new";
+	const sharedTabStyle = (active: boolean) => ({
+		backgroundColor: active ? "#1f1f1f" : "transparent",
+		color: active ? "#ffffff" : "#71717a",
+		border: active ? "1px solid #2a2a2a" : "1px solid transparent",
+		transition: "all 0.2s ease",
+	});
 
 	return (
-		<div className="space-y-3 rounded-md border border-border bg-card p-4">
-			<div className="flex items-center gap-2">
+		<div
+			className="space-y-3 rounded-md p-4"
+			style={{
+				backgroundColor: "#141414",
+				color: "#fafafa",
+				border: "1px solid #222222",
+				transition: "all 0.2s ease",
+			}}
+		>
+			<div
+				className="flex items-center gap-2"
+				style={{
+					backgroundColor: "#141414",
+					borderRadius: "999px",
+					padding: "4px",
+				}}
+			>
 				<button
 					type="button"
 					onClick={() => {
 						setActiveWizardTab("checkin");
 					}}
-					className={`rounded-md px-3 py-1.5 text-sm ${
-						activeWizardTab === "checkin"
-							? "bg-primary text-primary-foreground"
-							: "border border-border hover:bg-muted"
-					}`}
+					className="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm"
+					style={sharedTabStyle(activeWizardTab === "checkin")}
 				>
+					<Home
+						size={16}
+						strokeWidth={1.5}
+						color="#71717a"
+						style={{ marginRight: "8px" }}
+					/>
 					{checkInTabLabel}
 				</button>
 
@@ -82,12 +107,15 @@ export function ControlsPanel({
 					title={
 						checkoutDisabled ? "User must complete check-in first" : undefined
 					}
-					className={`rounded-md px-3 py-1.5 text-sm ${
-						activeWizardTab === "checkout"
-							? "bg-primary text-primary-foreground"
-							: "border border-border hover:bg-muted"
-					} ${checkoutDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+					className={`relative inline-flex items-center rounded-md px-3 py-1.5 text-sm ${checkoutDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+					style={sharedTabStyle(activeWizardTab === "checkout")}
 				>
+					<DoorOpen
+						size={16}
+						strokeWidth={1.5}
+						color="#71717a"
+						style={{ marginRight: "8px" }}
+					/>
 					{checkOutTabLabel}
 				</button>
 			</div>

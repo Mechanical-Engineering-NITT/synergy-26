@@ -269,15 +269,31 @@ export function CheckOutWizard({
 	};
 
 	return (
-		<div className="rounded-md border border-border bg-card p-4">
-			<p className="mt-2 text-xs text-muted-foreground">
+		<div
+			className="rounded-md p-4"
+			style={{
+				backgroundColor: "#141414",
+				color: "#fafafa",
+				border: "1px solid #222222",
+				transition: "all 0.2s ease",
+			}}
+		>
+			<p style={{ marginTop: "8px", fontSize: "12px", color: "#71717a" }}>
 				Step {displayStepNumber} of {totalSteps}
 			</p>
 
 			<div className="mt-3 space-y-3 text-sm">{renderStepContent()}</div>
 
 			{completeStayMutation.isError ? (
-				<p className="mt-3 text-xs text-muted-foreground">
+				<p
+					style={{
+						marginTop: "12px",
+						fontSize: "12px",
+						color: "#ef4444",
+						borderLeft: "3px solid #ef4444",
+						paddingLeft: "8px",
+					}}
+				>
 					{completeStayMutation.error instanceof Error
 						? completeStayMutation.error.message
 						: "Failed to complete stay."}
@@ -291,7 +307,21 @@ export function CheckOutWizard({
 					disabled={
 						disabled || state.step === 1 || completeStayMutation.isPending
 					}
-					className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+					className="text-sm disabled:cursor-not-allowed"
+					style={{
+						backgroundColor:
+							disabled || state.step === 1 || completeStayMutation.isPending
+								? "#141414"
+								: "transparent",
+						color:
+							disabled || state.step === 1 || completeStayMutation.isPending
+								? "#71717a"
+								: "#fafafa",
+						borderRadius: "10px",
+						padding: "8px 16px",
+						border: "1px solid #2a2a2a",
+						transition: "all 0.2s ease",
+					}}
 				>
 					Back
 				</button>
@@ -305,7 +335,31 @@ export function CheckOutWizard({
 							!canProceedFromCurrentStep ||
 							completeStayMutation.isPending
 						}
-						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+						className="text-sm disabled:cursor-not-allowed"
+						style={{
+							backgroundColor:
+								disabled ||
+								!canProceedFromCurrentStep ||
+								completeStayMutation.isPending
+									? "#141414"
+									: "#ffffff",
+							color:
+								disabled ||
+								!canProceedFromCurrentStep ||
+								completeStayMutation.isPending
+									? "#71717a"
+									: "#000000",
+							borderRadius: "10px",
+							padding: "8px 16px",
+							fontWeight: 500,
+							border:
+								disabled ||
+								!canProceedFromCurrentStep ||
+								completeStayMutation.isPending
+									? "1px solid #2a2a2a"
+									: "1px solid #ffffff",
+							transition: "opacity 0.2s ease",
+						}}
 					>
 						Next
 					</button>
@@ -318,7 +372,25 @@ export function CheckOutWizard({
 						disabled={
 							disabled || !isFinalStateValid || completeStayMutation.isPending
 						}
-						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+						className="text-sm disabled:cursor-not-allowed"
+						style={{
+							backgroundColor:
+								disabled || !isFinalStateValid || completeStayMutation.isPending
+									? "#141414"
+									: "#ffffff",
+							color:
+								disabled || !isFinalStateValid || completeStayMutation.isPending
+									? "#71717a"
+									: "#000000",
+							borderRadius: "10px",
+							padding: "8px 16px",
+							fontWeight: 500,
+							border:
+								disabled || !isFinalStateValid || completeStayMutation.isPending
+									? "1px solid #2a2a2a"
+									: "1px solid #ffffff",
+							transition: "opacity 0.2s ease",
+						}}
 					>
 						{completeStayMutation.isPending ? "Saving..." : "Confirm Check-Out"}
 					</button>

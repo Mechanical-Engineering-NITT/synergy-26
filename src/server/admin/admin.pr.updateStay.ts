@@ -32,11 +32,11 @@ export const updateStay = createServerFn({ method: "POST" })
 			.limit(1);
 
 		if (!stayRecord) {
-			throw new Error("Stay record not found for this user");
+			throw new Error("Stay not found");
 		}
 
 		if (!stayRecord.checkedInAt) {
-			throw new Error("User is not checked in");
+			throw new Error("User not checked in");
 		}
 
 		const normalizedNightsRequested = stayRecord.accommodationRequired

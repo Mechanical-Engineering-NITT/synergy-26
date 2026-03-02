@@ -1,3 +1,4 @@
+import { AlertTriangle, Calendar, ShieldCheck, Wallet } from "lucide-react";
 import type { StayFullDetails } from "../types";
 
 export function StatusPanel({
@@ -10,10 +11,16 @@ export function StatusPanel({
 
 	if (!stayData?.exists) {
 		return (
-			<div className="mx-auto max-w-3xl">
-				<div className="rounded-lg border bg-muted/40 p-6 text-center">
-					<p className="text-sm text-muted-foreground">No active stay.</p>
-				</div>
+			<div
+				className="rounded-lg p-6"
+				style={{
+					backgroundColor: "#141414",
+					border: "1px solid #222222",
+					color: "#71717a",
+					fontSize: "14px",
+				}}
+			>
+				No active stay.
 			</div>
 		);
 	}
@@ -23,131 +30,171 @@ export function StatusPanel({
 	const hasFineApplied = stayData.fineAmount > 0;
 
 	return (
-		<div className="mx-auto max-h-[45vh] max-w-3xl space-y-8 overflow-y-auto pr-1">
-			<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
-				<h3 className="text-sm font-semibold">Stay Timeline</h3>
-				<div className="grid grid-cols-2 gap-y-3 text-sm">
-					<span className="text-muted-foreground">Check-In</span>
-					<span className="text-right font-medium">
+		<div
+			className="rounded-xl p-5"
+			style={{
+				backgroundColor: "#141414",
+				border: "1px solid #222222",
+				color: "#fafafa",
+				transition: "all 0.2s ease",
+			}}
+		>
+			<div
+				style={{
+					borderBottom: "1px solid #1f1f1f",
+					paddingBottom: "16px",
+					marginBottom: "16px",
+				}}
+			>
+				<h3
+					className="inline-flex items-center"
+					style={{
+						fontSize: "16px",
+						fontWeight: 500,
+						gap: "8px",
+						marginBottom: "10px",
+					}}
+				>
+					<Calendar size={16} color="#71717a" strokeWidth={1.5} />
+					Stay Timeline
+				</h3>
+				<div className="grid grid-cols-2 gap-y-2" style={{ fontSize: "14px" }}>
+					<span style={{ color: "#a1a1aa" }}>Check-In</span>
+					<span className="text-right" style={{ color: "#fafafa" }}>
 						{formatDate(stayData.checkedInAt) ?? "N/A"}
 					</span>
-					<span className="text-muted-foreground">Check-Out</span>
-					<span className="text-right font-medium">
+					<span style={{ color: "#a1a1aa" }}>Check-Out</span>
+					<span className="text-right" style={{ color: "#fafafa" }}>
 						{formatDate(stayData.checkedOutAt) ?? "Pending"}
 					</span>
-					<span className="text-muted-foreground">Elapsed Days</span>
-					<span className="text-right font-medium">{stayData.elapsedDays}</span>
-					<span className="text-muted-foreground">Nights Requested</span>
-					<span className="text-right font-medium">
-						{stayData.nightsRequested}
-					</span>
-					<span className="text-muted-foreground">Stay State</span>
-					<span className="text-right font-medium">
+					<span style={{ color: "#a1a1aa" }}>Elapsed Days</span>
+					<span className="text-right">{stayData.elapsedDays}</span>
+					<span style={{ color: "#a1a1aa" }}>Nights Requested</span>
+					<span className="text-right">{stayData.nightsRequested}</span>
+					<span style={{ color: "#a1a1aa" }}>Stay State</span>
+					<span className="text-right">
 						{isStayActive ? "Active Stay" : "Completed"}
 					</span>
 				</div>
 			</div>
 
-			<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
-				<h3 className="text-sm font-semibold">Accommodation Summary</h3>
-				{isNoAccommodation ? (
-					<div className="grid grid-cols-2 gap-y-3 text-sm">
-						<span className="text-muted-foreground">Accommodation</span>
-						<span className="text-right font-medium">Not Requested</span>
-						<span className="text-muted-foreground">Accommodation Fee</span>
-						<span className="text-right font-medium">₹0</span>
-						<span className="text-muted-foreground">Deposit</span>
-						<span className="text-right font-medium">Not Applicable</span>
-						<span className="text-muted-foreground">Fine</span>
-						<span className="text-right font-medium">Not Applicable</span>
-					</div>
-				) : stayData.accommodationRequired ? (
-					<div className="grid grid-cols-2 gap-y-3 text-sm">
-						<span className="text-muted-foreground">Accommodation Fee</span>
-						<span className="text-right font-medium">
-							₹{stayData.accommodationFee}
-						</span>
-						<span className="text-muted-foreground">Caution Deposit</span>
-						<span className="text-right font-medium">
-							₹{stayData.cautionDeposit}
-						</span>
-						<span className="text-muted-foreground">Total Amount Paid</span>
-						<span className="text-right font-medium">
-							₹{stayData.accommodationFee + stayData.cautionDeposit}
-						</span>
-					</div>
-				) : (
-					<div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
-						No accommodation requested.
-					</div>
-				)}
+			<div
+				style={{
+					borderBottom: "1px solid #1f1f1f",
+					paddingBottom: "16px",
+					marginBottom: "16px",
+				}}
+			>
+				<h3
+					className="inline-flex items-center"
+					style={{
+						fontSize: "16px",
+						fontWeight: 500,
+						gap: "8px",
+						marginBottom: "10px",
+					}}
+				>
+					<Wallet size={16} color="#71717a" strokeWidth={1.5} />
+					Financial
+				</h3>
+				<div className="grid grid-cols-2 gap-y-2" style={{ fontSize: "14px" }}>
+					<span style={{ color: "#a1a1aa" }}>Accommodation</span>
+					<span className="text-right">
+						{isNoAccommodation ? "Not Requested" : "Requested"}
+					</span>
+					<span style={{ color: "#a1a1aa" }}>Accommodation Fee</span>
+					<span className="text-right">
+						₹{isNoAccommodation ? 0 : stayData.accommodationFee}
+					</span>
+					<span style={{ color: "#a1a1aa" }}>Caution Deposit</span>
+					<span className="text-right">
+						{isNoAccommodation
+							? "Not Applicable"
+							: `₹${stayData.cautionDeposit}`}
+					</span>
+					<span style={{ color: "#a1a1aa" }}>Fine</span>
+					<span className="text-right">
+						{isNoAccommodation ? "Not Applicable" : `₹${stayData.fineAmount}`}
+					</span>
+				</div>
 			</div>
 
-			{isNoAccommodation ? (
-				<div className="bg-muted/40 border rounded-lg p-4 text-center">
-					<p className="font-medium">No Financial Activity for This Stay</p>
+			<div
+				style={{
+					borderBottom: "1px solid #1f1f1f",
+					paddingBottom: "16px",
+					marginBottom: "16px",
+				}}
+			>
+				<h3
+					className="inline-flex items-center"
+					style={{
+						fontSize: "16px",
+						fontWeight: 500,
+						gap: "8px",
+						marginBottom: "10px",
+					}}
+				>
+					<ShieldCheck size={16} color="#71717a" strokeWidth={1.5} />
+					Status
+				</h3>
+				<div className="grid grid-cols-2 gap-y-2" style={{ fontSize: "14px" }}>
+					<span style={{ color: "#a1a1aa" }}>Fine Applied</span>
+					<span className="text-right">{hasFineApplied ? "Yes" : "No"}</span>
+					<span style={{ color: "#a1a1aa" }}>Fine Paid</span>
+					<span
+						className="text-right"
+						style={{ color: stayData.finePaid ? "#22c55e" : "#eab308" }}
+					>
+						{hasFineApplied
+							? stayData.finePaid
+								? "Yes"
+								: "No"
+							: "Not Applicable"}
+					</span>
+					<span style={{ color: "#a1a1aa" }}>Deposit Returned</span>
+					<span
+						className="text-right"
+						style={{ color: stayData.cautionReturned ? "#22c55e" : "#eab308" }}
+					>
+						{hasFineApplied
+							? "No (Retained)"
+							: stayData.cautionReturned
+								? "Yes"
+								: "No"}
+					</span>
 				</div>
-			) : (
-				<div className="space-y-6 rounded-xl border bg-card p-5 shadow-sm">
-					<h3 className="text-sm font-semibold">Deposit & Fine Status</h3>
-					<div className="grid grid-cols-2 gap-y-3 text-sm">
-						<span className="text-muted-foreground">Fine Applied</span>
-						<span className="text-right font-medium">
-							{hasFineApplied ? "Yes" : "No"}
-						</span>
-						{hasFineApplied ? (
-							<>
-								<span className="text-muted-foreground">Fine Amount</span>
-								<span className="text-right font-medium">
-									₹{stayData.fineAmount}
-								</span>
-								<span className="text-muted-foreground">Fine Paid</span>
-								<span
-									className={`text-right font-medium ${
-										stayData.finePaid ? "text-emerald-600" : "text-yellow-600"
-									}`}
-								>
-									{stayData.finePaid ? "Yes" : "No"}
-								</span>
-								<span className="text-muted-foreground">Deposit Status</span>
-								<span className="text-right font-medium text-red-600">
-									Retained
-								</span>
-							</>
-						) : (
-							<>
-								<span className="text-muted-foreground">Deposit Returned</span>
-								<span
-									className={`text-right font-medium ${
-										stayData.cautionReturned
-											? "text-emerald-600"
-											: "text-yellow-600"
-									}`}
-								>
-									{stayData.cautionReturned ? "Yes" : "No"}
-								</span>
-							</>
-						)}
-					</div>
-				</div>
-			)}
+			</div>
 
 			{stayData.checkedOutAt ? (
-				<div className="rounded-lg border bg-muted/40 p-4 text-center">
-					<p className="font-semibold">Stay Completed</p>
-				</div>
+				<p style={{ color: "#a1a1aa", fontSize: "14px" }}>Stay Completed</p>
 			) : !isNoAccommodation && stayData.overstayed ? (
-				<div className="rounded-lg border border-red-400 bg-red-100 p-4 text-center">
-					<p className="font-semibold text-red-700">Overstay Detected</p>
-					<p className="text-sm text-red-600">
+				<div
+					style={{
+						borderLeft: "3px solid #ef4444",
+						paddingLeft: "12px",
+						color: "#ef4444",
+						fontSize: "14px",
+					}}
+				>
+					<p className="inline-flex items-center" style={{ gap: "8px" }}>
+						<AlertTriangle size={16} color="#71717a" strokeWidth={1.5} />
+						Overstay Detected
+					</p>
+					<p style={{ color: "#71717a", fontSize: "12px" }}>
 						Elapsed days exceed approved stay.
 					</p>
 				</div>
 			) : (
-				<div className="rounded-lg border border-emerald-400 bg-emerald-100 p-4 text-center">
-					<p className="font-semibold text-emerald-700">
-						Stay Within Approved Duration
-					</p>
+				<div
+					style={{
+						borderLeft: "3px solid #22c55e",
+						paddingLeft: "12px",
+						color: "#22c55e",
+						fontSize: "14px",
+					}}
+				>
+					Stay Within Approved Duration
 				</div>
 			)}
 		</div>
