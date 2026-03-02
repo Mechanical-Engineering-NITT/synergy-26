@@ -1,6 +1,5 @@
-import { createServerFn } from "@tanstack/react-start";
-import * as z from "zod";
-import { getConstantValue } from "../constants";
+import { requireAdminUser } from "@/lib/utils";
+import { getConstantValue } from "@/server/constants";
 
 type PricingResult = {
 	roomPrice: number;
@@ -21,6 +20,7 @@ const parsePrices = (key: "room" | "deposit", value: string | null) => {
 };
 
 export const getAccommodationPricing = async (): Promise<PricingResult> => {
+	await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 	const [roomValue, depositValue] = await Promise.all([
 		getConstantValue("room"),
 		getConstantValue("deposit"),
@@ -31,19 +31,3 @@ export const getAccommodationPricing = async (): Promise<PricingResult> => {
 		depositAmount: parsePrices("deposit", depositValue),
 	};
 };
-
-const CheckInPricingPreviewInputSchema = z.object({
-	accommodationRequired: z.boolean(),
-	nightsRequested: z.number().int().min(0),
-});
-
-export const getCheckInPricingPreview = createServerFn({ method: "POST" })
-	.inputValidator(CheckInPricingPreviewInputSchema)
-	.handler(async () => {
-		const { roomPrice, depositAmount } = await getAccommodationPricing();
-
-		return {
-			roomPrice,
-			depositAmount,
-		};
-	});

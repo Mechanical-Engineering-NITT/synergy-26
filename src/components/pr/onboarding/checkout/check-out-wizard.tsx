@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useReducer } from "react";
-import { completeStay } from "@/server/admin/admin.pr.completeStay";
+import { completeStay } from "@/server/admin/pr/mutation";
 import type { StayFullDetails } from "../types";
 import {
 	buildInitialCheckoutStateFromStay,
 	checkOutReducer,
 	isCheckOutFinalStateValid,
-} from "./checkOutReducer";
+} from "./check-out-reducer";
 import {
 	Step1NoAccommodationInfo,
 	Step1Overstay,
@@ -18,7 +18,7 @@ import {
 	Step5DepositReturn,
 	Step6Review,
 	Step7Confirm,
-} from "./checkOutSteps";
+} from "./check-out-steps";
 
 export function CheckOutWizard({
 	userId,
@@ -189,6 +189,12 @@ export function CheckOutWizard({
 	const displayStepNumber = getDisplayStepNumber();
 
 	const isFinalStep = isNoAccommodation ? state.step === 3 : state.step === 7;
+	const isBackDisabled =
+		disabled || state.step === 1 || completeStayMutation.isPending;
+	const isNextDisabled =
+		disabled || !canProceedFromCurrentStep || completeStayMutation.isPending;
+	const isFinalSubmitDisabled =
+		disabled || !isFinalStateValid || completeStayMutation.isPending;
 
 	const handleNext = () => {
 		dispatch({ type: "nextStep", stay });
@@ -269,31 +275,15 @@ export function CheckOutWizard({
 	};
 
 	return (
-		<div
-			className="rounded-md p-4"
-			style={{
-				backgroundColor: "#141414",
-				color: "#fafafa",
-				border: "1px solid #222222",
-				transition: "all 0.2s ease",
-			}}
-		>
-			<p style={{ marginTop: "8px", fontSize: "12px", color: "#71717a" }}>
+		<div className="rounded-md border border-[#222222] bg-[#141414] p-4 text-[#fafafa] transition-all duration-200">
+			<p className="mt-2 text-xs text-[#71717a]">
 				Step {displayStepNumber} of {totalSteps}
 			</p>
 
 			<div className="mt-3 space-y-3 text-sm">{renderStepContent()}</div>
 
 			{completeStayMutation.isError ? (
-				<p
-					style={{
-						marginTop: "12px",
-						fontSize: "12px",
-						color: "#ef4444",
-						borderLeft: "3px solid #ef4444",
-						paddingLeft: "8px",
-					}}
-				>
+				<p className="mt-3 border-l-[3px] border-l-[#ef4444] pl-2 text-xs text-[#ef4444]">
 					{completeStayMutation.error instanceof Error
 						? completeStayMutation.error.message
 						: "Failed to complete stay."}
@@ -304,24 +294,12 @@ export function CheckOutWizard({
 				<button
 					type="button"
 					onClick={handleBack}
-					disabled={
-						disabled || state.step === 1 || completeStayMutation.isPending
-					}
-					className="text-sm disabled:cursor-not-allowed"
-					style={{
-						backgroundColor:
-							disabled || state.step === 1 || completeStayMutation.isPending
-								? "#141414"
-								: "transparent",
-						color:
-							disabled || state.step === 1 || completeStayMutation.isPending
-								? "#71717a"
-								: "#fafafa",
-						borderRadius: "10px",
-						padding: "8px 16px",
-						border: "1px solid #2a2a2a",
-						transition: "all 0.2s ease",
-					}}
+					disabled={isBackDisabled}
+					className={`rounded-[10px] border border-[#2a2a2a] px-4 py-2 text-sm transition-all duration-200 disabled:cursor-not-allowed ${
+						isBackDisabled
+							? "bg-[#141414] text-[#71717a]"
+							: "bg-transparent text-[#fafafa]"
+					}`}
 				>
 					Back
 				</button>
@@ -330,36 +308,12 @@ export function CheckOutWizard({
 					<button
 						type="button"
 						onClick={handleNext}
-						disabled={
-							disabled ||
-							!canProceedFromCurrentStep ||
-							completeStayMutation.isPending
-						}
-						className="text-sm disabled:cursor-not-allowed"
-						style={{
-							backgroundColor:
-								disabled ||
-								!canProceedFromCurrentStep ||
-								completeStayMutation.isPending
-									? "#141414"
-									: "#ffffff",
-							color:
-								disabled ||
-								!canProceedFromCurrentStep ||
-								completeStayMutation.isPending
-									? "#71717a"
-									: "#000000",
-							borderRadius: "10px",
-							padding: "8px 16px",
-							fontWeight: 500,
-							border:
-								disabled ||
-								!canProceedFromCurrentStep ||
-								completeStayMutation.isPending
-									? "1px solid #2a2a2a"
-									: "1px solid #ffffff",
-							transition: "opacity 0.2s ease",
-						}}
+						disabled={isNextDisabled}
+						className={`rounded-[10px] px-4 py-2 text-sm font-medium transition-opacity duration-200 disabled:cursor-not-allowed ${
+							isNextDisabled
+								? "border border-[#2a2a2a] bg-[#141414] text-[#71717a]"
+								: "border border-white bg-white text-black"
+						}`}
 					>
 						Next
 					</button>
@@ -369,28 +323,12 @@ export function CheckOutWizard({
 						onClick={() => {
 							void handleFinalSubmit();
 						}}
-						disabled={
-							disabled || !isFinalStateValid || completeStayMutation.isPending
-						}
-						className="text-sm disabled:cursor-not-allowed"
-						style={{
-							backgroundColor:
-								disabled || !isFinalStateValid || completeStayMutation.isPending
-									? "#141414"
-									: "#ffffff",
-							color:
-								disabled || !isFinalStateValid || completeStayMutation.isPending
-									? "#71717a"
-									: "#000000",
-							borderRadius: "10px",
-							padding: "8px 16px",
-							fontWeight: 500,
-							border:
-								disabled || !isFinalStateValid || completeStayMutation.isPending
-									? "1px solid #2a2a2a"
-									: "1px solid #ffffff",
-							transition: "opacity 0.2s ease",
-						}}
+						disabled={isFinalSubmitDisabled}
+						className={`rounded-[10px] px-4 py-2 text-sm font-medium transition-opacity duration-200 disabled:cursor-not-allowed ${
+							isFinalSubmitDisabled
+								? "border border-[#2a2a2a] bg-[#141414] text-[#71717a]"
+								: "border border-white bg-white text-black"
+						}`}
 					>
 						{completeStayMutation.isPending ? "Saving..." : "Confirm Check-Out"}
 					</button>

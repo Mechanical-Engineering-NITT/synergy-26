@@ -1,1 +1,1 @@
-export * from "./CheckInWizard";
+export * from "./check-in-wizard";

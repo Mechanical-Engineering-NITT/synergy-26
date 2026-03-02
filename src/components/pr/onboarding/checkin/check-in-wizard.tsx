@@ -1,15 +1,16 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useReducer } from "react";
-import { calculateAccommodationTotal } from "@/server/admin/admin.pr.calculateAccommodationTotal";
-import { createStay } from "@/server/admin/admin.pr.createStay";
-import { getCheckInPricingPreview } from "@/server/admin/admin.pr.pricing";
-import { updateStay } from "@/server/admin/admin.pr.updateStay";
+import { createStay, updateStay } from "@/server/admin/pr/mutation";
+import {
+	calculateAccommodationTotal,
+	getCheckInPricingPreview,
+} from "@/server/admin/pr/query";
 import type { CheckInMode, StayFullDetails } from "../types";
 import {
 	checkInReducer,
 	createInitialCheckInState,
 	isCheckInRoomAllotmentValid,
-} from "./checkInReducer";
+} from "./check-in-reducer";
 import {
 	Step1Accommodation,
 	Step2Nights,
@@ -18,7 +19,7 @@ import {
 	Step5Room,
 	Step6Review,
 	Step7Confirm,
-} from "./checkInSteps";
+} from "./check-in-steps";
 
 export function CheckInWizard({
 	userId,
@@ -176,6 +177,23 @@ export function CheckInWizard({
 								: true
 							: true;
 
+	const isBackDisabled =
+		disabled ||
+		state.step === 1 ||
+		createStayMutation.isPending ||
+		updateStayMutation.isPending;
+	const isNextDisabled =
+		disabled ||
+		!canProceedFromCurrentStep ||
+		createStayMutation.isPending ||
+		updateStayMutation.isPending ||
+		calculateTotalMutation.isPending;
+	const isFinalSubmitDisabled =
+		disabled ||
+		createStayMutation.isPending ||
+		updateStayMutation.isPending ||
+		(state.accommodationRequired === true && !isStepValid());
+
 	const totalFlowSteps = state.accommodationRequired === false ? 3 : 7;
 	const currentFlowStep =
 		state.accommodationRequired === false
@@ -252,16 +270,8 @@ export function CheckInWizard({
 	};
 
 	return (
-		<div
-			className="rounded-md p-4"
-			style={{
-				backgroundColor: "#141414",
-				color: "#fafafa",
-				border: "1px solid #222222",
-				transition: "all 0.2s ease",
-			}}
-		>
-			<p style={{ fontSize: "12px", color: "#71717a", marginTop: "8px" }}>
+		<div className="rounded-md border border-[#222222] bg-[#141414] p-4 text-[#fafafa] transition-all duration-200">
+			<p className="mt-2 text-xs text-[#71717a]">
 				Step {currentFlowStep} of {totalFlowSteps}
 			</p>
 
@@ -346,15 +356,7 @@ export function CheckInWizard({
 			</div>
 
 			{calculateTotalMutation.isError ? (
-				<p
-					style={{
-						marginTop: "12px",
-						fontSize: "12px",
-						color: "#ef4444",
-						borderLeft: "3px solid #ef4444",
-						paddingLeft: "8px",
-					}}
-				>
+				<p className="mt-3 border-l-[3px] border-l-[#ef4444] pl-2 text-xs text-[#ef4444]">
 					{calculateTotalMutation.error instanceof Error
 						? calculateTotalMutation.error.message
 						: "Failed to calculate accommodation total."}
@@ -362,15 +364,7 @@ export function CheckInWizard({
 			) : null}
 
 			{createStayMutation.isError ? (
-				<p
-					style={{
-						marginTop: "12px",
-						fontSize: "12px",
-						color: "#ef4444",
-						borderLeft: "3px solid #ef4444",
-						paddingLeft: "8px",
-					}}
-				>
+				<p className="mt-3 border-l-[3px] border-l-[#ef4444] pl-2 text-xs text-[#ef4444]">
 					{createStayMutation.error instanceof Error
 						? createStayMutation.error.message
 						: "Failed to create stay."}
@@ -378,15 +372,7 @@ export function CheckInWizard({
 			) : null}
 
 			{updateStayMutation.isError ? (
-				<p
-					style={{
-						marginTop: "12px",
-						fontSize: "12px",
-						color: "#ef4444",
-						borderLeft: "3px solid #ef4444",
-						paddingLeft: "8px",
-					}}
-				>
+				<p className="mt-3 border-l-[3px] border-l-[#ef4444] pl-2 text-xs text-[#ef4444]">
 					{updateStayMutation.error instanceof Error
 						? updateStayMutation.error.message
 						: "Failed to update stay."}
@@ -399,33 +385,12 @@ export function CheckInWizard({
 						<button
 							type="button"
 							onClick={() => dispatch({ type: "prevStep" })}
-							disabled={
-								disabled ||
-								state.step === 1 ||
-								createStayMutation.isPending ||
-								updateStayMutation.isPending
-							}
-							className="text-sm disabled:cursor-not-allowed"
-							style={{
-								backgroundColor:
-									disabled ||
-									state.step === 1 ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending
-										? "#141414"
-										: "transparent",
-								color:
-									disabled ||
-									state.step === 1 ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending
-										? "#71717a"
-										: "#fafafa",
-								borderRadius: "10px",
-								padding: "8px 16px",
-								border: "1px solid #2a2a2a",
-								transition: "all 0.2s ease",
-							}}
+							disabled={isBackDisabled}
+							className={`rounded-[10px] border border-[#2a2a2a] px-4 py-2 text-sm transition-all duration-200 disabled:cursor-not-allowed ${
+								isBackDisabled
+									? "bg-[#141414] text-[#71717a]"
+									: "bg-transparent text-[#fafafa]"
+							}`}
 						>
 							Back
 						</button>
@@ -435,44 +400,12 @@ export function CheckInWizard({
 							onClick={() => {
 								void handleNext();
 							}}
-							disabled={
-								disabled ||
-								!canProceedFromCurrentStep ||
-								createStayMutation.isPending ||
-								updateStayMutation.isPending ||
-								calculateTotalMutation.isPending
-							}
-							className="text-sm disabled:cursor-not-allowed"
-							style={{
-								backgroundColor:
-									disabled ||
-									!canProceedFromCurrentStep ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									calculateTotalMutation.isPending
-										? "#141414"
-										: "#ffffff",
-								color:
-									disabled ||
-									!canProceedFromCurrentStep ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									calculateTotalMutation.isPending
-										? "#71717a"
-										: "#000000",
-								borderRadius: "10px",
-								padding: "8px 16px",
-								fontWeight: 500,
-								border:
-									disabled ||
-									!canProceedFromCurrentStep ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									calculateTotalMutation.isPending
-										? "1px solid #2a2a2a"
-										: "1px solid #ffffff",
-								transition: "opacity 0.2s ease",
-							}}
+							disabled={isNextDisabled}
+							className={`rounded-[10px] px-4 py-2 text-sm font-medium transition-opacity duration-200 disabled:cursor-not-allowed ${
+								isNextDisabled
+									? "border border-[#2a2a2a] bg-[#141414] text-[#71717a]"
+									: "border border-white bg-white text-black"
+							}`}
 						>
 							{isCalculatingPreview && calculateTotalMutation.isPending
 								? "Calculating..."
@@ -486,39 +419,12 @@ export function CheckInWizard({
 							onClick={() => {
 								void handleFinalSubmit();
 							}}
-							disabled={
-								disabled ||
-								createStayMutation.isPending ||
-								updateStayMutation.isPending ||
-								(state.accommodationRequired === true && !isStepValid())
-							}
-							className="w-full text-base font-semibold disabled:cursor-not-allowed"
-							style={{
-								backgroundColor:
-									disabled ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									(state.accommodationRequired === true && !isStepValid())
-										? "#141414"
-										: "#ffffff",
-								color:
-									disabled ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									(state.accommodationRequired === true && !isStepValid())
-										? "#71717a"
-										: "#000000",
-								borderRadius: "10px",
-								padding: "8px 16px",
-								border:
-									disabled ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending ||
-									(state.accommodationRequired === true && !isStepValid())
-										? "1px solid #2a2a2a"
-										: "1px solid #ffffff",
-								transition: "opacity 0.2s ease",
-							}}
+							disabled={isFinalSubmitDisabled}
+							className={`w-full rounded-[10px] px-4 py-2 text-base font-semibold transition-opacity duration-200 disabled:cursor-not-allowed ${
+								isFinalSubmitDisabled
+									? "border border-[#2a2a2a] bg-[#141414] text-[#71717a]"
+									: "border border-white bg-white text-black"
+							}`}
 						>
 							{createStayMutation.isPending || updateStayMutation.isPending
 								? "Saving..."
@@ -535,25 +441,13 @@ export function CheckInWizard({
 								createStayMutation.isPending ||
 								updateStayMutation.isPending
 							}
-							className="w-full text-sm disabled:cursor-not-allowed"
-							style={{
-								backgroundColor:
-									disabled ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending
-										? "#141414"
-										: "transparent",
-								color:
-									disabled ||
-									createStayMutation.isPending ||
-									updateStayMutation.isPending
-										? "#71717a"
-										: "#a1a1aa",
-								borderRadius: "10px",
-								padding: "8px 16px",
-								border: "1px solid #2a2a2a",
-								transition: "all 0.2s ease",
-							}}
+							className={`w-full rounded-[10px] border border-[#2a2a2a] px-4 py-2 text-sm transition-all duration-200 disabled:cursor-not-allowed ${
+								disabled ||
+								createStayMutation.isPending ||
+								updateStayMutation.isPending
+									? "bg-[#141414] text-[#71717a]"
+									: "bg-transparent text-[#a1a1aa]"
+							}`}
 						>
 							Back
 						</button>

@@ -1,1 +1,1 @@
-export * from "./OnboardingModal";
+export * from "./onboarding-modal";

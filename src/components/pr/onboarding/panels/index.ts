@@ -1,2 +1,2 @@
-export * from "./ControlsPanel";
-export * from "./StatusPanel";
+export * from "./controls-panel";
+export * from "./status-panel";

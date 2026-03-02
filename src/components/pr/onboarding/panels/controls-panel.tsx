@@ -54,45 +54,24 @@ export function ControlsPanel({
 			: stayData.checkedInAt
 				? new Date(stayData.checkedInAt).toISOString()
 				: "new";
-	const sharedTabStyle = (active: boolean) => ({
-		backgroundColor: active ? "#1f1f1f" : "transparent",
-		color: active ? "#ffffff" : "#71717a",
-		border: active ? "1px solid #2a2a2a" : "1px solid transparent",
-		transition: "all 0.2s ease",
-	});
+	const getWizardTabClassName = (active: boolean) =>
+		`relative inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-all duration-200 ${
+			active
+				? "border-[#2a2a2a] bg-[#1f1f1f] text-white"
+				: "border-transparent bg-transparent text-[#71717a]"
+		}`;
 
 	return (
-		<div
-			className="space-y-3 rounded-md p-4"
-			style={{
-				backgroundColor: "#141414",
-				color: "#fafafa",
-				border: "1px solid #222222",
-				transition: "all 0.2s ease",
-			}}
-		>
-			<div
-				className="flex items-center gap-2"
-				style={{
-					backgroundColor: "#141414",
-					borderRadius: "999px",
-					padding: "4px",
-				}}
-			>
+		<div className="space-y-3 rounded-md border border-[#222222] bg-[#141414] p-4 text-[#fafafa] transition-all duration-200">
+			<div className="flex items-center gap-2 rounded-full bg-[#141414] p-1">
 				<button
 					type="button"
 					onClick={() => {
 						setActiveWizardTab("checkin");
 					}}
-					className="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm"
-					style={sharedTabStyle(activeWizardTab === "checkin")}
+					className={getWizardTabClassName(activeWizardTab === "checkin")}
 				>
-					<Home
-						size={16}
-						strokeWidth={1.5}
-						color="#71717a"
-						style={{ marginRight: "8px" }}
-					/>
+					<Home size={16} strokeWidth={1.5} color="#71717a" className="mr-2" />
 					{checkInTabLabel}
 				</button>
 
@@ -107,14 +86,13 @@ export function ControlsPanel({
 					title={
 						checkoutDisabled ? "User must complete check-in first" : undefined
 					}
-					className={`relative inline-flex items-center rounded-md px-3 py-1.5 text-sm ${checkoutDisabled ? "cursor-not-allowed opacity-50" : ""}`}
-					style={sharedTabStyle(activeWizardTab === "checkout")}
+					className={`${getWizardTabClassName(activeWizardTab === "checkout")} ${checkoutDisabled ? "cursor-not-allowed opacity-50" : ""}`}
 				>
 					<DoorOpen
 						size={16}
 						strokeWidth={1.5}
 						color="#71717a"
-						style={{ marginRight: "8px" }}
+						className="mr-2"
 					/>
 					{checkOutTabLabel}
 				</button>

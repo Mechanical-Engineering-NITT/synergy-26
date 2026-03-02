@@ -1,1 +1,1 @@
-export * from "./CheckOutWizard";
+export * from "./check-out-wizard";
