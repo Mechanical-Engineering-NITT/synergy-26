@@ -43,15 +43,7 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				})
 				.from(registrations)
 				.leftJoin(events, eq(events.id, registrations.eventId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.status, "paid"),
-						eq(payments.isEventPass, true),
-					),
-				)
-				.where(and(isNotNull(registrations.eventId), isNotNull(payments.id)))
+				.where(and(isNotNull(registrations.eventId), isNotNull(events.id)))
 				.groupBy(registrations.userId);
 
 			const workshopAggRows = await db
@@ -61,15 +53,9 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				})
 				.from(registrations)
 				.leftJoin(workshops, eq(workshops.id, registrations.workshopId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.workshopId, registrations.workshopId),
-						eq(payments.status, "paid"),
-					),
+				.where(
+					and(isNotNull(registrations.workshopId), isNotNull(workshops.id)),
 				)
-				.where(and(isNotNull(registrations.workshopId), isNotNull(payments.id)))
 				.groupBy(registrations.userId);
 
 			const paymentAggRows = await db
@@ -111,7 +97,7 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				},
 			};
 		} catch {
-			throw new Error("Failed to fetch admin users");
+			throw new Error("Failed to fetch users");
 		}
 	},
 );
@@ -143,56 +129,48 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 			}
 
 			const eventRegistrations = await db
-				.select({
-					eventId: events.id,
-					eventTitle: events.title,
-					paymentStatus: payments.status,
-					createdAt: registrations.createdAt,
+				.selectDistinct({
+					id: events.id,
+					title: events.title,
 				})
 				.from(registrations)
 				.leftJoin(events, eq(events.id, registrations.eventId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.isEventPass, true),
-					),
-				)
 				.where(
 					and(
 						eq(registrations.userId, data.userId),
 						isNotNull(registrations.eventId),
 						isNotNull(events.id),
-						isNotNull(payments.id),
 					),
 				)
-				.orderBy(desc(registrations.createdAt));
+				.then((rows) =>
+					rows.map((entry) => ({
+						id: entry.id,
+						title: entry.title,
+						isRegistered: true,
+					})),
+				);
 
 			const workshopRegistrations = await db
-				.select({
-					workshopId: workshops.id,
-					workshopTitle: workshops.title,
-					paymentStatus: payments.status,
-					createdAt: registrations.createdAt,
+				.selectDistinct({
+					id: workshops.id,
+					title: workshops.title,
 				})
 				.from(registrations)
 				.leftJoin(workshops, eq(workshops.id, registrations.workshopId))
-				.leftJoin(
-					payments,
-					and(
-						eq(payments.userId, registrations.userId),
-						eq(payments.workshopId, registrations.workshopId),
-					),
-				)
 				.where(
 					and(
 						eq(registrations.userId, data.userId),
 						isNotNull(registrations.workshopId),
 						isNotNull(workshops.id),
-						isNotNull(payments.id),
 					),
 				)
-				.orderBy(desc(registrations.createdAt));
+				.then((rows) =>
+					rows.map((entry) => ({
+						id: entry.id,
+						title: entry.title,
+						isRegistered: true,
+					})),
+				);
 
 			const paymentRows = await db
 				.select({
@@ -214,6 +192,6 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 				},
 			};
 		} catch {
-			throw new Error("Failed to fetch admin user details");
+			throw new Error("Failed to fetch user details");
 		}
 	});

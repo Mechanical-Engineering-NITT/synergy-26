@@ -1,6 +1,8 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Calendar, DoorOpen, RefreshCw, User, Wallet } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { OnboardingModal } from "@/components/pr/onboarding";
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
 import { PrUsersPagination } from "@/components/pr/pr-pagination";
 import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
@@ -39,6 +41,9 @@ function RouteComponent() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+	const [selectedOnboardingUserId, setSelectedOnboardingUserId] = useState<
+		string | null
+	>(null);
 	const [activeTab, setActiveTab] = useState("profile");
 
 	const {
@@ -118,8 +123,18 @@ function RouteComponent() {
 
 	if (isUsersLoading) {
 		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+			<div
+				className="min-h-screen p-6"
+				style={{ backgroundColor: "#0a0a0a", color: "#fafafa" }}
+			>
+				<div
+					className="mx-auto max-w-7xl rounded-md p-4 text-sm"
+					style={{
+						backgroundColor: "#141414",
+						color: "#71717a",
+						border: "1px solid #222222",
+					}}
+				>
 					Loading admin users...
 				</div>
 			</div>
@@ -128,8 +143,21 @@ function RouteComponent() {
 
 	if (isUsersError) {
 		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+			<div
+				className="min-h-screen p-6"
+				style={{ backgroundColor: "#0a0a0a", color: "#fafafa" }}
+			>
+				<div
+					className="mx-auto max-w-7xl rounded-md p-4 text-sm"
+					style={{
+						backgroundColor: "#141414",
+						color: "#ef4444",
+						borderLeft: "3px solid #ef4444",
+						borderTop: "1px solid #222222",
+						borderRight: "1px solid #222222",
+						borderBottom: "1px solid #222222",
+					}}
+				>
 					{usersErrorMessage}
 				</div>
 			</div>
@@ -138,8 +166,18 @@ function RouteComponent() {
 
 	if (!usersData) {
 		return (
-			<div className="min-h-screen bg-background text-foreground p-6">
-				<div className="mx-auto max-w-7xl rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+			<div
+				className="min-h-screen p-6"
+				style={{ backgroundColor: "#0a0a0a", color: "#fafafa" }}
+			>
+				<div
+					className="mx-auto max-w-7xl rounded-md p-4 text-sm"
+					style={{
+						backgroundColor: "#141414",
+						color: "#71717a",
+						border: "1px solid #222222",
+					}}
+				>
 					No admin users found.
 				</div>
 			</div>
@@ -147,7 +185,10 @@ function RouteComponent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-background text-foreground p-6">
+		<div
+			className="min-h-screen p-6"
+			style={{ backgroundColor: "#0a0a0a", color: "#fafafa" }}
+		>
 			<div className="mx-auto max-w-7xl space-y-4">
 				<PrUserSearchBar
 					searchInput={searchInput}
@@ -158,8 +199,17 @@ function RouteComponent() {
 
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<h1 className="text-2xl font-semibold">PR Admin Users</h1>
-						<p className="text-sm text-muted-foreground">
+						<h1
+							style={{
+								fontSize: "22px",
+								fontWeight: 600,
+								letterSpacing: "-0.02em",
+								color: "#fafafa",
+							}}
+						>
+							PR Admin Users
+						</h1>
+						<p style={{ fontSize: "12px", color: "#71717a" }}>
 							Showing {rangeStart}-{rangeEnd} of {totalResults} users
 						</p>
 					</div>
@@ -169,70 +219,236 @@ function RouteComponent() {
 							refetchPrUsers();
 						}}
 						disabled={isUsersFetching}
-						className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+						className="inline-flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+						style={{
+							backgroundColor: "#ffffff",
+							color: "#000000",
+							borderRadius: "10px",
+							padding: "8px 16px",
+							fontWeight: 500,
+							transition: "opacity 0.2s ease",
+							border: "1px solid #ffffff",
+						}}
 					>
+						<RefreshCw
+							size={16}
+							strokeWidth={1.5}
+							style={{ marginRight: "8px" }}
+						/>
 						{isUsersFetching ? "Refreshing..." : "Refresh"}
 					</button>
 				</div>
 
-				<div className="overflow-x-auto rounded-md border border-border bg-card">
-					<table className="w-full min-w-max text-sm">
-						<thead className="bg-muted/40">
-							<tr>
-								<th className="px-3 py-2 text-left font-medium">Full Name</th>
-								<th className="px-3 py-2 text-left font-medium">Email</th>
-								<th className="px-3 py-2 text-left font-medium">Phone</th>
-								<th className="px-3 py-2 text-left font-medium">
-									Total Events Registered
-								</th>
-								<th className="px-3 py-2 text-left font-medium">
-									Total Workshops Registered
-								</th>
-								<th className="px-3 py-2 text-left font-medium">
-									Total Paid Amount
-								</th>
-								<th className="px-3 py-2 text-left font-medium">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{paginatedUsers.map((row) => (
-								<tr key={row.id} className="border-t border-border">
-									<td className="px-3 py-2 whitespace-nowrap">
-										{row.fullname ?? "-"}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">{row.email}</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{row.phone ?? "-"}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{row.totalEvents}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										{row.totalWorkshops}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										₹{(row.totalPaidAmount / 100).toFixed(2)}
-									</td>
-									<td className="px-3 py-2 whitespace-nowrap">
-										<button
-											type="button"
-											onClick={() => {
-												setSelectedUserId(row.id);
-												setActiveTab("profile");
-											}}
-											className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+				<div
+					style={{
+						backgroundColor: "#111111",
+						borderRadius: "20px",
+						border: "1px solid #222222",
+						overflow: "hidden",
+					}}
+				>
+					<div className="overflow-x-auto">
+						<table
+							className="w-full min-w-max text-sm"
+							style={{ color: "#fafafa", fontSize: "14px" }}
+						>
+							<thead style={{ backgroundColor: "#111111" }}>
+								<tr>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										<span
+											className="inline-flex items-center"
+											style={{ gap: "6px" }}
 										>
-											View
-										</button>
-									</td>
+											<User size={14} strokeWidth={1.5} color="#71717a" />
+											Full Name
+										</span>
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										Email
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										Phone
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										<span
+											className="inline-flex items-center"
+											style={{ gap: "6px" }}
+										>
+											<Calendar size={14} strokeWidth={1.5} color="#71717a" />
+											Events
+										</span>
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										Workshops
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										<span
+											className="inline-flex items-center"
+											style={{ gap: "6px" }}
+										>
+											<Wallet size={14} strokeWidth={1.5} color="#71717a" />
+											Paid
+										</span>
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										Actions
+									</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								{paginatedUsers.map((row) => (
+									<tr
+										key={row.id}
+										className="border-t hover:bg-[#1a1a1a]"
+										style={{
+											borderColor: "#222222",
+											backgroundColor: "#111111",
+											transition: "background 0.2s ease",
+										}}
+									>
+										<td className="px-3 py-2 whitespace-nowrap">
+											{row.fullname ?? "-"}
+										</td>
+										<td className="px-3 py-2 whitespace-nowrap">{row.email}</td>
+										<td className="px-3 py-2 whitespace-nowrap">
+											{row.phone ?? "-"}
+										</td>
+										<td className="px-3 py-2 whitespace-nowrap">
+											{row.totalEvents}
+										</td>
+										<td className="px-3 py-2 whitespace-nowrap">
+											{row.totalWorkshops}
+										</td>
+										<td className="px-3 py-2 whitespace-nowrap">
+											₹{(row.totalPaidAmount / 100).toFixed(2)}
+										</td>
+										<td className="px-3 py-2 whitespace-nowrap">
+											<div className="flex items-center gap-2">
+												<button
+													type="button"
+													onClick={() => {
+														setSelectedUserId(row.id);
+														setActiveTab("profile");
+													}}
+													className="inline-flex items-center text-sm"
+													style={{
+														backgroundColor: "transparent",
+														color: "#fafafa",
+														borderRadius: "8px",
+														padding: "6px 12px",
+														border: "1px solid #2a2a2a",
+														transition: "all 0.2s ease",
+													}}
+												>
+													<User
+														size={16}
+														strokeWidth={1.5}
+														style={{ marginRight: 6 }}
+													/>
+													View
+												</button>
+												<button
+													type="button"
+													onClick={() => setSelectedOnboardingUserId(row.id)}
+													className="inline-flex items-center text-sm"
+													style={{
+														backgroundColor: "#ffffff",
+														color: "#000000",
+														borderRadius: "8px",
+														padding: "6px 12px",
+														fontWeight: 500,
+														border: "1px solid #ffffff",
+														transition: "opacity 0.2s ease",
+													}}
+												>
+													<DoorOpen
+														size={16}
+														strokeWidth={1.5}
+														style={{ marginRight: 6 }}
+													/>
+													Onboarding
+												</button>
+											</div>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 				</div>
 
 				{filteredUsers.length === 0 ? (
-					<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+					<div
+						className="rounded-md p-4 text-sm"
+						style={{
+							backgroundColor: "#141414",
+							color: "#71717a",
+							border: "1px solid #222222",
+						}}
+					>
 						No user found.
 					</div>
 				) : null}
@@ -259,6 +475,12 @@ function RouteComponent() {
 					isError={isDetailsError}
 				/>
 			) : null}
+
+			<OnboardingModal
+				open={Boolean(selectedOnboardingUserId)}
+				userId={selectedOnboardingUserId}
+				onClose={() => setSelectedOnboardingUserId(null)}
+			/>
 		</div>
 	);
 }
