@@ -54,7 +54,7 @@ export default function PricingComparison() {
 											₹450
 										</td>
 										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-white font-black tabular-nums">
-											₹450
+											₹450<span className="text-[#9D00FF]">***</span>
 										</td>
 									</tr>
 									<tr className="hover:bg-white/2 transition-colors text-xs md:text-lg">
@@ -82,6 +82,17 @@ export default function PricingComparison() {
 											FREE<span className="text-[#FFDD00]">**</span>
 										</td>
 									</tr>
+									<tr className="hover:bg-white/2 transition-colors text-xs md:text-lg">
+										<td className="py-4 md:py-6 px-2 md:px-4 text-white uppercase tracking-wider">
+											Certificates
+										</td>
+										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-gray-500 tabular-nums">
+											STANDARD
+										</td>
+										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-[#FFDD00] font-black tabular-nums drop-shadow-[0_0_10px_rgba(255,221,0,0.4)]">
+											LINKEDIN SHAREABLE
+										</td>
+									</tr>
 									<tr className="bg-linear-to-r from-[#9D00FF]/10 to-transparent relative text-sm md:text-2xl">
 										<td className="py-6 md:py-8 px-2 md:px-4 text-[#9D00FF] font-black uppercase italic tracking-tighter">
 											Total Value
@@ -90,7 +101,7 @@ export default function PricingComparison() {
 											₹1205
 										</td>
 										<td className="py-6 md:py-8 px-2 md:px-4 text-center text-white font-black tabular-nums drop-shadow-[0_0_15px_rgba(157,0,255,0.5)]">
-											₹600
+											₹600<span className="text-[#9D00FF]">***</span>
 										</td>
 									</tr>
 								</tbody>
@@ -99,35 +110,48 @@ export default function PricingComparison() {
 					</div>
 				</div>
 
-				<div className="mt-12 flex flex-col items-center gap-4">
-					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-4 md:p-6 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
-						<div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-							<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest">
-								<span className="text-black">*</span> Note
+				<div className="mt-12 max-w-4xl mx-auto">
+					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-6 md:p-8 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
+						<div className="space-y-6">
+							<div className="flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left">
+								<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shrink-0">
+									<span className="text-black">*</span> Note
+								</div>
+								<p className="text-gray-300 text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-[0.15em] italic leading-relaxed">
+									Food can be bought at NITT messes for{" "}
+									<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
+										~₹50
+									</span>{" "}
+									per meal.
+								</p>
 							</div>
-							<p className="text-gray-300 text-[10px] md:text-sm font-bold uppercase tracking-widest md:tracking-[0.15em] italic">
-								Food can be bought at NITT messes for{" "}
-								<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
-									~₹50
-								</span>{" "}
-								per meal.
-							</p>
-						</div>
-					</div>
 
-					<div className="group relative bg-[#090521]/60 backdrop-blur-md border border-[#9D00FF]/30 p-4 md:p-6 -skew-x-2 transition-all hover:bg-[#9D00FF]/5 hover:border-[#9D00FF]/60 shadow-[5px_5px_0px_0px_rgba(157,0,255,0.2)]">
-						<div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-							<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest">
-								<span className="text-black">**</span> Note
+							<div className="flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left border-t border-white/5 pt-6">
+								<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shrink-0">
+									<span className="text-black">**</span> Note
+								</div>
+								<p className="text-gray-300 text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-[0.15em] italic leading-relaxed">
+									If you don't want to attend any workshop and only need Event
+									Pass, it will be just{" "}
+									<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
+										₹100
+									</span>
+									.
+								</p>
 							</div>
-							<p className="text-gray-300 text-[10px] md:text-sm font-bold uppercase tracking-widest md:tracking-[0.15em] italic">
-								If you don't want to attend any workshop and only need Event
-								Pass, it will be just{" "}
-								<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
-									₹100
-								</span>
-								.
-							</p>
+
+							<div className="flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left border-t border-white/5 pt-6">
+								<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shrink-0">
+									<span className="text-black">***</span> Note
+								</div>
+								<p className="text-gray-300 text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-[0.15em] italic leading-relaxed">
+									Razorpay payment charges of{" "}
+									<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
+										2.42%
+									</span>{" "}
+									is excluded.
+								</p>
+							</div>
 						</div>
 					</div>
 				</div>

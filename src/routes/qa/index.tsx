@@ -107,55 +107,37 @@ function QADashboard() {
 											Title
 										</span>
 									</th>
-									<th className="px-5 py-4 text-left font-medium text-[12px] text-[#71717a] uppercase tracking-[0.05em]">
-										Time
-									</th>
-									<th className="px-5 py-4 text-left font-medium text-[12px] text-[#71717a] uppercase tracking-[0.05em]">
-										Location
-									</th>
 									<th className="px-5 py-4 text-right font-medium text-[12px] text-[#71717a] uppercase tracking-[0.05em]">
 										Actions
 									</th>
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-[#222222]">
-								{listData?.map(
-									(item: {
-										id: number;
-										title: string;
-										time: string;
-										location: string;
-									}) => (
-										<tr
-											key={item.id}
-											className="hover:bg-[#1a1a1a] transition-colors duration-200"
-										>
-											<td className="px-5 py-4 whitespace-nowrap font-medium">
-												{item.title}
-											</td>
-											<td className="px-5 py-4 whitespace-nowrap text-[#a1a1aa]">
-												{item.time}
-											</td>
-											<td className="px-5 py-4 whitespace-nowrap text-[#a1a1aa]">
-												{item.location}
-											</td>
-											<td className="px-5 py-4 whitespace-nowrap text-right">
-												<button
-													type="button"
-													onClick={() =>
-														setSelectedAction({
-															id: item.id,
-															title: item.title,
-														})
-													}
-													className="inline-flex items-center text-sm bg-white text-black rounded-[8px] px-3 py-1.5 font-medium border border-white transition-opacity duration-200"
-												>
-													Attendance
-												</button>
-											</td>
-										</tr>
-									),
-								)}
+								{listData?.map((item: { id: number; title: string }) => (
+									<tr
+										key={item.id}
+										className="hover:bg-[#1a1a1a] transition-colors duration-200"
+									>
+										<td className="px-5 py-4 whitespace-nowrap font-medium">
+											{item.title}
+										</td>
+
+										<td className="px-5 py-4 whitespace-nowrap text-right">
+											<button
+												type="button"
+												onClick={() =>
+													setSelectedAction({
+														id: item.id,
+														title: item.title,
+													})
+												}
+												className="inline-flex items-center text-sm bg-white text-black rounded-[8px] px-3 py-1.5 font-medium border border-white transition-opacity duration-200"
+											>
+												Attendance
+											</button>
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 						{listData?.length === 0 && (

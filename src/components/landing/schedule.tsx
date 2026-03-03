@@ -13,7 +13,7 @@ const SCHEDULE_DATA: Record<string, ScheduleItem[]> = {
 		{
 			type: "GL",
 			title: "INAUGURATION",
-			time: "9AM - 11 AM",
+			time: "10AM - 12PM",
 			venue: "BARN HALL",
 		},
 		{
@@ -76,13 +76,13 @@ const SCHEDULE_DATA: Record<string, ScheduleItem[]> = {
 			type: "EVENT",
 			title: "MECHANICAL ENGINEERING QUIZ",
 			time: "6.30PM - 7.30PM",
-			venue: "NITT (TBA)",
+			venue: "ORION G8",
 		},
 		{
 			type: "EVENT",
 			title: "AEROGLIDE",
 			time: "4.30PM - 6.30 PM",
-			venue: "NITT (TBA)",
+			venue: "ORION G9",
 		},
 	],
 	"08-03-2026": [
@@ -97,7 +97,7 @@ const SCHEDULE_DATA: Record<string, ScheduleItem[]> = {
 			type: "WORKSHOP",
 			title: "INDUSTRIAL AUTOMATION",
 			time: "8.30AM - 12.45 PM , 2.30PM - 4.30PM",
-			venue: "NITT (TBA)",
+			venue: "ORION G8, G9",
 		},
 		{
 			type: "EVENT",

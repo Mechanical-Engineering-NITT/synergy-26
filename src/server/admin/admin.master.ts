@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, notExists } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
@@ -63,6 +63,7 @@ export const getUserData = createServerFn({ method: "GET" }).handler(
 			const userData = await db
 				.select({
 					userId: user.id,
+					synergyId: customUser.synergyId,
 					email: user.email,
 					fullname: customUser.fullname,
 					phone: customUser.phone,
@@ -82,7 +83,7 @@ export const getUserData = createServerFn({ method: "GET" }).handler(
 );
 
 export const UserDataHeader = [
-	"User ID",
+	"Synergy ID",
 	"Email",
 	"Full Name",
 	"Phone",
@@ -101,6 +102,7 @@ export const getUserDataByEventId = createServerFn({ method: "GET" })
 			const userDataByEventId = await db
 				.select({
 					userId: user.id,
+					synergyId: customUser.synergyId,
 					email: user.email,
 					fullname: customUser.fullname,
 					phone: customUser.phone,
@@ -126,7 +128,7 @@ export const getUserDataByEventId = createServerFn({ method: "GET" })
 	});
 
 export const UserDataByEventIdHeader = [
-	"User ID",
+	"Synergy ID",
 	"Email",
 	"Full Name",
 	"Phone",
@@ -145,6 +147,7 @@ export const getUserDataByWorkshopId = createServerFn({ method: "GET" })
 			const userDataByWorkshopId = await db
 				.select({
 					userId: user.id,
+					synergyId: customUser.synergyId,
 					email: user.email,
 					fullname: customUser.fullname,
 					phone: customUser.phone,
@@ -170,7 +173,53 @@ export const getUserDataByWorkshopId = createServerFn({ method: "GET" })
 	});
 
 export const UserDataByWorkshopIdHeader = [
-	"User ID",
+	"Synergy ID",
+	"Email",
+	"Full Name",
+	"Phone",
+	"College",
+	"City",
+	"Year",
+	"Department",
+];
+
+export const getInactiveUsers = createServerFn({ method: "GET" }).handler(
+	async () => {
+		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
+
+		try {
+			const inactiveUsers = await db
+				.select({
+					userId: user.id,
+					synergyId: customUser.synergyId,
+					email: user.email,
+					fullname: customUser.fullname,
+					phone: customUser.phone,
+					college: customUser.college,
+					city: customUser.city,
+					year: customUser.year,
+					department: customUser.department,
+				})
+				.from(customUser)
+				.innerJoin(user, eq(customUser.userId, user.id))
+				.where(
+					notExists(
+						db
+							.select({ id: registrations.id })
+							.from(registrations)
+							.where(eq(registrations.userId, customUser.userId)),
+					),
+				);
+
+			return inactiveUsers;
+		} catch {
+			throw new Error("Failed to fetch inactive users");
+		}
+	},
+);
+
+export const InactiveUsersHeader = [
+	"Synergy ID",
 	"Email",
 	"Full Name",
 	"Phone",

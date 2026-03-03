@@ -3,14 +3,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { requireAdminUser } from "@/lib/utils";
-import { getUserData, UserDataHeader } from "@/server/admin/admin.master";
+import {
+	getInactiveUsers,
+	InactiveUsersHeader,
+} from "@/server/admin/admin.master";
 
-const masterUsersQueryOptions = queryOptions({
-	queryKey: ["master", "users"],
-	queryFn: () => getUserData(),
+const masterInactiveUsersQueryOptions = queryOptions({
+	queryKey: ["master", "inactive-users"],
+	queryFn: () => getInactiveUsers(),
 });
 
-export const Route = createFileRoute("/master/users")({
+export const Route = createFileRoute("/master/inactive-users")({
 	component: RouteComponent,
 	loader: async () => {
 		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
@@ -19,18 +22,23 @@ export const Route = createFileRoute("/master/users")({
 
 function RouteComponent() {
 	const [isDownloading, setIsDownloading] = useState(false);
-	const { data: users, isLoading, isError } = useQuery(masterUsersQueryOptions);
+
+	const {
+		data: users,
+		isLoading,
+		isError,
+	} = useQuery(masterInactiveUsersQueryOptions);
 
 	const handleDownload = async () => {
 		setIsDownloading(true);
 		try {
-			const res = await fetch("/api/master/download?type=users");
+			const res = await fetch("/api/master/download?type=inactive-users");
 			if (!res.ok) throw new Error("Failed to download");
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
-			a.download = "all_users.xlsx";
+			a.download = "inactive_users.xlsx";
 			a.click();
 			URL.revokeObjectURL(url);
 		} finally {
@@ -41,7 +49,7 @@ function RouteComponent() {
 	if (isLoading) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				Loading users...
+				Loading inactive users...
 			</div>
 		);
 	}
@@ -49,7 +57,7 @@ function RouteComponent() {
 	if (isError) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				Failed to load users.
+				Failed to load inactive users.
 			</div>
 		);
 	}
@@ -57,7 +65,7 @@ function RouteComponent() {
 	if (!users) {
 		return (
 			<div className="mt-6 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-				No users found.
+				No data found.
 			</div>
 		);
 	}
@@ -66,7 +74,8 @@ function RouteComponent() {
 		<div className="mt-6 space-y-3">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-muted-foreground">
-					{users.length} user{users.length !== 1 ? "s" : ""}
+					{users.length} user{users.length !== 1 ? "s" : ""} onboarded but not
+					registered for any event or workshop.
 				</p>
 				<button
 					type="button"
@@ -86,7 +95,7 @@ function RouteComponent() {
 				<table className="min-w-full text-sm">
 					<thead className="bg-muted/40">
 						<tr>
-							{UserDataHeader.map((header) => (
+							{InactiveUsersHeader.map((header) => (
 								<th key={header} className="px-3 py-2 text-left font-medium">
 									{header}
 								</th>
@@ -124,6 +133,11 @@ function RouteComponent() {
 						))}
 					</tbody>
 				</table>
+				{users.length === 0 && (
+					<div className="p-6 text-center text-sm text-muted-foreground">
+						No inactive users found.
+					</div>
+				)}
 			</div>
 		</div>
 	);

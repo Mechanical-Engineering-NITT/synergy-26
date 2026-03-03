@@ -14,10 +14,12 @@ export const verifyQAAttendanceEligibility = createServerOnlyFn(
 		synergyId,
 		type,
 		id,
+		sessionId,
 	}: {
 		synergyId: string;
 		type: "event" | "workshop";
 		id: number;
+		sessionId?: number | null;
 	}) => {
 		const [userRecord] = await db
 			.select({
@@ -74,17 +76,24 @@ export const verifyQAAttendanceEligibility = createServerOnlyFn(
 			};
 		}
 
-		// Check double attendance
+		// Check duplicate attendance
+		// If a sessionId is provided, uniqueness is per-session.
+		// Otherwise fall back to per-event/workshop duplicate check.
 		const [existingAttendance] = await db
 			.select()
 			.from(attendance)
 			.where(
-				and(
-					eq(attendance.userId, userRecord.userId),
-					type === "event"
-						? eq(attendance.eventId, id)
-						: eq(attendance.workshopId, id),
-				),
+				sessionId != null
+					? and(
+							eq(attendance.userId, userRecord.userId),
+							eq(attendance.sessionId, sessionId),
+						)
+					: and(
+							eq(attendance.userId, userRecord.userId),
+							type === "event"
+								? eq(attendance.eventId, id)
+								: eq(attendance.workshopId, id),
+						),
 			)
 			.limit(1);
 
@@ -92,7 +101,10 @@ export const verifyQAAttendanceEligibility = createServerOnlyFn(
 			return {
 				success: false as const,
 				user: null,
-				message: "User is already marked as attended",
+				message:
+					sessionId != null
+						? "User is already marked as attended for this session"
+						: "User is already marked as attended",
 			};
 		}
 

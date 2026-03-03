@@ -124,12 +124,30 @@ export const accommodation = pgTable(
 	],
 );
 
-export const attendance = pgTable("attendance", {
+export const sessions = pgTable("sessions", {
 	id: serial("id").primaryKey(),
-	userId: text("user_id")
-		.references(() => user.id, { onDelete: "cascade" })
-		.notNull(),
+	name: text("name").notNull(),
 	eventId: integer("event_id").references(() => events.id),
 	workshopId: integer("workshop_id").references(() => workshops.id),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const attendance = pgTable(
+	"attendance",
+	{
+		id: serial("id").primaryKey(),
+		userId: text("user_id")
+			.references(() => user.id, { onDelete: "cascade" })
+			.notNull(),
+		eventId: integer("event_id").references(() => events.id),
+		workshopId: integer("workshop_id").references(() => workshops.id),
+		sessionId: integer("session_id").references(() => sessions.id),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("attendance_user_session_unique_idx").on(
+			table.userId,
+			table.sessionId,
+		),
+	],
+);

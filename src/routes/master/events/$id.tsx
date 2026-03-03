@@ -1,5 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Download, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { requireAdminUser } from "@/lib/utils";
 import {
 	EventDataHeader,
@@ -26,7 +28,6 @@ export const Route = createFileRoute("/master/events/$id")({
 		if (Number.isNaN(eventId)) {
 			throw new Error("Invalid event id");
 		}
-
 		return { eventId };
 	},
 	component: RouteComponent,
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/master/events/$id")({
 
 function RouteComponent() {
 	const { eventId } = Route.useLoaderData();
+	const [isDownloading, setIsDownloading] = useState(false);
+
 	const {
 		data: events,
 		isLoading: isEventsLoading,
@@ -44,6 +47,25 @@ function RouteComponent() {
 		isLoading: isUsersLoading,
 		isError: isUsersError,
 	} = useQuery(masterUsersByEventQueryOptions(eventId));
+
+	const handleDownload = async () => {
+		setIsDownloading(true);
+		try {
+			const res = await fetch(`/api/master/download?type=event&id=${eventId}`);
+			if (!res.ok) throw new Error("Failed to download");
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			const cd = res.headers.get("Content-Disposition");
+			a.download =
+				cd?.match(/filename="(.+)"/)?.[1] ?? `event_${eventId}_users.xlsx`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			setIsDownloading(false);
+		}
+	};
 
 	if (isEventsLoading || isUsersLoading) {
 		return (
@@ -69,7 +91,7 @@ function RouteComponent() {
 		);
 	}
 
-	const event = events.find((currentEvent) => currentEvent.id === eventId);
+	const event = events.find((e) => e.id === eventId);
 
 	if (!event) {
 		return (
@@ -81,9 +103,7 @@ function RouteComponent() {
 
 	return (
 		<div className="mt-6 space-y-6">
-			<div>
-				<h2 className="text-2xl font-semibold">{event.title}</h2>
-			</div>
+			<h2 className="text-2xl font-semibold">{event.title}</h2>
 
 			<section>
 				<h3 className="mb-3 text-lg font-medium">Event Details</h3>
@@ -112,9 +132,24 @@ function RouteComponent() {
 			</section>
 
 			<section>
-				<h3 className="mb-3 text-lg font-medium">
-					Registered Users ({registeredUsers.length})
-				</h3>
+				<div className="mb-3 flex items-center justify-between">
+					<h3 className="text-lg font-medium">
+						Registered Users ({registeredUsers.length})
+					</h3>
+					<button
+						type="button"
+						onClick={handleDownload}
+						disabled={isDownloading || registeredUsers.length === 0}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						{isDownloading ? (
+							<Loader2 size={14} className="animate-spin" />
+						) : (
+							<Download size={14} />
+						)}
+						{isDownloading ? "Exporting..." : "Export"}
+					</button>
+				</div>
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
 					<table className="min-w-full text-sm">
 						<thead className="bg-muted/40">
@@ -130,7 +165,7 @@ function RouteComponent() {
 							{registeredUsers.map((currentUser) => (
 								<tr key={currentUser.userId} className="border-t border-border">
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.userId}
+										{currentUser.synergyId ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
 										{currentUser.email}

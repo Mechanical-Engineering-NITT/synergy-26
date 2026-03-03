@@ -21,12 +21,15 @@ import { Route as PrIndexRouteImport } from './routes/pr/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as MasterUsersRouteImport } from './routes/master/users'
+import { Route as MasterInactiveUsersRouteImport } from './routes/master/inactive-users'
 import { Route as MasterWorkshopsIndexRouteImport } from './routes/master/workshops/index'
 import { Route as MasterEventsIndexRouteImport } from './routes/master/events/index'
 import { Route as ApiRazorpayIndexRouteImport } from './routes/api/razorpay/index'
 import { Route as MasterWorkshopsIdRouteImport } from './routes/master/workshops/$id'
 import { Route as MasterEventsIdRouteImport } from './routes/master/events/$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiMasterDownloadIndexRouteImport } from './routes/api/master/download/index'
+import { Route as ApiQaDownloadAttendanceRouteImport } from './routes/api/qa/download/attendance'
 
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
   id: '/terms-and-conditions',
@@ -88,6 +91,11 @@ const MasterUsersRoute = MasterUsersRouteImport.update({
   path: '/master/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasterInactiveUsersRoute = MasterInactiveUsersRouteImport.update({
+  id: '/master/inactive-users',
+  path: '/master/inactive-users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MasterWorkshopsIndexRoute = MasterWorkshopsIndexRouteImport.update({
   id: '/master/workshops/',
   path: '/master/workshops/',
@@ -118,12 +126,23 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMasterDownloadIndexRoute = ApiMasterDownloadIndexRouteImport.update({
+  id: '/api/master/download/',
+  path: '/api/master/download/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiQaDownloadAttendanceRoute = ApiQaDownloadAttendanceRouteImport.update({
+  id: '/api/qa/download/attendance',
+  path: '/api/qa/download/attendance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
   '/admin': typeof AdminIndexRoute
   '/master': typeof MasterIndexRoute
@@ -138,12 +157,15 @@ export interface FileRoutesByFullPath {
   '/api/razorpay': typeof ApiRazorpayIndexRoute
   '/master/events': typeof MasterEventsIndexRoute
   '/master/workshops': typeof MasterWorkshopsIndexRoute
+  '/api/qa/download/attendance': typeof ApiQaDownloadAttendanceRoute
+  '/api/master/download': typeof ApiMasterDownloadIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
   '/admin': typeof AdminIndexRoute
   '/master': typeof MasterIndexRoute
@@ -158,6 +180,8 @@ export interface FileRoutesByTo {
   '/api/razorpay': typeof ApiRazorpayIndexRoute
   '/master/events': typeof MasterEventsIndexRoute
   '/master/workshops': typeof MasterWorkshopsIndexRoute
+  '/api/qa/download/attendance': typeof ApiQaDownloadAttendanceRoute
+  '/api/master/download': typeof ApiMasterDownloadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -165,6 +189,7 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/master/': typeof MasterIndexRoute
@@ -179,6 +204,8 @@ export interface FileRoutesById {
   '/api/razorpay/': typeof ApiRazorpayIndexRoute
   '/master/events/': typeof MasterEventsIndexRoute
   '/master/workshops/': typeof MasterWorkshopsIndexRoute
+  '/api/qa/download/attendance': typeof ApiQaDownloadAttendanceRoute
+  '/api/master/download/': typeof ApiMasterDownloadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -187,6 +214,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/inactive-users'
     | '/master/users'
     | '/admin'
     | '/master'
@@ -201,12 +229,15 @@ export interface FileRouteTypes {
     | '/api/razorpay'
     | '/master/events'
     | '/master/workshops'
+    | '/api/qa/download/attendance'
+    | '/api/master/download'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/inactive-users'
     | '/master/users'
     | '/admin'
     | '/master'
@@ -221,12 +252,15 @@ export interface FileRouteTypes {
     | '/api/razorpay'
     | '/master/events'
     | '/master/workshops'
+    | '/api/qa/download/attendance'
+    | '/api/master/download'
   id:
     | '__root__'
     | '/'
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms-and-conditions'
+    | '/master/inactive-users'
     | '/master/users'
     | '/admin/'
     | '/master/'
@@ -241,6 +275,8 @@ export interface FileRouteTypes {
     | '/api/razorpay/'
     | '/master/events/'
     | '/master/workshops/'
+    | '/api/qa/download/attendance'
+    | '/api/master/download/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,6 +284,7 @@ export interface RootRouteChildren {
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  MasterInactiveUsersRoute: typeof MasterInactiveUsersRoute
   MasterUsersRoute: typeof MasterUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   MasterIndexRoute: typeof MasterIndexRoute
@@ -262,6 +299,8 @@ export interface RootRouteChildren {
   ApiRazorpayIndexRoute: typeof ApiRazorpayIndexRoute
   MasterEventsIndexRoute: typeof MasterEventsIndexRoute
   MasterWorkshopsIndexRoute: typeof MasterWorkshopsIndexRoute
+  ApiQaDownloadAttendanceRoute: typeof ApiQaDownloadAttendanceRoute
+  ApiMasterDownloadIndexRoute: typeof ApiMasterDownloadIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -350,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/master/inactive-users': {
+      id: '/master/inactive-users'
+      path: '/master/inactive-users'
+      fullPath: '/master/inactive-users'
+      preLoaderRoute: typeof MasterInactiveUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/master/workshops/': {
       id: '/master/workshops/'
       path: '/master/workshops'
@@ -392,6 +438,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/master/download/': {
+      id: '/api/master/download/'
+      path: '/api/master/download'
+      fullPath: '/api/master/download'
+      preLoaderRoute: typeof ApiMasterDownloadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/qa/download/attendance': {
+      id: '/api/qa/download/attendance'
+      path: '/api/qa/download/attendance'
+      fullPath: '/api/qa/download/attendance'
+      preLoaderRoute: typeof ApiQaDownloadAttendanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -400,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
+  MasterInactiveUsersRoute: MasterInactiveUsersRoute,
   MasterUsersRoute: MasterUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   MasterIndexRoute: MasterIndexRoute,
@@ -414,6 +475,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRazorpayIndexRoute: ApiRazorpayIndexRoute,
   MasterEventsIndexRoute: MasterEventsIndexRoute,
   MasterWorkshopsIndexRoute: MasterWorkshopsIndexRoute,
+  ApiQaDownloadAttendanceRoute: ApiQaDownloadAttendanceRoute,
+  ApiMasterDownloadIndexRoute: ApiMasterDownloadIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

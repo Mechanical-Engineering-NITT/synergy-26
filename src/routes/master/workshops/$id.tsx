@@ -1,5 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Download, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { requireAdminUser } from "@/lib/utils";
 import {
 	getUserDataByWorkshopId,
@@ -26,7 +28,6 @@ export const Route = createFileRoute("/master/workshops/$id")({
 		if (Number.isNaN(workshopId)) {
 			throw new Error("Invalid workshop id");
 		}
-
 		return { workshopId };
 	},
 	component: RouteComponent,
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/master/workshops/$id")({
 
 function RouteComponent() {
 	const { workshopId } = Route.useLoaderData();
+	const [isDownloading, setIsDownloading] = useState(false);
+
 	const {
 		data: workshops,
 		isLoading: isWorkshopsLoading,
@@ -44,6 +47,28 @@ function RouteComponent() {
 		isLoading: isUsersLoading,
 		isError: isUsersError,
 	} = useQuery(masterUsersByWorkshopQueryOptions(workshopId));
+
+	const handleDownload = async () => {
+		setIsDownloading(true);
+		try {
+			const res = await fetch(
+				`/api/master/download?type=workshop&id=${workshopId}`,
+			);
+			if (!res.ok) throw new Error("Failed to download");
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			const cd = res.headers.get("Content-Disposition");
+			a.download =
+				cd?.match(/filename="(.+)"/)?.[1] ??
+				`workshop_${workshopId}_users.xlsx`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			setIsDownloading(false);
+		}
+	};
 
 	if (isWorkshopsLoading || isUsersLoading) {
 		return (
@@ -69,9 +94,7 @@ function RouteComponent() {
 		);
 	}
 
-	const workshop = workshops.find(
-		(currentWorkshop) => currentWorkshop.id === workshopId,
-	);
+	const workshop = workshops.find((w) => w.id === workshopId);
 
 	if (!workshop) {
 		return (
@@ -83,9 +106,7 @@ function RouteComponent() {
 
 	return (
 		<div className="mt-6 space-y-6">
-			<div>
-				<h2 className="text-2xl font-semibold">{workshop.title}</h2>
-			</div>
+			<h2 className="text-2xl font-semibold">{workshop.title}</h2>
 
 			<section>
 				<h3 className="mb-3 text-lg font-medium">Workshop Details</h3>
@@ -119,9 +140,24 @@ function RouteComponent() {
 			</section>
 
 			<section>
-				<h3 className="mb-3 text-lg font-medium">
-					Registered Users ({registeredUsers.length})
-				</h3>
+				<div className="mb-3 flex items-center justify-between">
+					<h3 className="text-lg font-medium">
+						Registered Users ({registeredUsers.length})
+					</h3>
+					<button
+						type="button"
+						onClick={handleDownload}
+						disabled={isDownloading || registeredUsers.length === 0}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						{isDownloading ? (
+							<Loader2 size={14} className="animate-spin" />
+						) : (
+							<Download size={14} />
+						)}
+						{isDownloading ? "Exporting..." : "Export"}
+					</button>
+				</div>
 				<div className="overflow-x-auto rounded-md border border-border bg-card">
 					<table className="min-w-full text-sm">
 						<thead className="bg-muted/40">
@@ -137,7 +173,7 @@ function RouteComponent() {
 							{registeredUsers.map((currentUser) => (
 								<tr key={currentUser.userId} className="border-t border-border">
 									<td className="px-3 py-2 whitespace-nowrap">
-										{currentUser.userId}
+										{currentUser.synergyId ?? ""}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
 										{currentUser.email}
