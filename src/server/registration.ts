@@ -43,8 +43,31 @@ export const registerUser = createServerFn({ method: "POST" })
 					throw new Error("User has already registered");
 				}
 
+				// Generate unique 4-digit synergyId
+				let synergyId = "";
+				let attempts = 0;
+				while (attempts < 100) {
+					const newId = Math.floor(1000 + Math.random() * 9000).toString();
+					const [existing] = await tx
+						.select()
+						.from(customUser)
+						.where(eq(customUser.synergyId, newId))
+						.limit(1);
+
+					if (!existing) {
+						synergyId = newId;
+						break;
+					}
+					attempts++;
+				}
+
+				if (!synergyId) {
+					throw new Error("Failed to generate unique Synergy ID");
+				}
+
 				await tx.insert(customUser).values({
 					userId: parsedData.userId,
+					synergyId,
 					fullname: parsedData.values.fullname,
 					college: parsedData.values.college,
 					city: parsedData.values.city,
