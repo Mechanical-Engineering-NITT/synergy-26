@@ -49,6 +49,18 @@ export const registerForEvent = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const user = await requireOnBoardedUser();
 
+		const event = await db.query.events.findFirst({
+			where: eq(events.id, data.eventId),
+		});
+
+		if (!event) {
+			throw new Error("Event not found");
+		}
+
+		if (event.isDisabled) {
+			throw new Error("Registration is disabled for this event");
+		}
+
 		const userHasPass = await hasEventPass(user.id);
 		if (!userHasPass) {
 			throw new Error("Event pass required to register for events");
@@ -80,6 +92,14 @@ export const registerForPreFestWorkshop = createServerFn({
 	const user = await requireOnBoardedUser();
 	// hard coded specific pre-fest event
 	const eventId = 8;
+
+	const event = await db.query.events.findFirst({
+		where: eq(events.id, eventId),
+	});
+
+	if (event?.isDisabled) {
+		throw new Error("Registration is disabled for this event");
+	}
 
 	const existing = await db
 		.select()
@@ -129,6 +149,7 @@ const EventInputSchema = z.object({
 	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
+	isDisabled: z.boolean().default(false),
 });
 
 export const createEvent = createServerFn({ method: "POST" })
@@ -144,6 +165,7 @@ export const createEvent = createServerFn({ method: "POST" })
 			longDescription: parsedData.longDescription,
 			time: parsedData.time,
 			location: parsedData.location,
+			isDisabled: parsedData.isDisabled,
 		});
 	});
 
@@ -168,6 +190,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 				longDescription: parsedData.longDescription,
 				time: parsedData.time,
 				location: parsedData.location,
+				isDisabled: parsedData.isDisabled,
 			})
 			.where(eq(events.id, id));
 	});

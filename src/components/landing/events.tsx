@@ -18,6 +18,7 @@ interface Event {
 	time: string;
 	location: string | null;
 	isRegistered: boolean;
+	isDisabled: boolean;
 }
 
 function EventCard({
@@ -113,17 +114,21 @@ function EventCard({
 						}
 						register({ data: { eventId: event.id } });
 					}}
-					disabled={isRegistering || event.isRegistered}
+					disabled={isRegistering || event.isRegistered || event.isDisabled}
 					className={`w-full py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 -skew-x-6 flex items-center justify-center gap-2
                         ${
-													event.isRegistered
-														? "bg-[#9D00FF]/20 text-[#FFDD00] border border-[#9D00FF]/50"
-														: "bg-[#FFDD00] text-black hover:bg-[#FFDD00] shadow-[4px_4px_0px_0px_rgba(157,0,255,1)] hover:translate-x-0.5 hover:translate-y-0.5"
+													event.isDisabled
+														? "bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed"
+														: event.isRegistered
+															? "bg-[#9D00FF]/20 text-[#FFDD00] border border-[#9D00FF]/50"
+															: "bg-[#FFDD00] text-black hover:bg-[#FFDD00] shadow-[4px_4px_0px_0px_rgba(157,0,255,1)] hover:translate-x-0.5 hover:translate-y-0.5"
 												}
                         disabled:opacity-50`}
 				>
 					{isRegistering ? (
 						"Processing..."
+					) : event.isDisabled ? (
+						"REGISTRATION CLOSED"
 					) : event.isRegistered ? (
 						<>
 							<span className="text-[10px]">●</span> REGISTERED

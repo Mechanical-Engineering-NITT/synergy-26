@@ -40,6 +40,7 @@ export const events = pgTable("events", {
 	longDescription: text("long_description").notNull().default(""),
 	time: text("time").notNull(),
 	location: text("location").notNull(),
+	isDisabled: boolean("is_disabled").notNull().default(false),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
