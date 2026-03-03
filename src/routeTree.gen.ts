@@ -15,6 +15,7 @@ import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
+import { Route as QaIndexRouteImport } from './routes/qa/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as PrIndexRouteImport } from './routes/pr/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
@@ -55,6 +56,11 @@ const TicketsIndexRoute = TicketsIndexRouteImport.update({
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
   id: '/register/',
   path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaIndexRoute = QaIndexRouteImport.update({
+  id: '/qa/',
+  path: '/qa/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/master': typeof MasterIndexRoute
   '/pr': typeof PrIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/qa': typeof QaIndexRoute
   '/register': typeof RegisterIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/master': typeof MasterIndexRoute
   '/pr': typeof PrIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/qa': typeof QaIndexRoute
   '/register': typeof RegisterIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/master/': typeof MasterIndexRoute
   '/pr/': typeof PrIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/qa/': typeof QaIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/master'
     | '/pr'
     | '/profile'
+    | '/qa'
     | '/register'
     | '/tickets'
     | '/api/auth/$'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/master'
     | '/pr'
     | '/profile'
+    | '/qa'
     | '/register'
     | '/tickets'
     | '/api/auth/$'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/master/'
     | '/pr/'
     | '/profile/'
+    | '/qa/'
     | '/register/'
     | '/tickets/'
     | '/api/auth/$'
@@ -241,6 +253,7 @@ export interface RootRouteChildren {
   MasterIndexRoute: typeof MasterIndexRoute
   PrIndexRoute: typeof PrIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  QaIndexRoute: typeof QaIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/': {
+      id: '/qa/'
+      path: '/qa'
+      fullPath: '/qa'
+      preLoaderRoute: typeof QaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/': {
@@ -385,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   MasterIndexRoute: MasterIndexRoute,
   PrIndexRoute: PrIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  QaIndexRoute: QaIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
   TicketsIndexRoute: TicketsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

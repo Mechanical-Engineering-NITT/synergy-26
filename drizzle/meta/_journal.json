@@ -50,6 +50,13 @@
       "when": 1772290585217,
       "tag": "0006_pretty_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772479728236,
+      "tag": "0007_redundant_power_man",
+      "breakpoints": true
     }
   ]
 }

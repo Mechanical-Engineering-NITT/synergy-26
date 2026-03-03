@@ -7,6 +7,7 @@ import {
 	Building2,
 	Edit2,
 	GraduationCap,
+	IdCard,
 	Mail,
 	MapPin,
 	Phone,
@@ -131,6 +132,21 @@ function RouteComponent() {
 									<Building2 className="w-3 h-3" />
 									{user.department}
 								</span>
+							</div>
+							<div className="mt-6 flex items-center">
+								<div className="bg-amber-400/10 border border-amber-400/50 p-3 flex items-center gap-4 shadow-[0_0_15px_rgba(251,191,36,0.15)] backdrop-blur-sm -skew-x-6">
+									<div className="bg-amber-400 text-black p-2 skew-x-6">
+										<IdCard className="w-5 h-5" />
+									</div>
+									<div className="skew-x-6 pr-4">
+										<p className="text-[10px] font-black text-amber-400/80 uppercase tracking-[0.2em] mb-0.5">
+											Synergy ID
+										</p>
+										<p className="text-2xl font-black text-amber-400 tracking-widest leading-none drop-shadow-[0_2px_10px_rgba(251,191,36,0.5)]">
+											{user.synergyId || "UNASSIGNED"}
+										</p>
+									</div>
+								</div>
 							</div>
 						</div>
 

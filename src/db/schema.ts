@@ -23,6 +23,7 @@ export const customUser = pgTable("custom-user", {
 	userId: text("userId")
 		.references(() => user.id, { onDelete: "cascade" })
 		.notNull(),
+	synergyId: text("synergy_id").unique(), // 4-digit random string
 	fullname: text("fullname").notNull(),
 	college: text("college").notNull(),
 	city: text("city").notNull(),
@@ -121,3 +122,13 @@ export const accommodation = pgTable(
 		index("accommodation_user_id_idx").on(table.userId),
 	],
 );
+
+export const attendance = pgTable("attendance", {
+	id: serial("id").primaryKey(),
+	userId: text("user_id")
+		.references(() => user.id, { onDelete: "cascade" })
+		.notNull(),
+	eventId: integer("event_id").references(() => events.id),
+	workshopId: integer("workshop_id").references(() => workshops.id),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+});
