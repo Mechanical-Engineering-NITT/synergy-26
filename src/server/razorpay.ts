@@ -3,7 +3,12 @@ import { and, eq, isNotNull, or } from "drizzle-orm";
 import Razorpay from "razorpay";
 import * as z from "zod";
 import { db } from "@/db";
-import { payments, registrations, workshops } from "@/db/schema";
+import {
+	onspotPayments,
+	payments,
+	registrations,
+	workshops,
+} from "@/db/schema";
 import { parseAndThrow, requireOnBoardedUser } from "@/lib/utils";
 import { getConstantValue } from "./constants";
 
@@ -20,34 +25,63 @@ const getRazorpay = createServerOnlyFn(() => {
 });
 
 export const hasEventPass = createServerOnlyFn(async (userId: string) => {
-	const [payment] = await db
-		.select()
-		.from(payments)
-		.where(
-			and(
-				eq(payments.userId, userId),
-				eq(payments.status, "paid"),
-				or(eq(payments.isEventPass, true), isNotNull(payments.workshopId)),
-			),
-		)
-		.limit(1);
-	return !!payment;
-});
-
-export const hasPaidForWorkshop = createServerOnlyFn(
-	async (userId: string, workshopId: number) => {
-		const [payment] = await db
+	const [onlinePayment, onspotPayment] = await Promise.all([
+		db
 			.select()
 			.from(payments)
 			.where(
 				and(
 					eq(payments.userId, userId),
-					eq(payments.workshopId, workshopId),
 					eq(payments.status, "paid"),
+					or(eq(payments.isEventPass, true), isNotNull(payments.workshopId)),
 				),
 			)
-			.limit(1);
-		return !!payment;
+			.limit(1),
+		db
+			.select()
+			.from(onspotPayments)
+			.where(
+				and(
+					eq(onspotPayments.userId, userId),
+					or(
+						eq(onspotPayments.isEventPass, true),
+						isNotNull(onspotPayments.workshopId),
+					),
+				),
+			)
+			.limit(1),
+	]);
+
+	return Boolean(onlinePayment[0] || onspotPayment[0]);
+});
+
+export const hasPaidForWorkshop = createServerOnlyFn(
+	async (userId: string, workshopId: number) => {
+		const [onlinePayment, onspotPayment] = await Promise.all([
+			db
+				.select()
+				.from(payments)
+				.where(
+					and(
+						eq(payments.userId, userId),
+						eq(payments.workshopId, workshopId),
+						eq(payments.status, "paid"),
+					),
+				)
+				.limit(1),
+			db
+				.select()
+				.from(onspotPayments)
+				.where(
+					and(
+						eq(onspotPayments.userId, userId),
+						eq(onspotPayments.workshopId, workshopId),
+					),
+				)
+				.limit(1),
+		]);
+
+		return Boolean(onlinePayment[0] || onspotPayment[0]);
 	},
 );
 
@@ -263,7 +297,7 @@ export const syncOrderStatus = createServerFn({ method: "POST" })
 export const getUserPayments = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const user = await requireOnBoardedUser();
-		const userPayments = await db
+		const onlinePayments = await db
 			.select({
 				id: payments.id,
 				razorpayOrderId: payments.razorpayOrderId,
@@ -277,6 +311,46 @@ export const getUserPayments = createServerFn({ method: "GET" }).handler(
 			.leftJoin(workshops, eq(payments.workshopId, workshops.id))
 			.where(eq(payments.userId, user.id))
 			.orderBy(payments.createdAt);
-		return userPayments;
+
+		const onspotUserPayments = await db
+			.select({
+				id: onspotPayments.id,
+				amount: onspotPayments.amount,
+				createdAt: onspotPayments.createdAt,
+				isEventPass: onspotPayments.isEventPass,
+				workshopTitle: workshops.title,
+			})
+			.from(onspotPayments)
+			.leftJoin(workshops, eq(onspotPayments.workshopId, workshops.id))
+			.where(eq(onspotPayments.userId, user.id))
+			.orderBy(onspotPayments.createdAt);
+
+		const mergedPayments = [
+			...onlinePayments.map((payment) => ({
+				...payment,
+				source: "online" as const,
+			})),
+			...onspotUserPayments.map((payment) => ({
+				id: payment.id,
+				razorpayOrderId: `onspot-${payment.id}`,
+				amount: payment.amount,
+				status: "paid" as const,
+				createdAt: payment.createdAt,
+				isEventPass: payment.isEventPass,
+				workshopTitle: payment.workshopTitle,
+				source: "onspot" as const,
+			})),
+		].sort((leftEntry, rightEntry) => {
+			const leftTime = leftEntry.createdAt
+				? new Date(leftEntry.createdAt).getTime()
+				: 0;
+			const rightTime = rightEntry.createdAt
+				? new Date(rightEntry.createdAt).getTime()
+				: 0;
+
+			return rightTime - leftTime;
+		});
+
+		return mergedPayments;
 	},
 );

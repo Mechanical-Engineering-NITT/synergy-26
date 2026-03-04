@@ -55,7 +55,10 @@ export function PaymentHistory() {
 							</td>
 							<td className="px-6 py-5 text-white italic">
 								₹
-								{(payment.amount / 100).toLocaleString(undefined, {
+								{(payment.source === "onspot"
+									? payment.amount
+									: payment.amount / 100
+								).toLocaleString(undefined, {
 									minimumFractionDigits: 0,
 									maximumFractionDigits: 2,
 								})}

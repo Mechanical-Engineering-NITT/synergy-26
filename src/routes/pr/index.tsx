@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingModal } from "@/components/pr/onboarding";
+import { OnspotRegistrationModal } from "@/components/pr/onspot/onspot-registration-modal";
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
 import { PrUsersPagination } from "@/components/pr/pr-pagination";
 import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
@@ -21,15 +22,13 @@ import { requireAdminUser } from "@/lib/utils";
 import { getPrUserDetails, getPrUsers } from "@/server/admin/admin.pr";
 
 const DEFAULT_PAGE_SIZE = 25;
-const REFRESH_INTERVAL_MS = 1000 * 60 * 5;
 
 const prUsersQueryOptions = () =>
 	queryOptions({
 		queryKey: ["pr-users"],
 		queryFn: () => getPrUsers(),
-		staleTime: REFRESH_INTERVAL_MS,
-		refetchInterval: REFRESH_INTERVAL_MS,
-		refetchOnWindowFocus: true,
+		refetchInterval: false,
+		refetchOnWindowFocus: false,
 	});
 
 const prUserDetailsQueryOptions = (userId: string) =>
@@ -55,6 +54,9 @@ function RouteComponent() {
 	const [selectedOnboardingUserId, setSelectedOnboardingUserId] = useState<
 		string | null
 	>(null);
+	const [selectedOnspotUserId, setSelectedOnspotUserId] = useState<
+		string | null
+	>(null);
 	const [activeTab, setActiveTab] = useState("profile");
 
 	const {
@@ -72,9 +74,23 @@ function RouteComponent() {
 		data: detailsData,
 		isLoading: isDetailsLoading,
 		isError: isDetailsError,
+		refetch: refetchPrUserDetails,
 	} = useQuery({
 		...prUserDetailsQueryOptions(selectedUserId ?? ""),
 	});
+
+	const handleOnspotRegistrationComplete = useCallback(async () => {
+		await refetchPrUsers();
+
+		if (selectedUserId && selectedUserId === selectedOnspotUserId) {
+			await refetchPrUserDetails();
+		}
+	}, [
+		refetchPrUserDetails,
+		refetchPrUsers,
+		selectedOnspotUserId,
+		selectedUserId,
+	]);
 
 	useEffect(() => {
 		const timeout = setTimeout(() => {
@@ -464,6 +480,26 @@ function RouteComponent() {
 													/>
 													Onboarding
 												</button>
+												<button
+													type="button"
+													onClick={() => setSelectedOnspotUserId(row.id)}
+													className="inline-flex items-center text-sm"
+													style={{
+														backgroundColor: "transparent",
+														color: "#fafafa",
+														borderRadius: "8px",
+														padding: "6px 12px",
+														border: "1px solid #2a2a2a",
+														transition: "all 0.2s ease",
+													}}
+												>
+													<CreditCard
+														size={16}
+														strokeWidth={1.5}
+														style={{ marginRight: 6 }}
+													/>
+													Onspot Registration
+												</button>
 											</div>
 										</td>
 									</tr>
@@ -513,6 +549,13 @@ function RouteComponent() {
 				open={Boolean(selectedOnboardingUserId)}
 				userId={selectedOnboardingUserId}
 				onClose={() => setSelectedOnboardingUserId(null)}
+			/>
+
+			<OnspotRegistrationModal
+				open={Boolean(selectedOnspotUserId)}
+				userId={selectedOnspotUserId}
+				onClose={() => setSelectedOnspotUserId(null)}
+				onRegistrationComplete={handleOnspotRegistrationComplete}
 			/>
 		</div>
 	);

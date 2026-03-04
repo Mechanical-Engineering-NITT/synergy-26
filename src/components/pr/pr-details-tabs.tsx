@@ -1,6 +1,17 @@
-import { Calendar, User, Wrench } from "lucide-react";
+import { Calendar, CreditCard, User, Wallet, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 import { SimpleDetailsTable } from "@/components/pr/details-table";
+
+type PaymentRecord = {
+	id: string;
+	amount: number;
+	isEventPass: boolean | null;
+	workshopId: number | null;
+	workshopTitle: string | null;
+	createdAt: Date | string | null;
+	updatedAt: Date | string | null;
+	status?: string;
+};
 
 function InfoCard({
 	title,
@@ -77,14 +88,31 @@ export function PrUserDetailsTabs({
 		(data.events as Array<Record<string, unknown>> | undefined) ?? [];
 	const workshopRows =
 		(data.workshops as Array<Record<string, unknown>> | undefined) ?? [];
-	const paymentRows =
-		(data.payments as Array<Record<string, unknown>> | undefined) ?? [];
+	const onlinePaymentRows =
+		(data.onlinePayments as PaymentRecord[] | undefined) ?? [];
+	const onspotPaymentRows =
+		(data.onspotPayments as PaymentRecord[] | undefined) ?? [];
 	const getNotProvidedValue = (value: unknown) =>
 		value === null || value === undefined || value === ""
 			? "Not Provided"
 			: String(value);
 	const getValue = (value: unknown) =>
 		value === null || value === undefined ? "-" : String(value);
+	const getPaymentResourceLabel = (payment: PaymentRecord) => {
+		if (payment.isEventPass) {
+			return "Event Pass";
+		}
+
+		if (payment.workshopTitle) {
+			return payment.workshopTitle;
+		}
+
+		if (payment.workshopId) {
+			return `Workshop ${payment.workshopId}`;
+		}
+
+		return "-";
+	};
 
 	if (activeTab === "profile") {
 		return (
@@ -154,19 +182,57 @@ export function PrUserDetailsTabs({
 
 	if (activeTab === "payments") {
 		return (
-			<SimpleDetailsTable
-				key="payments"
-				headers={["Payment ID", "Amount", "Status", "Created At"]}
-				rows={paymentRows.map((paymentRow) => [
-					String(paymentRow.id ?? "-"),
-					`₹${(Number(paymentRow.amount ?? 0) / 100).toFixed(2)}`,
-					String(paymentRow.status ?? "-"),
-					paymentRow.createdAt
-						? new Date(String(paymentRow.createdAt)).toLocaleString()
-						: "-",
-				])}
-				emptyLabel="No payments found."
-			/>
+			<div>
+				<div className="mb-4 flex items-center gap-2 text-[#fafafa] font-semibold">
+					<CreditCard size={16} color="#a1a1aa" />
+					Online Payments
+				</div>
+
+				{onlinePaymentRows.length > 0 ? (
+					<SimpleDetailsTable
+						key="online-payments"
+						headers={["Payment ID", "Amount", "Workshop/Event", "Created At"]}
+						rows={onlinePaymentRows.map((paymentRow) => [
+							String(paymentRow.id ?? "-"),
+							`₹${(Number((paymentRow.amount ?? 0) / 100)).toFixed(2)}`,
+							getPaymentResourceLabel(paymentRow),
+							paymentRow.createdAt
+								? new Date(String(paymentRow.createdAt)).toLocaleString()
+								: "-",
+						])}
+						emptyLabel="No online payments found."
+					/>
+				) : (
+					<div className="text-sm text-[#71717a]">
+						No online payments found.
+					</div>
+				)}
+
+				<div className="mt-6 mb-4 flex items-center gap-2 text-[#fafafa] font-semibold">
+					<Wallet size={16} color="#a1a1aa" />
+					Onspot Payments
+				</div>
+
+				{onspotPaymentRows.length > 0 ? (
+					<SimpleDetailsTable
+						key="onspot-payments"
+						headers={["Payment ID", "Amount", "Workshop/Event", "Created At"]}
+						rows={onspotPaymentRows.map((paymentRow) => [
+							String(paymentRow.id ?? "-"),
+							`₹${Number(paymentRow.amount ?? 0).toFixed(2)}`,
+							getPaymentResourceLabel(paymentRow),
+							paymentRow.createdAt
+								? new Date(String(paymentRow.createdAt)).toLocaleString()
+								: "-",
+						])}
+						emptyLabel="No onspot payments found."
+					/>
+				) : (
+					<div className="text-sm text-[#71717a]">
+						No onspot payments found.
+					</div>
+				)}
+			</div>
 		);
 	}
 
