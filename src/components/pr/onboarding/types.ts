@@ -1,3 +1,8 @@
+import type {
+	Floor as FloorType,
+	Hostel as HostelType,
+} from "@/constants/hostels";
+
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type StayFullDetails = {
@@ -6,8 +11,8 @@ export type StayFullDetails = {
 	nightsRequested: number;
 	accommodationFee: number;
 	cautionDeposit: number;
-	hostelName: string | null;
-	floor: string | null;
+	hostelName: HostelType | null;
+	floor: FloorType | null;
 	paymentVerified: boolean;
 	fineAmount: number;
 	finePaid: boolean;
@@ -29,8 +34,8 @@ export type CheckInState = {
 	originalAccommodationFee: number;
 	paymentVerified: boolean;
 	depositVerified: boolean;
-	hostelName: string | null;
-	floor: string | null;
+	hostelName: HostelType | null;
+	floor: FloorType | null;
 	roomPrice: number;
 	accommodationPreviewTotal: number;
 	remainingToPay: number;
@@ -52,16 +57,16 @@ export type CheckInAction =
 				nightsRequested: number;
 				accommodationFee: number;
 				paymentVerified: boolean;
-				hostelName: string | null;
-				floor: string | null;
+				hostelName: HostelType | null;
+				floor: FloorType | null;
 			};
 	  }
 	| { type: "setAccommodationRequired"; value: boolean | null }
 	| { type: "setNightsRequested"; value: number }
 	| { type: "setPaymentVerified"; value: boolean }
 	| { type: "setDepositVerified"; value: boolean }
-	| { type: "setHostelName"; value: string | null }
-	| { type: "setFloor"; value: string | null }
+	| { type: "setHostelName"; value: HostelType | null }
+	| { type: "setFloor"; value: FloorType | null }
 	| {
 			type: "hydrateFromEdit";
 			value: {
@@ -71,8 +76,8 @@ export type CheckInAction =
 				originalAccommodationFee: number;
 				accommodationPreviewTotal: number;
 				paymentVerified: boolean;
-				hostelName: string | null;
-				floor: string | null;
+				hostelName: HostelType | null;
+				floor: FloorType | null;
 			};
 	  }
 	| {

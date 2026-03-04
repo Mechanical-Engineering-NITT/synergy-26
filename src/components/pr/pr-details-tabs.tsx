@@ -1,4 +1,5 @@
-import { User } from "lucide-react";
+import { Calendar, User, Wrench } from "lucide-react";
+import type { ReactNode } from "react";
 import { SimpleDetailsTable } from "@/components/pr/details-table";
 
 function InfoCard({
@@ -8,7 +9,7 @@ function InfoCard({
 }: {
 	title: string;
 	icon: typeof User;
-	rows: Array<{ label: string; value: string }>;
+	rows: Array<{ label: ReactNode; value: string }>;
 }) {
 	const Icon = icon;
 
@@ -42,11 +43,14 @@ function InfoCard({
 			<div className="space-y-2">
 				{rows.map((row) => (
 					<div
-						key={`${title}-${row.label}`}
+						key={`${title}-${row.value}-${rows.indexOf(row)}`}
 						className="flex items-center justify-between"
 						style={{ borderTop: "1px solid #1f1f1f", paddingTop: "8px" }}
 					>
-						<span style={{ color: "#a1a1aa", fontSize: "14px" }}>
+						<span
+							className="inline-flex items-center"
+							style={{ color: "#71717a", fontSize: "14px", gap: "6px" }}
+						>
 							{row.label}
 						</span>
 						<span
@@ -75,6 +79,10 @@ export function PrUserDetailsTabs({
 		(data.workshops as Array<Record<string, unknown>> | undefined) ?? [];
 	const paymentRows =
 		(data.payments as Array<Record<string, unknown>> | undefined) ?? [];
+	const getNotProvidedValue = (value: unknown) =>
+		value === null || value === undefined || value === ""
+			? "Not Provided"
+			: String(value);
 	const getValue = (value: unknown) =>
 		value === null || value === undefined ? "-" : String(value);
 
@@ -85,10 +93,19 @@ export function PrUserDetailsTabs({
 					title="User Info"
 					icon={User}
 					rows={[
-						{ label: "User ID", value: getValue(profile.id) },
+						{ label: "Synergy ID", value: getValue(profile.synergyId) },
 						{ label: "Full Name", value: getValue(profile.fullname) },
 						{ label: "Email", value: getValue(profile.email) },
 						{ label: "Phone", value: getValue(profile.phone) },
+						{
+							label: "College",
+							value: getNotProvidedValue(profile.collegeName),
+						},
+						{ label: "Year", value: getNotProvidedValue(profile.year) },
+						{
+							label: "Department",
+							value: getNotProvidedValue(profile.department),
+						},
 					]}
 				/>
 			</div>
@@ -97,31 +114,41 @@ export function PrUserDetailsTabs({
 
 	if (activeTab === "events") {
 		return (
-			<SimpleDetailsTable
-				key="events"
-				headers={["Event ID", "Event Title", "Registered"]}
-				rows={eventRows.map((eventRow) => [
-					String(eventRow.id ?? "-"),
-					String(eventRow.title ?? "-"),
-					eventRow.isRegistered ? "Yes" : "No",
-				])}
-				emptyLabel="No event registrations found."
-			/>
+			<div>
+				<div className="mb-4 flex items-center gap-2 text-[#fafafa] font-semibold">
+					<Calendar size={16} color="#a1a1aa" />
+					Registered Events
+				</div>
+				<SimpleDetailsTable
+					key="events"
+					headers={["Event ID", "Event Title"]}
+					rows={eventRows.map((eventRow) => [
+						String(eventRow.id ?? "-"),
+						String(eventRow.title ?? "-"),
+					])}
+					emptyLabel="No event registrations found."
+				/>
+			</div>
 		);
 	}
 
 	if (activeTab === "workshops") {
 		return (
-			<SimpleDetailsTable
-				key="workshops"
-				headers={["Workshop ID", "Workshop Title", "Registered"]}
-				rows={workshopRows.map((workshopRow) => [
-					String(workshopRow.id ?? "-"),
-					String(workshopRow.title ?? "-"),
-					workshopRow.isRegistered ? "Yes" : "No",
-				])}
-				emptyLabel="No workshop registrations found."
-			/>
+			<div>
+				<div className="mb-4 flex items-center gap-2 text-[#fafafa] font-semibold">
+					<Wrench size={16} color="#a1a1aa" />
+					Registered Workshops
+				</div>
+				<SimpleDetailsTable
+					key="workshops"
+					headers={["Workshop ID", "Workshop Title"]}
+					rows={workshopRows.map((workshopRow) => [
+						String(workshopRow.id ?? "-"),
+						String(workshopRow.title ?? "-"),
+					])}
+					emptyLabel="No workshop registrations found."
+				/>
+			</div>
 		);
 	}
 

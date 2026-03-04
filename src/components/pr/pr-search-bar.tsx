@@ -26,7 +26,7 @@ export function PrUserSearchBar({
 					type="text"
 					value={searchInput}
 					onChange={onSearchInputChange}
-					placeholder="Search by email"
+					placeholder="Search by Synergy ID"
 					maxLength={200}
 					className="h-9 flex-1 text-sm"
 					style={{

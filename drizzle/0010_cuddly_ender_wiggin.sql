@@ -1,0 +1,4 @@
+CREATE TYPE "public"."floor_enum" AS ENUM('Ground Floor', 'First Floor', 'Second Floor', 'Third Floor', 'Fourth Floor');--> statement-breakpoint
+CREATE TYPE "public"."hostel_enum" AS ENUM('Agate', 'Garnet A', 'Garnet B', 'Garnet C', 'Zircon A', 'Zircon B', 'Zircon C', 'Beryl', 'Amber A', 'Amber B', 'Coral', 'Aquamarine A', 'Aquamarine B', 'Ruby', 'Emerald', 'Pearl', 'Sapphire', 'Topaz', 'Lapis', 'Diamond', 'Jade', 'Jasper', 'Amethyst', 'Opal A', 'Opal B', 'Opal C', 'Opal D', 'Opal E', 'Opal F');--> statement-breakpoint
+ALTER TABLE "accommodation" ALTER COLUMN "hostel_name" TYPE hostel_enum USING hostel_name::hostel_enum;--> statement-breakpoint
+ALTER TABLE "accommodation" ALTER COLUMN "floor" TYPE floor_enum USING floor::floor_enum;--> statement-breakpoint

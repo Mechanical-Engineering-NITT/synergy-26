@@ -1,5 +1,6 @@
 import { AlertTriangle, Bed, ShieldCheck } from "lucide-react";
 import type { Dispatch } from "react";
+import { FLOORS, HOSTELS } from "@/constants/hostels";
 import type { CheckInAction, CheckInMode, CheckInState } from "../types";
 
 type StepProps = {
@@ -300,35 +301,45 @@ export function Step5Room({
 				<label htmlFor={hostelInputId} className="block text-xs text-[#a1a1aa]">
 					Hostel Name
 				</label>
-				<input
+				<select
 					id={hostelInputId}
-					type="text"
-					placeholder="Hostel name"
 					value={state.hostelName ?? ""}
 					onChange={(event) =>
 						dispatch({
 							type: "setHostelName",
-							value: event.target.value,
+							value: event.target.value || null,
 						})
 					}
 					disabled={disabled || createPending || updatePending}
 					className="w-full rounded-[10px] border border-[#222222] bg-[#0f0f0f] px-3 py-2 text-[#fafafa] transition-all duration-200"
-				/>
+				>
+					<option value="">Select hostel</option>
+					{HOSTELS.map((hostel) => (
+						<option key={hostel} value={hostel}>
+							{hostel}
+						</option>
+					))}
+				</select>
 
 				<label htmlFor={floorInputId} className="block text-xs text-[#a1a1aa]">
 					Floor
 				</label>
-				<input
+				<select
 					id={floorInputId}
-					type="text"
-					placeholder="Floor"
 					value={state.floor ?? ""}
 					onChange={(event) =>
-						dispatch({ type: "setFloor", value: event.target.value })
+						dispatch({ type: "setFloor", value: event.target.value || null })
 					}
 					disabled={disabled || createPending || updatePending}
 					className="w-full rounded-[10px] border border-[#222222] bg-[#0f0f0f] px-3 py-2 text-[#fafafa] transition-all duration-200"
-				/>
+				>
+					<option value="">Select floor</option>
+					{FLOORS.map((floor) => (
+						<option key={floor} value={floor}>
+							{floor}
+						</option>
+					))}
+				</select>
 			</div>
 		</div>
 	);

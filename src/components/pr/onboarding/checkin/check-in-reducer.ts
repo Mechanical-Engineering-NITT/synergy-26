@@ -1,3 +1,7 @@
+import type {
+	Floor as FloorType,
+	Hostel as HostelType,
+} from "@/constants/hostels";
 import type { CheckInAction, CheckInState, WizardStep } from "../types";
 
 export const createInitialCheckInState = (): CheckInState => ({
@@ -20,8 +24,8 @@ export const buildInitialStateFromStay = (stay: {
 	nightsRequested: number;
 	accommodationFee: number;
 	paymentVerified: boolean;
-	hostelName: string | null;
-	floor: string | null;
+	hostelName: HostelType | null;
+	floor: FloorType | null;
 }): CheckInState => {
 	const roomPrice =
 		stay.nightsRequested > 0
