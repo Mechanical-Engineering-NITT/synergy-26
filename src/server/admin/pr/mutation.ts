@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq, isNotNull } from "drizzle-orm";
 import * as z from "zod";
-import { FLOORS, HOSTELS } from "@/constants/hostels";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
+import { FLOORS, HOSTELS } from "@/lib/constants";
 import { requireAdminUser } from "@/lib/utils";
 import { getAccommodationPricing } from "@/server/admin/pr/utils";
 

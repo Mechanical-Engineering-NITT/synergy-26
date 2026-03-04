@@ -1,6 +1,6 @@
 import { AlertTriangle, Bed, ShieldCheck } from "lucide-react";
 import type { Dispatch } from "react";
-import { FLOORS, HOSTELS } from "@/constants/hostels";
+import { FLOORS, HOSTELS } from "@/lib/constants";
 import type { CheckInAction, CheckInMode, CheckInState } from "../types";
 
 type StepProps = {

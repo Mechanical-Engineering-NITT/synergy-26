@@ -1,7 +1,4 @@
-import type {
-	Floor as FloorType,
-	Hostel as HostelType,
-} from "@/constants/hostels";
+import type { Floor as FloorType, Hostel as HostelType } from "@/lib/constants";
 import type { CheckInAction, CheckInState, WizardStep } from "../types";
 
 export const createInitialCheckInState = (): CheckInState => ({

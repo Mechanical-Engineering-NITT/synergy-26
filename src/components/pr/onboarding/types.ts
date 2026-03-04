@@ -1,7 +1,4 @@
-import type {
-	Floor as FloorType,
-	Hostel as HostelType,
-} from "@/constants/hostels";
+import type { Floor as FloorType, Hostel as HostelType } from "@/lib/constants";
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 

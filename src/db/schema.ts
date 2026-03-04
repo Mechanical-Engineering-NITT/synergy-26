@@ -10,7 +10,7 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { FLOORS, HOSTELS } from "@/constants/hostels.ts";
+import { FLOORS, HOSTELS } from "@/lib/constants.ts";
 import { user } from "./auth-schema.ts";
 
 export const hostelEnum = pgEnum("hostel_enum", HOSTELS);
