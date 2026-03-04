@@ -80,6 +80,30 @@ export const registerForEvent = createServerFn({ method: "POST" })
 			throw new Error("Already registered for this event");
 		}
 
+		if (event.limit !== null) {
+			const currentRegistrations = await db
+				.select()
+				.from(registrations)
+				.where(eq(registrations.eventId, data.eventId));
+
+			const count = currentRegistrations.length;
+
+			if (count >= event.limit) {
+				await db
+					.update(events)
+					.set({ isDisabled: true })
+					.where(eq(events.id, data.eventId));
+				throw new Error("Registration limit reached for this event");
+			}
+
+			if (count + 1 === event.limit) {
+				await db
+					.update(events)
+					.set({ isDisabled: true })
+					.where(eq(events.id, data.eventId));
+			}
+		}
+
 		await db.insert(registrations).values({
 			userId: user.id,
 			eventId: data.eventId,
@@ -113,6 +137,30 @@ export const registerForPreFestWorkshop = createServerFn({
 
 	if (existing.length > 0) {
 		throw new Error("Already registered for this event");
+	}
+
+	if (event && event.limit !== null) {
+		const currentRegistrations = await db
+			.select()
+			.from(registrations)
+			.where(eq(registrations.eventId, eventId));
+
+		const count = currentRegistrations.length;
+
+		if (count >= event.limit) {
+			await db
+				.update(events)
+				.set({ isDisabled: true })
+				.where(eq(events.id, eventId));
+			throw new Error("Registration limit reached for this event");
+		}
+
+		if (count + 1 === event.limit) {
+			await db
+				.update(events)
+				.set({ isDisabled: true })
+				.where(eq(events.id, eventId));
+		}
 	}
 
 	await db.insert(registrations).values({
@@ -150,6 +198,7 @@ const EventInputSchema = z.object({
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 	isDisabled: z.boolean().default(false),
+	limit: z.number().nullable().optional(),
 });
 
 export const createEvent = createServerFn({ method: "POST" })
@@ -166,6 +215,7 @@ export const createEvent = createServerFn({ method: "POST" })
 			time: parsedData.time,
 			location: parsedData.location,
 			isDisabled: parsedData.isDisabled,
+			limit: parsedData.limit,
 		});
 	});
 
@@ -191,6 +241,7 @@ export const updateEvent = createServerFn({ method: "POST" })
 				time: parsedData.time,
 				location: parsedData.location,
 				isDisabled: parsedData.isDisabled,
+				limit: parsedData.limit,
 			})
 			.where(eq(events.id, id));
 	});

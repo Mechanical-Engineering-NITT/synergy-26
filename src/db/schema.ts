@@ -41,6 +41,7 @@ export const events = pgTable("events", {
 	time: text("time").notNull(),
 	location: text("location").notNull(),
 	isDisabled: boolean("is_disabled").notNull().default(false),
+	limit: integer("limit"),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
