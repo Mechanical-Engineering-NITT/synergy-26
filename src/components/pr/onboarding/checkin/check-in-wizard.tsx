@@ -41,7 +41,6 @@ export function CheckInWizard({
 	const idBase = useId();
 	const hostelInputId = `${idBase}-review-hostel`;
 	const floorInputId = `${idBase}-review-floor`;
-	const normalizeNullableText = (value: string | null) => value?.trim() || null;
 	const isCalculatingPreview =
 		state.step === 2 &&
 		state.accommodationRequired === true &&
@@ -55,8 +54,8 @@ export function CheckInWizard({
 					accommodationRequired: state.accommodationRequired === true,
 					nightsRequested:
 						state.accommodationRequired === true ? state.nightsRequested : 0,
-					hostelName: normalizeNullableText(state.hostelName),
-					floor: normalizeNullableText(state.floor),
+					hostelName: state.hostelName,
+					floor: state.floor,
 					paymentVerified:
 						state.accommodationRequired === true
 							? state.paymentVerified && state.depositVerified
@@ -72,8 +71,8 @@ export function CheckInWizard({
 					userId,
 					nightsRequested:
 						state.accommodationRequired === true ? state.nightsRequested : 0,
-					hostelName: normalizeNullableText(state.hostelName),
-					floor: normalizeNullableText(state.floor),
+					hostelName: state.hostelName,
+					floor: state.floor,
 					paymentVerified: state.paymentVerified,
 				},
 			}),

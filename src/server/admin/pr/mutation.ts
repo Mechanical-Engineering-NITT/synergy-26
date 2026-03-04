@@ -3,6 +3,7 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
 import { accommodation } from "@/db/schema";
+import { FLOORS, HOSTELS } from "@/lib/constants";
 import { requireAdminUser } from "@/lib/utils";
 import { getAccommodationPricing } from "@/server/admin/pr/utils";
 
@@ -11,15 +12,25 @@ const CreateStayInputSchema = z
 		userId: z.string().min(1),
 		accommodationRequired: z.boolean(),
 		nightsRequested: z.number().int().min(0),
-		hostelName: z.string().nullable(),
-		floor: z.string().nullable(),
+		hostelName: z.enum(HOSTELS).nullable(),
+		floor: z.enum(FLOORS).nullable(),
 		paymentVerified: z.boolean(),
 	})
 	.refine((data) => !data.accommodationRequired || data.nightsRequested > 0, {
 		message:
 			"nightsRequested must be greater than 0 when accommodation is required",
 		path: ["nightsRequested"],
-	});
+	})
+	.refine(
+		(data) =>
+			!data.accommodationRequired ||
+			(data.hostelName !== null && data.floor !== null),
+		{
+			message:
+				"hostelName and floor are required when accommodation is required",
+			path: ["hostelName"],
+		},
+	);
 
 export const createStay = createServerFn({ method: "POST" })
 	.inputValidator(CreateStayInputSchema)
@@ -73,8 +84,8 @@ export const createStay = createServerFn({ method: "POST" })
 const UpdateStayInputSchema = z.object({
 	userId: z.string().min(1),
 	nightsRequested: z.number().int().min(0),
-	hostelName: z.string().nullable(),
-	floor: z.string().nullable(),
+	hostelName: z.enum(HOSTELS).nullable(),
+	floor: z.enum(FLOORS).nullable(),
 	paymentVerified: z.boolean(),
 });
 
@@ -110,6 +121,15 @@ export const updateStay = createServerFn({ method: "POST" })
 		if (stayRecord.accommodationRequired && normalizedNightsRequested <= 0) {
 			throw new Error(
 				"nightsRequested must be greater than 0 for accommodation stays",
+			);
+		}
+
+		if (
+			stayRecord.accommodationRequired &&
+			(data.hostelName === null || data.floor === null)
+		) {
+			throw new Error(
+				"hostelName and floor are required for accommodation stays",
 			);
 		}
 

@@ -40,10 +40,10 @@ export const Route = createFileRoute("/api/master/download/")({
 				});
 
 				// ── Shared helpers ───────────────────────────────────────────────
-				const USER_COLS = [30, 30, 24, 14, 28, 16, 8, 20].map((w) => ({
+				const BASE_USER_COLS = [30, 30, 24, 14, 28, 16, 8, 20].map((w) => ({
 					wch: w,
 				}));
-				const USER_HEADERS = [
+				const BASE_USER_HEADERS = [
 					"Synergy ID",
 					"Email",
 					"Full Name",
@@ -53,8 +53,18 @@ export const Route = createFileRoute("/api/master/download/")({
 					"Year",
 					"Department",
 				];
+				const ALL_USERS_COLS = [30, 30, 24, 14, 28, 16, 8, 20, 36, 36].map(
+					(w) => ({
+						wch: w,
+					}),
+				);
+				const ALL_USERS_HEADERS = [
+					...BASE_USER_HEADERS,
+					"Registered Events",
+					"Registered Workshops",
+				];
 
-				type UserRow = {
+				type BaseUserRow = {
 					userId: string;
 					synergyId: string | null;
 					email: string;
@@ -65,8 +75,12 @@ export const Route = createFileRoute("/api/master/download/")({
 					year: string | null;
 					department: string | null;
 				};
+				type AllUsersRow = BaseUserRow & {
+					registeredEvents: string[];
+					registeredWorkshops: string[];
+				};
 
-				const toRow = (r: UserRow) => [
+				const toBaseRow = (r: BaseUserRow) => [
 					r.synergyId ?? "",
 					r.email,
 					r.fullname ?? "",
@@ -75,6 +89,12 @@ export const Route = createFileRoute("/api/master/download/")({
 					r.city ?? "",
 					r.year ?? "",
 					r.department ?? "",
+				];
+
+				const toAllUsersRow = (r: AllUsersRow) => [
+					...toBaseRow(r),
+					r.registeredEvents.join(", "),
+					r.registeredWorkshops.join(", "),
 				];
 
 				const buildXlsx = (
@@ -127,16 +147,81 @@ export const Route = createFileRoute("/api/master/download/")({
 							city: customUser.city,
 							year: customUser.year,
 							department: customUser.department,
+							eventTitle: events.title,
+							workshopTitle: workshops.title,
 						})
 						.from(user)
-						.leftJoin(customUser, eq(user.id, customUser.userId));
+						.leftJoin(customUser, eq(user.id, customUser.userId))
+						.leftJoin(registrations, eq(user.id, registrations.userId))
+						.leftJoin(events, eq(registrations.eventId, events.id))
+						.leftJoin(workshops, eq(registrations.workshopId, workshops.id));
+
+					const allUsersMap = new Map<
+						string,
+						{
+							userId: string;
+							synergyId: string | null;
+							email: string;
+							fullname: string | null;
+							phone: string | null;
+							college: string | null;
+							city: string | null;
+							year: string | null;
+							department: string | null;
+							registeredEvents: Set<string>;
+							registeredWorkshops: Set<string>;
+						}
+					>();
+
+					for (const row of rows) {
+						let currentUser = allUsersMap.get(row.userId);
+
+						if (!currentUser) {
+							currentUser = {
+								userId: row.userId,
+								synergyId: row.synergyId,
+								email: row.email,
+								fullname: row.fullname,
+								phone: row.phone,
+								college: row.college,
+								city: row.city,
+								year: row.year,
+								department: row.department,
+								registeredEvents: new Set<string>(),
+								registeredWorkshops: new Set<string>(),
+							};
+							allUsersMap.set(row.userId, currentUser);
+						}
+
+						if (row.eventTitle) {
+							currentUser.registeredEvents.add(row.eventTitle);
+						}
+
+						if (row.workshopTitle) {
+							currentUser.registeredWorkshops.add(row.workshopTitle);
+						}
+					}
+
+					const allUsersRows: AllUsersRow[] = Array.from(
+						allUsersMap.values(),
+					).map(
+						({ registeredEvents, registeredWorkshops, ...currentUser }) => ({
+							...currentUser,
+							registeredEvents: Array.from(registeredEvents).sort((a, b) =>
+								a.localeCompare(b),
+							),
+							registeredWorkshops: Array.from(registeredWorkshops).sort(
+								(a, b) => a.localeCompare(b),
+							),
+						}),
+					);
 
 					return respond(
 						buildXlsx(
 							"All Users",
-							USER_HEADERS,
-							rows.map(toRow),
-							USER_COLS,
+							ALL_USERS_HEADERS,
+							allUsersRows.map(toAllUsersRow),
+							ALL_USERS_COLS,
 							"Users",
 						),
 						"all_users.xlsx",
@@ -181,9 +266,9 @@ export const Route = createFileRoute("/api/master/download/")({
 					return respond(
 						buildXlsx(
 							`${title} - Registered Users`,
-							USER_HEADERS,
-							rows.map(toRow),
-							USER_COLS,
+							BASE_USER_HEADERS,
+							rows.map(toBaseRow),
+							BASE_USER_COLS,
 							"Registered Users",
 						),
 						`${title.replace(/\s+/g, "_")}_registered_users.xlsx`,
@@ -228,9 +313,9 @@ export const Route = createFileRoute("/api/master/download/")({
 					return respond(
 						buildXlsx(
 							`${title} - Registered Users`,
-							USER_HEADERS,
-							rows.map(toRow),
-							USER_COLS,
+							BASE_USER_HEADERS,
+							rows.map(toBaseRow),
+							BASE_USER_COLS,
 							"Registered Users",
 						),
 						`${title.replace(/\s+/g, "_")}_registered_users.xlsx`,
@@ -265,9 +350,9 @@ export const Route = createFileRoute("/api/master/download/")({
 					return respond(
 						buildXlsx(
 							"Inactive Users (Onboarded, Not Registered)",
-							USER_HEADERS,
-							rows.map(toRow),
-							USER_COLS,
+							BASE_USER_HEADERS,
+							rows.map(toBaseRow),
+							BASE_USER_COLS,
 							"Inactive Users",
 						),
 						"inactive_users.xlsx",

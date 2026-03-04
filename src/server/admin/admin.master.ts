@@ -60,7 +60,7 @@ export const getUserData = createServerFn({ method: "GET" }).handler(
 		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 
 		try {
-			const userData = await db
+			const userDataRows = await db
 				.select({
 					userId: user.id,
 					synergyId: customUser.synergyId,
@@ -71,11 +71,68 @@ export const getUserData = createServerFn({ method: "GET" }).handler(
 					city: customUser.city,
 					year: customUser.year,
 					department: customUser.department,
+					eventTitle: events.title,
+					workshopTitle: workshops.title,
 				})
 				.from(user)
-				.leftJoin(customUser, eq(user.id, customUser.userId));
+				.leftJoin(customUser, eq(user.id, customUser.userId))
+				.leftJoin(registrations, eq(user.id, registrations.userId))
+				.leftJoin(events, eq(registrations.eventId, events.id))
+				.leftJoin(workshops, eq(registrations.workshopId, workshops.id));
 
-			return userData;
+			const userDataMap = new Map<
+				string,
+				{
+					userId: string;
+					synergyId: string | null;
+					email: string;
+					fullname: string | null;
+					phone: string | null;
+					college: string | null;
+					city: string | null;
+					year: string | null;
+					department: string | null;
+					registeredEvents: Set<string>;
+					registeredWorkshops: Set<string>;
+				}
+			>();
+
+			for (const row of userDataRows) {
+				let currentUser = userDataMap.get(row.userId);
+
+				if (!currentUser) {
+					currentUser = {
+						userId: row.userId,
+						synergyId: row.synergyId,
+						email: row.email,
+						fullname: row.fullname,
+						phone: row.phone,
+						college: row.college,
+						city: row.city,
+						year: row.year,
+						department: row.department,
+						registeredEvents: new Set<string>(),
+						registeredWorkshops: new Set<string>(),
+					};
+					userDataMap.set(row.userId, currentUser);
+				}
+
+				if (row.eventTitle) {
+					currentUser.registeredEvents.add(row.eventTitle);
+				}
+
+				if (row.workshopTitle) {
+					currentUser.registeredWorkshops.add(row.workshopTitle);
+				}
+			}
+
+			return Array.from(userDataMap.values()).map(
+				({ registeredEvents, registeredWorkshops, ...currentUser }) => ({
+					...currentUser,
+					registeredEvents: Array.from(registeredEvents),
+					registeredWorkshops: Array.from(registeredWorkshops),
+				}),
+			);
 		} catch {
 			throw new Error("Failed to fetch user data");
 		}
@@ -91,6 +148,8 @@ export const UserDataHeader = [
 	"City",
 	"Year",
 	"Department",
+	"Registered Events",
+	"Registered Workshops",
 ];
 
 export const getUserDataByEventId = createServerFn({ method: "GET" })

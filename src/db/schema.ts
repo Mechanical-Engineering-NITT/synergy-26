@@ -10,7 +10,11 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
+import { FLOORS, HOSTELS } from "@/lib/constants.ts";
 import { user } from "./auth-schema.ts";
+
+export const hostelEnum = pgEnum("hostel_enum", HOSTELS);
+export const floorEnum = pgEnum("floor_enum", FLOORS);
 
 export const todos = pgTable("todos", {
 	id: serial("id").primaryKey(),
@@ -108,8 +112,8 @@ export const accommodation = pgTable(
 		nightsRequested: integer("nights_requested").notNull().default(0),
 		accommodationFee: integer("accommodation_fee").notNull().default(0),
 		cautionDeposit: integer("caution_deposit").notNull().default(0),
-		hostelName: text("hostel_name"),
-		floor: text("floor"),
+		hostelName: hostelEnum("hostel_name"),
+		floor: floorEnum("floor"),
 		paymentVerified: boolean("payment_verified").notNull().default(false),
 		checkedInAt: timestamp("checked_in_at"),
 		fineAmount: integer("fine_amount"),

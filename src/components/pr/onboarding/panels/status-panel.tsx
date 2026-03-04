@@ -1,4 +1,10 @@
-import { AlertTriangle, Calendar, ShieldCheck, Wallet } from "lucide-react";
+import {
+	AlertTriangle,
+	Bed,
+	Calendar,
+	ShieldCheck,
+	Wallet,
+} from "lucide-react";
 import type { StayFullDetails } from "../types";
 
 export function StatusPanel({
@@ -47,6 +53,33 @@ export function StatusPanel({
 					</span>
 				</div>
 			</div>
+
+			{stayData.accommodationRequired ? (
+				<div className="border-b border-[#1f1f1f] pb-4 mb-4">
+					<div className="mb-2.5 inline-flex items-center gap-2 text-base font-medium">
+						<Bed size={16} color="#71717a" strokeWidth={1.5} />
+						Accommodation Details
+					</div>
+
+					{stayData.hostelName && stayData.floor ? (
+						<div className="grid grid-cols-2 gap-y-2 text-sm">
+							<span className="text-[#71717a]">Hostel</span>
+							<span className="text-[#fafafa] font-medium text-right">
+								{stayData.hostelName}
+							</span>
+
+							<span className="text-[#71717a]">Floor</span>
+							<span className="text-[#fafafa] font-medium text-right">
+								{stayData.floor}
+							</span>
+						</div>
+					) : (
+						<div className="text-sm text-[#71717a]">
+							Accommodation not yet allocated
+						</div>
+					)}
+				</div>
+			) : null}
 
 			<div className="mb-4 border-b border-[#1f1f1f] pb-4">
 				<h3 className="mb-2.5 inline-flex items-center gap-2 text-base font-medium">

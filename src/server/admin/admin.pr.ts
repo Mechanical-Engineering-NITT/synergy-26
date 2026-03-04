@@ -21,6 +21,7 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				.select({
 					id: user.id,
 					email: user.email,
+					synergyId: customUser.synergyId,
 					fullname: customUser.fullname,
 					phone: customUser.phone,
 				})
@@ -89,7 +90,11 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 			return {
 				data: {
 					rows: usersRows.map((currentUser) => ({
-						...currentUser,
+						id: currentUser.id,
+						email: currentUser.email,
+						synergyId: currentUser.synergyId,
+						fullname: currentUser.fullname,
+						phone: currentUser.phone,
 						totalEvents: eventAggMap.get(currentUser.id) ?? 0,
 						totalWorkshops: workshopAggMap.get(currentUser.id) ?? 0,
 						totalPaidAmount: paymentAggMap.get(currentUser.id) ?? 0,
@@ -116,8 +121,12 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 				.select({
 					id: user.id,
 					email: user.email,
+					synergyId: customUser.synergyId,
 					fullname: customUser.fullname,
 					phone: customUser.phone,
+					collegeName: customUser.college,
+					year: customUser.year,
+					department: customUser.department,
 				})
 				.from(user)
 				.leftJoin(customUser, eq(customUser.userId, user.id))

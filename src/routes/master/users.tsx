@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Loader2 } from "lucide-react";
+import { Calendar, Download, Loader2, Wrench } from "lucide-react";
 import { useState } from "react";
 import { requireAdminUser } from "@/lib/utils";
 import { getUserData, UserDataHeader } from "@/server/admin/admin.master";
@@ -16,6 +16,22 @@ export const Route = createFileRoute("/master/users")({
 		await requireAdminUser({ data: { roles: ["MASTER", "ADMIN"] } });
 	},
 });
+
+type MasterUser = Awaited<ReturnType<typeof getUserData>>[number];
+
+const renderRegistrationList = (titles: MasterUser["registeredEvents"]) => {
+	if (titles.length === 0) {
+		return <span className="text-muted-foreground">None</span>;
+	}
+
+	return (
+		<div className="flex flex-col gap-1 text-sm">
+			{titles.map((title) => (
+				<span key={title}>{title}</span>
+			))}
+		</div>
+	);
+};
 
 function RouteComponent() {
 	const [isDownloading, setIsDownloading] = useState(false);
@@ -88,7 +104,19 @@ function RouteComponent() {
 						<tr>
 							{UserDataHeader.map((header) => (
 								<th key={header} className="px-3 py-2 text-left font-medium">
-									{header}
+									{header === "Registered Events" ? (
+										<div className="flex items-center gap-2">
+											<Calendar size={14} />
+											<span>{header}</span>
+										</div>
+									) : header === "Registered Workshops" ? (
+										<div className="flex items-center gap-2">
+											<Wrench size={14} />
+											<span>{header}</span>
+										</div>
+									) : (
+										header
+									)}
 								</th>
 							))}
 						</tr>
@@ -119,6 +147,12 @@ function RouteComponent() {
 								</td>
 								<td className="px-3 py-2 whitespace-nowrap">
 									{currentUser.department ?? ""}
+								</td>
+								<td className="px-3 py-2 align-top whitespace-normal">
+									{renderRegistrationList(currentUser.registeredEvents)}
+								</td>
+								<td className="px-3 py-2 align-top whitespace-normal">
+									{renderRegistrationList(currentUser.registeredWorkshops)}
 								</td>
 							</tr>
 						))}

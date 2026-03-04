@@ -1,4 +1,4 @@
-import { Bed, Calendar, Receipt, User } from "lucide-react";
+import { Calendar, Receipt, User, Wrench } from "lucide-react";
 import { PrUserDetailsTabs } from "@/components/pr/pr-details-tabs";
 
 export function PrUserDetailsModal({
@@ -87,7 +87,7 @@ export function PrUserDetailsModal({
 						{[
 							{ key: "profile", label: "profile", icon: User },
 							{ key: "events", label: "events", icon: Calendar },
-							{ key: "workshops", label: "workshops", icon: Bed },
+							{ key: "workshops", label: "workshops", icon: Wrench },
 							{ key: "payments", label: "payments", icon: Receipt },
 						].map((tab) => (
 							<button

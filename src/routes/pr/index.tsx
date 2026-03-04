@@ -1,6 +1,17 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, DoorOpen, RefreshCw, User, Wallet } from "lucide-react";
+import {
+	Calendar,
+	CreditCard,
+	DoorOpen,
+	Hash,
+	Mail,
+	Phone,
+	RefreshCw,
+	Settings,
+	User,
+	Wrench,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingModal } from "@/components/pr/onboarding";
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
@@ -98,9 +109,8 @@ function RouteComponent() {
 			return users;
 		}
 
-		const loweredSearch = debouncedSearch.toLowerCase();
 		return users.filter((currentUser) =>
-			currentUser.email.toLowerCase().includes(loweredSearch),
+			currentUser.synergyId?.toString().includes(debouncedSearch),
 		);
 	}, [users, debouncedSearch]);
 
@@ -190,13 +200,6 @@ function RouteComponent() {
 			style={{ backgroundColor: "#0a0a0a", color: "#fafafa" }}
 		>
 			<div className="mx-auto max-w-7xl space-y-4">
-				<PrUserSearchBar
-					searchInput={searchInput}
-					onSearchInputChange={handleSearchInputChange}
-					onClear={handleSearchClear}
-					isSearchLoading={searchInput !== debouncedSearch}
-				/>
-
 				<div className="flex items-center justify-between gap-3">
 					<div>
 						<h1
@@ -207,7 +210,7 @@ function RouteComponent() {
 								color: "#fafafa",
 							}}
 						>
-							PR Admin Users
+							User Details
 						</h1>
 						<p style={{ fontSize: "12px", color: "#71717a" }}>
 							Showing {rangeStart}-{rangeEnd} of {totalResults} users
@@ -239,6 +242,15 @@ function RouteComponent() {
 					</button>
 				</div>
 
+				<div className="mt-4">
+					<PrUserSearchBar
+						searchInput={searchInput}
+						onSearchInputChange={handleSearchInputChange}
+						onClear={handleSearchClear}
+						isSearchLoading={searchInput !== debouncedSearch}
+					/>
+				</div>
+
 				<div
 					style={{
 						backgroundColor: "#111111",
@@ -264,13 +276,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										<span
-											className="inline-flex items-center"
-											style={{ gap: "6px" }}
-										>
-											<User size={14} strokeWidth={1.5} color="#71717a" />
-											Full Name
-										</span>
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Hash size={14} className="text-[#71717a]" />
+											SYNERGY ID
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -282,7 +291,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										Email
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<User size={14} className="text-[#71717a]" />
+											FULL NAME
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -294,7 +306,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										Phone
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Mail size={14} className="text-[#71717a]" />
+											EMAIL
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -306,13 +321,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										<span
-											className="inline-flex items-center"
-											style={{ gap: "6px" }}
-										>
-											<Calendar size={14} strokeWidth={1.5} color="#71717a" />
-											Events
-										</span>
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Phone size={14} className="text-[#71717a]" />
+											PHONE
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -324,7 +336,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										Workshops
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Calendar size={14} className="text-[#71717a]" />
+											EVENTS
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -336,13 +351,10 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										<span
-											className="inline-flex items-center"
-											style={{ gap: "6px" }}
-										>
-											<Wallet size={14} strokeWidth={1.5} color="#71717a" />
-											Paid
-										</span>
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Wrench size={14} className="text-[#71717a]" />
+											WORKSHOPS
+										</div>
 									</th>
 									<th
 										className="px-3 py-3 text-left"
@@ -354,7 +366,25 @@ function RouteComponent() {
 											fontWeight: 500,
 										}}
 									>
-										Actions
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<CreditCard size={14} className="text-[#71717a]" />
+											PAID
+										</div>
+									</th>
+									<th
+										className="px-3 py-3 text-left"
+										style={{
+											color: "#71717a",
+											textTransform: "uppercase",
+											fontSize: "12px",
+											letterSpacing: "0.05em",
+											fontWeight: 500,
+										}}
+									>
+										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
+											<Settings size={14} className="text-[#71717a]" />
+											ACTIONS
+										</div>
 									</th>
 								</tr>
 							</thead>
@@ -369,6 +399,9 @@ function RouteComponent() {
 											transition: "background 0.2s ease",
 										}}
 									>
+										<td className="px-3 py-2 whitespace-nowrap text-sm text-[#fafafa] font-medium text-left">
+											{row.synergyId ?? "-"}
+										</td>
 										<td className="px-3 py-2 whitespace-nowrap">
 											{row.fullname ?? "-"}
 										</td>
