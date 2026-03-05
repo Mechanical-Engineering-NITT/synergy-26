@@ -5,6 +5,7 @@ import Navbar from "@/components/common/navbar";
 import About from "@/components/landing/about";
 import AccommodationSection from "@/components/landing/accommodation";
 import Events from "@/components/landing/events";
+import GoodToKnow from "@/components/landing/good-to-know";
 import Hero from "@/components/landing/hero";
 import PreFestSection from "@/components/landing/pre-fest";
 import PricingComparison from "@/components/landing/pricing-comparison";
@@ -47,6 +48,7 @@ function App() {
 				<div className="relative z-10 w-full flex flex-col">
 					<About />
 					<Schedule />
+					<GoodToKnow />
 					<PricingComparison />
 					<Events isLoggedIn={!!data?.session?.user} />
 					<Workshops isLoggedIn={!!data?.session?.user} />
