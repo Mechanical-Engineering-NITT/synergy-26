@@ -17,6 +17,7 @@ export function Step1Selection({
 	hasExistingWorkshopRegistrations,
 	eventPassPrice,
 	eventPassSelected,
+	hasEventPass,
 	onToggleWorkshop,
 	onToggleEventPass,
 }: {
@@ -26,11 +27,14 @@ export function Step1Selection({
 	hasExistingWorkshopRegistrations: boolean;
 	eventPassPrice: number;
 	eventPassSelected: boolean;
+	hasEventPass: boolean;
 	onToggleWorkshop: (workshopId: number) => void;
 	onToggleEventPass: (value: boolean) => void;
 }) {
 	const eventPassDisabled =
-		hasExistingWorkshopRegistrations || selectedWorkshops.length > 0;
+		hasEventPass ||
+		hasExistingWorkshopRegistrations ||
+		selectedWorkshops.length > 0;
 
 	return (
 		<div className="space-y-4">
@@ -101,7 +105,11 @@ export function Step1Selection({
 					</span>
 				</label>
 				{eventPassDisabled ? (
-					hasExistingWorkshopRegistrations ? (
+					hasEventPass ? (
+						<p className="text-xs text-[#71717a]">
+							Event pass already present.
+						</p>
+					) : hasExistingWorkshopRegistrations ? (
 						<p className="text-xs text-[#71717a]">
 							Event pass already granted via workshop registration.
 						</p>

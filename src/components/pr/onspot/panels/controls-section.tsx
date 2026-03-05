@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useReducer } from "react";
-import { completeOnspotRegistration } from "@/server/admin/pr/onspot/mutation";
-import { calculateOnspotAmount } from "@/server/admin/pr/onspot/query";
+import { completeOnspotRegistration } from "@/server/admin/pr/mutation";
+import { calculateOnspotAmount } from "@/server/admin/pr/query";
 import {
 	createInitialOnspotRegistrationState,
 	onspotRegistrationReducer,
@@ -23,12 +23,14 @@ export function OnspotControlsSection({
 	workshops,
 	eventPassPrice,
 	existingWorkshopRegistrations,
+	hasEventPass,
 	onActionComplete,
 }: {
 	userId: string;
 	workshops: WorkshopOption[];
 	eventPassPrice: number;
 	existingWorkshopRegistrations: number[];
+	hasEventPass: boolean;
 	onActionComplete: () => Promise<void>;
 }) {
 	const [state, dispatch] = useReducer(
@@ -128,6 +130,7 @@ export function OnspotControlsSection({
 						}
 						eventPassPrice={eventPassPrice}
 						eventPassSelected={state.eventPassSelected}
+						hasEventPass={hasEventPass}
 						onToggleWorkshop={(workshopId) =>
 							dispatch({
 								type: "SELECT_WORKSHOP",

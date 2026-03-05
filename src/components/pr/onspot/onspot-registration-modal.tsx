@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Receipt } from "lucide-react";
 import { useState } from "react";
-import { getOnspotRegistrationOptions } from "@/server/admin/pr/onspot/query";
+import { getOnspotRegistrationOptions } from "@/server/admin/pr/query";
 import { OnspotControlsSection } from "./panels/controls-section";
 
 export function OnspotRegistrationModal({
@@ -17,6 +17,7 @@ export function OnspotRegistrationModal({
 }) {
 	const resolvedUserId = userId ?? "";
 	const [controlsResetSignal, setControlsResetSignal] = useState(0);
+	const queryClient = useQueryClient();
 
 	const { data, isLoading, isError } = useQuery({
 		queryKey: ["pr", "onspot", "options", resolvedUserId],
@@ -33,6 +34,9 @@ export function OnspotRegistrationModal({
 	};
 
 	const handleActionComplete = async () => {
+		await queryClient.invalidateQueries({
+			queryKey: ["pr", "onspot", "options", resolvedUserId],
+		});
 		await onRegistrationComplete();
 		handleModalClose();
 	};
@@ -77,6 +81,7 @@ export function OnspotRegistrationModal({
 						workshops={data.workshops}
 						eventPassPrice={data.eventPassPrice}
 						existingWorkshopRegistrations={data.existingWorkshopRegistrations}
+						hasEventPass={data.hasEventPass}
 						onActionComplete={handleActionComplete}
 					/>
 				) : null}
