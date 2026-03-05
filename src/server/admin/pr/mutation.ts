@@ -172,6 +172,9 @@ export const updateStay = createServerFn({ method: "POST" })
 			const totalCautionDeposit = data.accommodationRequired
 				? depositAmount
 				: 0;
+			const normalizedPaymentVerified = data.accommodationRequired
+				? data.paymentVerified
+				: false;
 
 			const [updatedStay] = await transaction
 				.update(accommodation)
@@ -182,7 +185,7 @@ export const updateStay = createServerFn({ method: "POST" })
 					cautionDeposit: totalCautionDeposit,
 					hostelName: data.accommodationRequired ? data.hostelName : null,
 					floor: data.accommodationRequired ? data.floor : null,
-					paymentVerified: data.paymentVerified,
+					paymentVerified: normalizedPaymentVerified,
 					fineAmount: data.accommodationRequired ? undefined : 0,
 					finePaid: data.accommodationRequired ? undefined : false,
 					cautionReturned: data.accommodationRequired ? undefined : false,
