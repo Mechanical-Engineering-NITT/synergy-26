@@ -79,7 +79,8 @@ export const requireAdminUser = createServerFn({ method: "GET" })
 			});
 		}
 		const role = dbUser.role;
-		const isAdminRole = role === "PR" || role === "MASTER" || role === "ADMIN";
+		const isAdminRole =
+			role === "PR" || role === "MASTER" || role === "ADMIN" || role === "QA";
 
 		if (!role || !isAdminRole || !allowedRoles.includes(role)) {
 			throw redirect({

@@ -115,7 +115,7 @@ export const checkInReducer = (
 					originalAccommodationFee: 0,
 					hostelName: null,
 					floor: null,
-					paymentVerified: true,
+					paymentVerified: false,
 					depositVerified: true,
 					roomPrice: 0,
 					accommodationPreviewTotal: 0,

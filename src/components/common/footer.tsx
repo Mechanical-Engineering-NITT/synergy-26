@@ -72,10 +72,10 @@ export default function Footer() {
 							<p className="flex flex-col gap-1">
 								<span className="text-gray-500 text-[10px]">Phone</span>
 								<a
-									href="tel:+919884035800"
+									href="tel:+918807271377"
 									className="text-amber-400 hover:text-white transition-colors"
 								>
-									+91 9884035800
+									+91 8807271377
 								</a>
 							</p>
 							<p className="mt-4 leading-relaxed">
