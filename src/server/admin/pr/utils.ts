@@ -31,3 +31,27 @@ export const getAccommodationPricing = async (): Promise<PricingResult> => {
 		depositAmount: parsePrices("deposit", depositValue),
 	};
 };
+
+export const parseCurrencyValue = (key: string, value: string | null) => {
+	if (value === null) {
+		throw new Error(`Missing constant value for key: ${key}`);
+	}
+
+	const parsedValue = Number(value);
+	if (Number.isNaN(parsedValue) || parsedValue < 0) {
+		throw new Error(`Invalid numeric constant value for key: ${key}`);
+	}
+
+	return parsedValue;
+};
+
+export const parseWorkshopPrice = (workshopId: number, value: string) => {
+	const parsedValue = Number(value);
+	if (Number.isNaN(parsedValue) || parsedValue < 0) {
+		throw new Error(
+			`Invalid numeric workshop price for workshop id: ${workshopId}`,
+		);
+	}
+
+	return parsedValue;
+};

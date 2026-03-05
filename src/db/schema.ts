@@ -89,6 +89,18 @@ export const payments = pgTable("payments", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const onspotPayments = pgTable("onspot_payments", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	amount: integer("amount").notNull(), // in rupees
+	userId: text("user_id")
+		.references(() => user.id)
+		.notNull(),
+	workshopId: integer("workshop_id").references(() => workshops.id),
+	isEventPass: boolean("is_event_pass").notNull().default(false),
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const registrations = pgTable("registrations", {
 	id: serial("id").primaryKey(),
 	userId: text("user_id")

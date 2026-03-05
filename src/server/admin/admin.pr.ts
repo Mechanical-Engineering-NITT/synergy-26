@@ -6,6 +6,7 @@ import { user } from "@/db/auth-schema";
 import {
 	customUser,
 	events,
+	onspotPayments,
 	payments,
 	registrations,
 	workshops,
@@ -68,6 +69,14 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				.where(eq(payments.status, "paid"))
 				.groupBy(payments.userId);
 
+			const onspotPaymentAggRows = await db
+				.select({
+					userId: onspotPayments.userId,
+					totalPaidAmount: sum(onspotPayments.amount),
+				})
+				.from(onspotPayments)
+				.groupBy(onspotPayments.userId);
+
 			const eventAggMap = new Map(
 				eventAggRows.map((entry) => [
 					entry.userId,
@@ -86,6 +95,12 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 					Number(entry.totalPaidAmount ?? 0),
 				]),
 			);
+			const onspotPaymentAggMap = new Map(
+				onspotPaymentAggRows.map((entry) => [
+					entry.userId,
+					Number(entry.totalPaidAmount ?? 0) * 100,
+				]),
+			);
 
 			return {
 				data: {
@@ -97,7 +112,9 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 						phone: currentUser.phone,
 						totalEvents: eventAggMap.get(currentUser.id) ?? 0,
 						totalWorkshops: workshopAggMap.get(currentUser.id) ?? 0,
-						totalPaidAmount: paymentAggMap.get(currentUser.id) ?? 0,
+						totalPaidAmount:
+							(paymentAggMap.get(currentUser.id) ?? 0) +
+							(onspotPaymentAggMap.get(currentUser.id) ?? 0),
 					})),
 				},
 			};
@@ -181,23 +198,44 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 					})),
 				);
 
-			const paymentRows = await db
+			const onlinePaymentRows = await db
 				.select({
 					id: payments.id,
 					amount: payments.amount,
 					status: payments.status,
+					isEventPass: payments.isEventPass,
+					workshopId: payments.workshopId,
+					workshopTitle: workshops.title,
 					createdAt: payments.createdAt,
+					updatedAt: payments.updatedAt,
 				})
 				.from(payments)
+				.leftJoin(workshops, eq(payments.workshopId, workshops.id))
 				.where(eq(payments.userId, data.userId))
 				.orderBy(desc(payments.createdAt));
+
+			const onspotPaymentRows = await db
+				.select({
+					id: onspotPayments.id,
+					amount: onspotPayments.amount,
+					isEventPass: onspotPayments.isEventPass,
+					workshopId: onspotPayments.workshopId,
+					workshopTitle: workshops.title,
+					createdAt: onspotPayments.createdAt,
+					updatedAt: onspotPayments.updatedAt,
+				})
+				.from(onspotPayments)
+				.leftJoin(workshops, eq(onspotPayments.workshopId, workshops.id))
+				.where(eq(onspotPayments.userId, data.userId))
+				.orderBy(desc(onspotPayments.createdAt));
 
 			return {
 				data: {
 					profile: profileRows[0],
 					events: eventRegistrations,
 					workshops: workshopRegistrations,
-					payments: paymentRows,
+					onlinePayments: onlinePaymentRows,
+					onspotPayments: onspotPaymentRows,
 				},
 			};
 		} catch {
