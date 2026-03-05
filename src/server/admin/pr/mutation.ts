@@ -5,14 +5,17 @@ import { db } from "@/db";
 import {
 	accommodation,
 	onspotPayments,
+	payments,
 	registrations,
 	workshops,
 } from "@/db/schema";
+
 import { FLOORS, HOSTELS } from "@/lib/constants";
 import { requireAdminUser } from "@/lib/utils";
 import {
 	getAccommodationPricing,
 	parseCurrencyValue,
+	parseOnspotPrice,
 	parseWorkshopPrice,
 } from "@/server/admin/pr/utils";
 import { getConstantValue } from "@/server/constants";
@@ -60,6 +63,7 @@ export const createStay = createServerFn({ method: "POST" })
 		const totalAccommodationFee = data.accommodationRequired
 			? roomPrice * normalizedNightsRequested
 			: 0;
+		const totalCautionDeposit = data.accommodationRequired ? depositAmount : 0;
 
 		const [createdStay] = await db
 			.insert(accommodation)
@@ -68,7 +72,7 @@ export const createStay = createServerFn({ method: "POST" })
 				accommodationRequired: data.accommodationRequired,
 				nightsRequested: normalizedNightsRequested,
 				accommodationFee: totalAccommodationFee,
-				cautionDeposit: depositAmount,
+				cautionDeposit: totalCautionDeposit,
 				hostelName: data.hostelName,
 				floor: data.floor,
 				paymentVerified: true,
@@ -94,6 +98,7 @@ export const createStay = createServerFn({ method: "POST" })
 
 const UpdateStayInputSchema = z.object({
 	userId: z.string().min(1),
+	accommodationRequired: z.boolean(),
 	nightsRequested: z.number().int().min(0),
 	hostelName: z.enum(HOSTELS).nullable(),
 	floor: z.enum(FLOORS).nullable(),
@@ -105,91 +110,108 @@ export const updateStay = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
-		const [stayRecord] = await db
-			.select({
-				id: accommodation.id,
-				accommodationRequired: accommodation.accommodationRequired,
-				nightsRequested: accommodation.nightsRequested,
-				checkedInAt: accommodation.checkedInAt,
-				checkedOutAt: accommodation.checkedOutAt,
-			})
-			.from(accommodation)
-			.where(eq(accommodation.userId, data.userId))
-			.limit(1);
+		return db.transaction(async (transaction) => {
+			const [stayRecord] = await transaction
+				.select({
+					id: accommodation.id,
+					accommodationRequired: accommodation.accommodationRequired,
+					nightsRequested: accommodation.nightsRequested,
+					checkedInAt: accommodation.checkedInAt,
+					checkedOutAt: accommodation.checkedOutAt,
+				})
+				.from(accommodation)
+				.where(eq(accommodation.userId, data.userId))
+				.limit(1);
 
-		if (!stayRecord) {
-			throw new Error("Stay not found");
-		}
+			if (!stayRecord) {
+				throw new Error("Stay not found");
+			}
 
-		if (!stayRecord.checkedInAt) {
-			throw new Error("User not checked in");
-		}
+			if (!stayRecord.checkedInAt) {
+				throw new Error("User not checked in");
+			}
 
-		const normalizedNightsRequested = stayRecord.accommodationRequired
-			? data.nightsRequested
-			: 0;
+			const normalizedNightsRequested = data.accommodationRequired
+				? data.nightsRequested
+				: 0;
 
-		if (stayRecord.accommodationRequired && normalizedNightsRequested <= 0) {
-			throw new Error(
-				"nightsRequested must be greater than 0 for accommodation stays",
-			);
-		}
+			if (data.accommodationRequired && normalizedNightsRequested <= 0) {
+				throw new Error(
+					"nightsRequested must be greater than 0 for accommodation stays",
+				);
+			}
 
-		if (
-			stayRecord.accommodationRequired &&
-			(data.hostelName === null || data.floor === null)
-		) {
-			throw new Error(
-				"hostelName and floor are required for accommodation stays",
-			);
-		}
+			if (
+				data.accommodationRequired &&
+				(data.hostelName === null || data.floor === null)
+			) {
+				throw new Error(
+					"hostelName and floor are required for accommodation stays",
+				);
+			}
 
-		const nightsChanged =
-			normalizedNightsRequested !== stayRecord.nightsRequested;
+			const accommodationRequiredChanged =
+				data.accommodationRequired !== stayRecord.accommodationRequired;
+			const nightsChanged =
+				normalizedNightsRequested !== stayRecord.nightsRequested;
 
-		if (nightsChanged && !data.paymentVerified) {
-			throw new Error(
-				"Payment verification is required when nights requested changes",
-			);
-		}
+			if (
+				(accommodationRequiredChanged || nightsChanged) &&
+				data.accommodationRequired &&
+				!data.paymentVerified
+			) {
+				throw new Error(
+					"Payment verification is required when accommodation details change",
+				);
+			}
 
-		const { roomPrice } = await getAccommodationPricing();
-		const totalAccommodationFee = stayRecord.accommodationRequired
-			? roomPrice * normalizedNightsRequested
-			: 0;
+			const { roomPrice, depositAmount } = await getAccommodationPricing();
+			const totalAccommodationFee = data.accommodationRequired
+				? roomPrice * normalizedNightsRequested
+				: 0;
+			const totalCautionDeposit = data.accommodationRequired
+				? depositAmount
+				: 0;
 
-		const [updatedStay] = await db
-			.update(accommodation)
-			.set({
-				nightsRequested: normalizedNightsRequested,
-				accommodationFee: totalAccommodationFee,
-				hostelName: data.hostelName,
-				floor: data.floor,
-				paymentVerified: data.paymentVerified,
-				updatedAt: new Date(),
-			})
-			.where(
-				and(
-					eq(accommodation.id, stayRecord.id),
-					isNotNull(accommodation.checkedInAt),
-				),
-			)
-			.returning({
-				id: accommodation.id,
-				userId: accommodation.userId,
-				nightsRequested: accommodation.nightsRequested,
-				accommodationFee: accommodation.accommodationFee,
-				hostelName: accommodation.hostelName,
-				floor: accommodation.floor,
-				paymentVerified: accommodation.paymentVerified,
-				updatedAt: accommodation.updatedAt,
-			});
+			const [updatedStay] = await transaction
+				.update(accommodation)
+				.set({
+					accommodationRequired: data.accommodationRequired,
+					nightsRequested: normalizedNightsRequested,
+					accommodationFee: totalAccommodationFee,
+					cautionDeposit: totalCautionDeposit,
+					hostelName: data.accommodationRequired ? data.hostelName : null,
+					floor: data.accommodationRequired ? data.floor : null,
+					paymentVerified: data.paymentVerified,
+					fineAmount: data.accommodationRequired ? undefined : 0,
+					finePaid: data.accommodationRequired ? undefined : false,
+					cautionReturned: data.accommodationRequired ? undefined : false,
+					checkedOutAt: data.accommodationRequired ? undefined : null,
+					updatedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(accommodation.id, stayRecord.id),
+						isNotNull(accommodation.checkedInAt),
+					),
+				)
+				.returning({
+					id: accommodation.id,
+					userId: accommodation.userId,
+					nightsRequested: accommodation.nightsRequested,
+					accommodationFee: accommodation.accommodationFee,
+					hostelName: accommodation.hostelName,
+					floor: accommodation.floor,
+					paymentVerified: accommodation.paymentVerified,
+					updatedAt: accommodation.updatedAt,
+				});
 
-		if (!updatedStay) {
-			throw new Error("Failed to update stay details");
-		}
+			if (!updatedStay) {
+				throw new Error("Failed to update stay details");
+			}
 
-		return updatedStay;
+			return updatedStay;
+		});
 	});
 
 const CompleteStayInputSchema = z.object({
@@ -353,7 +375,9 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 		const workshopPriceMap = new Map<number, number>(
 			workshopRows.map((workshopEntry) => [
 				workshopEntry.id,
-				parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
+				parseOnspotPrice(
+					parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
+				),
 			]),
 		);
 		const workshopTitleMap = new Map<number, string>(
@@ -364,7 +388,12 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 		);
 
 		const eventPassPrice = data.eventPassSelected
-			? parseCurrencyValue("event_pass", await getConstantValue("event_pass"))
+			? parseOnspotPrice(
+					parseCurrencyValue(
+						"event_pass",
+						await getConstantValue("event_pass"),
+					),
+				)
 			: 0;
 
 		// If to-do point is implemented, then no need to check for skips here.
@@ -442,5 +471,119 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 				eventPassSelected: data.eventPassSelected,
 				totalAmount,
 			};
+		});
+	});
+
+const SwapWorkshopInputSchema = z.object({
+	userId: z.string().min(1),
+	fromWorkshopId: z.number().int().positive(),
+	toWorkshopId: z.number().int().positive(),
+});
+
+export const swapWorkshop = createServerFn({ method: "POST" })
+	.inputValidator(SwapWorkshopInputSchema)
+	.handler(async ({ data }) => {
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
+
+		if (data.fromWorkshopId === data.toWorkshopId) {
+			throw new Error("Cannot swap a workshop with itself");
+		}
+
+		return db.transaction(async (transaction) => {
+			const [userRegistrationForFromWorkshop] = await transaction
+				.select({ id: registrations.id })
+				.from(registrations)
+				.where(
+					and(
+						eq(registrations.userId, data.userId),
+						eq(registrations.workshopId, data.fromWorkshopId),
+					),
+				)
+				.limit(1);
+
+			if (!userRegistrationForFromWorkshop) {
+				throw new Error("User is not registered for the workshop to swap from");
+			}
+
+			const [userRegistrationForToWorkshop] = await transaction
+				.select({ id: registrations.id })
+				.from(registrations)
+				.where(
+					and(
+						eq(registrations.userId, data.userId),
+						eq(registrations.workshopId, data.toWorkshopId),
+					),
+				)
+				.limit(1);
+
+			if (userRegistrationForToWorkshop) {
+				throw new Error("User is already registered for the target workshop");
+			}
+
+			const workshopRows = await transaction
+				.select({
+					id: workshops.id,
+					price: workshops.price,
+				})
+				.from(workshops)
+				.where(inArray(workshops.id, [data.fromWorkshopId, data.toWorkshopId]));
+
+			if (workshopRows.length !== 2) {
+				throw new Error("One or both workshops were not found");
+			}
+
+			const fromWorkshop = workshopRows.find(
+				(w) => w.id === data.fromWorkshopId,
+			);
+			const toWorkshop = workshopRows.find((w) => w.id === data.toWorkshopId);
+
+			if (!fromWorkshop || !toWorkshop) {
+				throw new Error("Could not resolve workshop details properly");
+			}
+
+			const fromWorkshopPrice = parseOnspotPrice(
+				parseWorkshopPrice(fromWorkshop.id, fromWorkshop.price),
+			);
+			const toWorkshopPrice = parseOnspotPrice(
+				parseWorkshopPrice(toWorkshop.id, toWorkshop.price),
+			);
+
+			if (fromWorkshopPrice !== toWorkshopPrice) {
+				throw new Error(
+					"Workshop prices do not match. Only equal priced workshops can be swapped.",
+				);
+			}
+
+			await transaction
+				.update(registrations)
+				.set({ workshopId: data.toWorkshopId })
+				.where(
+					and(
+						eq(registrations.userId, data.userId),
+						eq(registrations.workshopId, data.fromWorkshopId),
+					),
+				);
+
+			await transaction
+				.update(payments)
+				.set({ workshopId: data.toWorkshopId })
+				.where(
+					and(
+						eq(payments.userId, data.userId),
+						eq(payments.workshopId, data.fromWorkshopId),
+					),
+				);
+
+			await transaction
+				.update(onspotPayments)
+				.set({ workshopId: data.toWorkshopId })
+				.where(
+					and(
+						eq(onspotPayments.userId, data.userId),
+						eq(onspotPayments.workshopId, data.fromWorkshopId),
+					),
+				);
+
+			return { success: true };
 		});
 	});

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/master/download/")({
 					.where(eq(user.id, session.user.id))
 					.limit(1);
 
-				if (!dbUser?.role || !["MASTER", "ADMIN"].includes(dbUser.role)) {
+				if (!dbUser?.role || !["MASTER", "ADMIN", "PR"].includes(dbUser.role)) {
 					return new Response("Forbidden", { status: 403 });
 				}
 
@@ -359,8 +359,86 @@ export const Route = createFileRoute("/api/master/download/")({
 					);
 				}
 
+				// ── type = accommodation ─────────────────────────────────────────
+				if (type === "accommodation") {
+					const { accommodation } = await import("@/db/schema");
+					const rows = await db
+						.select({
+							userId: user.id,
+							synergyId: customUser.synergyId,
+							email: user.email,
+							fullname: customUser.fullname,
+							phone: customUser.phone,
+							hostel: accommodation.hostelName,
+							floor: accommodation.floor,
+							nights: accommodation.nightsRequested,
+							fee: accommodation.accommodationFee,
+							deposit: accommodation.cautionDeposit,
+							checkedIn: accommodation.checkedInAt,
+							checkedOut: accommodation.checkedOutAt,
+						})
+						.from(accommodation)
+						.innerJoin(user, eq(accommodation.userId, user.id))
+						.leftJoin(customUser, eq(user.id, customUser.userId));
+
+					const ACCOMM_HEADERS = [
+						"Synergy ID",
+						"Email",
+						"Full Name",
+						"Phone",
+						"Hostel",
+						"Floor",
+						"Nights",
+						"Fee (Paise)",
+						"Deposit (Paise)",
+						"Checked In At",
+						"Checked Out At",
+					];
+
+					interface AccommTableRow {
+						synergyId: string | null;
+						email: string;
+						fullname: string | null;
+						phone: string | null;
+						hostel: string | null;
+						floor: string | null;
+						nights: number;
+						fee: number;
+						deposit: number;
+						checkedIn: Date | null;
+						checkedOut: Date | null;
+					}
+
+					const toAccommRow = (r: AccommTableRow) => [
+						r.synergyId ?? "",
+						r.email,
+						r.fullname ?? "",
+						r.phone ?? "",
+						r.hostel ?? "",
+						r.floor ?? "",
+						r.nights,
+						r.fee,
+						r.deposit,
+						r.checkedIn ? new Date(r.checkedIn).toLocaleString() : "",
+						r.checkedOut ? new Date(r.checkedOut).toLocaleString() : "",
+					];
+
+					return respond(
+						buildXlsx(
+							"Accommodation Data",
+							ACCOMM_HEADERS,
+							rows.map(toAccommRow),
+							[15, 30, 24, 14, 15, 15, 10, 12, 12, 25, 25].map((w) => ({
+								wch: w,
+							})),
+							"Accommodation",
+						),
+						"accommodation_data.xlsx",
+					);
+				}
+
 				return new Response(
-					"Invalid type. Use: users, event, workshop, inactive-users",
+					"Invalid type. Use: users, event, workshop, inactive-users, accommodation",
 					{ status: 400 },
 				);
 			},

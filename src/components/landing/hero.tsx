@@ -68,6 +68,15 @@ export default function Hero({
 					{user ? (
 						<>
 							<Link
+								to="/tickets"
+								className="group relative px-3 py-1 sm:px-10 sm:py-4 bg-[#00FFF9] hover:bg-[#00FFF9] text-black font-black text-sm sm:text-xl -skew-x-12 shadow-[5px_5px_0px_0px_rgba(255,221,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(255,46,99,1)] transition-all hover:translate-y-1 active:translate-y-2 overflow-hidden w-full sm:w-auto text-center"
+							>
+								<span className="relative z-10 block skew-x-12 uppercase">
+									My Tickets
+								</span>
+								<div className="absolute inset-0 bg-white/40 -translate-x-full group-hover:translate-x-full transition-transform duration-500 skew-x-12"></div>
+							</Link>
+							<Link
 								to="/profile"
 								className="group relative px-3 py-1 sm:px-10 sm:py-4 bg-[#FFDD00] hover:bg-[#FFDD00] text-black font-black text-sm sm:text-xl -skew-x-12 shadow-[5px_5px_0px_0px_rgba(255,46,99,1)] hover:shadow-[8px_8px_0px_0px_rgba(157,0,255,1)] transition-all hover:translate-y-1 active:translate-y-2 overflow-hidden w-full sm:w-auto text-center"
 							>

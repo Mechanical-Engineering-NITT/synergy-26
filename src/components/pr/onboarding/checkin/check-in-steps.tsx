@@ -16,7 +16,6 @@ export function Step1Accommodation({
 	state,
 	dispatch,
 	disabled,
-	mode,
 	createPending,
 	updatePending,
 }: StepProps) {
@@ -43,9 +42,7 @@ export function Step1Accommodation({
 								value: true,
 							})
 						}
-						disabled={
-							disabled || createPending || updatePending || mode === "edit"
-						}
+						disabled={disabled || createPending || updatePending}
 						className="accent-white"
 					/>
 					<span>Yes</span>
@@ -62,9 +59,7 @@ export function Step1Accommodation({
 								value: false,
 							})
 						}
-						disabled={
-							disabled || createPending || updatePending || mode === "edit"
-						}
+						disabled={disabled || createPending || updatePending}
 						className="accent-white"
 					/>
 					<span>No</span>
@@ -307,7 +302,7 @@ export function Step5Room({
 					onChange={(event) =>
 						dispatch({
 							type: "setHostelName",
-							value: event.target.value || null,
+							value: (event.target.value as (typeof HOSTELS)[number]) || null,
 						})
 					}
 					disabled={disabled || createPending || updatePending}
@@ -328,7 +323,10 @@ export function Step5Room({
 					id={floorInputId}
 					value={state.floor ?? ""}
 					onChange={(event) =>
-						dispatch({ type: "setFloor", value: event.target.value || null })
+						dispatch({
+							type: "setFloor",
+							value: (event.target.value as (typeof FLOORS)[number]) || null,
+						})
 					}
 					disabled={disabled || createPending || updatePending}
 					className="w-full rounded-[10px] border border-[#222222] bg-[#0f0f0f] px-3 py-2 text-[#fafafa] transition-all duration-200"

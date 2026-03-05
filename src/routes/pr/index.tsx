@@ -5,8 +5,6 @@ import {
 	CreditCard,
 	DoorOpen,
 	Hash,
-	Mail,
-	Phone,
 	RefreshCw,
 	Settings,
 	User,
@@ -18,6 +16,7 @@ import { OnspotRegistrationModal } from "@/components/pr/onspot/onspot-registrat
 import { PrUserDetailsModal } from "@/components/pr/pr-details-modal";
 import { PrUsersPagination } from "@/components/pr/pr-pagination";
 import { PrUserSearchBar } from "@/components/pr/pr-search-bar";
+import { SwapWorkshopsModal } from "@/components/pr/swap-workshops-modal";
 import { requireAdminUser } from "@/lib/utils";
 import { getPrUserDetails, getPrUsers } from "@/server/admin/admin.pr";
 
@@ -55,6 +54,9 @@ function RouteComponent() {
 		string | null
 	>(null);
 	const [selectedOnspotUserId, setSelectedOnspotUserId] = useState<
+		string | null
+	>(null);
+	const [selectedSwapWorkshopUserId, setSelectedSwapWorkshopUserId] = useState<
 		string | null
 	>(null);
 	const [activeTab, setActiveTab] = useState("profile");
@@ -323,36 +325,6 @@ function RouteComponent() {
 										}}
 									>
 										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
-											<Mail size={14} className="text-[#71717a]" />
-											EMAIL
-										</div>
-									</th>
-									<th
-										className="px-3 py-3 text-left"
-										style={{
-											color: "#71717a",
-											textTransform: "uppercase",
-											fontSize: "12px",
-											letterSpacing: "0.05em",
-											fontWeight: 500,
-										}}
-									>
-										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
-											<Phone size={14} className="text-[#71717a]" />
-											PHONE
-										</div>
-									</th>
-									<th
-										className="px-3 py-3 text-left"
-										style={{
-											color: "#71717a",
-											textTransform: "uppercase",
-											fontSize: "12px",
-											letterSpacing: "0.05em",
-											fontWeight: 500,
-										}}
-									>
-										<div className="flex items-center gap-2 text-xs tracking-wide text-[#71717a]">
 											<Calendar size={14} className="text-[#71717a]" />
 											EVENTS
 										</div>
@@ -420,10 +392,6 @@ function RouteComponent() {
 										</td>
 										<td className="px-3 py-2 whitespace-nowrap">
 											{row.fullname ?? "-"}
-										</td>
-										<td className="px-3 py-2 whitespace-nowrap">{row.email}</td>
-										<td className="px-3 py-2 whitespace-nowrap">
-											{row.phone ?? "-"}
 										</td>
 										<td className="px-3 py-2 whitespace-nowrap">
 											{row.totalEvents}
@@ -500,6 +468,26 @@ function RouteComponent() {
 													/>
 													Onspot Registration
 												</button>
+												<button
+													type="button"
+													onClick={() => setSelectedSwapWorkshopUserId(row.id)}
+													className="inline-flex items-center text-sm"
+													style={{
+														backgroundColor: "transparent",
+														color: "#fafafa",
+														borderRadius: "8px",
+														padding: "6px 12px",
+														border: "1px solid #2a2a2a",
+														transition: "all 0.2s ease",
+													}}
+												>
+													<RefreshCw
+														size={16}
+														strokeWidth={1.5}
+														style={{ marginRight: 6 }}
+													/>
+													Swap Workshops
+												</button>
 											</div>
 										</td>
 									</tr>
@@ -556,6 +544,13 @@ function RouteComponent() {
 				userId={selectedOnspotUserId}
 				onClose={() => setSelectedOnspotUserId(null)}
 				onRegistrationComplete={handleOnspotRegistrationComplete}
+			/>
+
+			<SwapWorkshopsModal
+				open={Boolean(selectedSwapWorkshopUserId)}
+				userId={selectedSwapWorkshopUserId}
+				onClose={() => setSelectedSwapWorkshopUserId(null)}
+				onSwapComplete={handleOnspotRegistrationComplete}
 			/>
 		</div>
 	);

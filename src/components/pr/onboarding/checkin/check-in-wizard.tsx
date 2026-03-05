@@ -69,6 +69,7 @@ export function CheckInWizard({
 			updateStay({
 				data: {
 					userId,
+					accommodationRequired: state.accommodationRequired === true,
 					nightsRequested:
 						state.accommodationRequired === true ? state.nightsRequested : 0,
 					hostelName: state.hostelName,
@@ -129,7 +130,10 @@ export function CheckInWizard({
 		enabled: state.accommodationRequired === true,
 	});
 
-	const depositAmount = pricingPreview?.depositAmount ?? 0;
+	const depositAmount =
+		state.accommodationRequired === true
+			? (pricingPreview?.depositAmount ?? 0)
+			: 0;
 	const previewTotal =
 		state.accommodationRequired === true ? state.accommodationPreviewTotal : 0;
 	const totalPayable = previewTotal + depositAmount;

@@ -55,3 +55,7 @@ export const parseWorkshopPrice = (workshopId: number, value: string) => {
 
 	return parsedValue;
 };
+
+export const parseOnspotPrice = (priceWithFee: number) => {
+	return Math.round(priceWithFee / 1.0242);
+};

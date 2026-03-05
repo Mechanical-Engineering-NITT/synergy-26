@@ -20,6 +20,8 @@ import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as PrIndexRouteImport } from './routes/pr/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as PrStatusRouteImport } from './routes/pr/status'
+import { Route as PrGajanaRouteImport } from './routes/pr/gajana'
 import { Route as MasterUsersRouteImport } from './routes/master/users'
 import { Route as MasterInactiveUsersRouteImport } from './routes/master/inactive-users'
 import { Route as MasterWorkshopsIndexRouteImport } from './routes/master/workshops/index'
@@ -86,6 +88,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrStatusRoute = PrStatusRouteImport.update({
+  id: '/pr/status',
+  path: '/pr/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrGajanaRoute = PrGajanaRouteImport.update({
+  id: '/pr/gajana',
+  path: '/pr/gajana',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MasterUsersRoute = MasterUsersRouteImport.update({
   id: '/master/users',
   path: '/master/users',
@@ -144,6 +156,8 @@ export interface FileRoutesByFullPath {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
+  '/pr/gajana': typeof PrGajanaRoute
+  '/pr/status': typeof PrStatusRoute
   '/admin': typeof AdminIndexRoute
   '/master': typeof MasterIndexRoute
   '/pr': typeof PrIndexRoute
@@ -167,6 +181,8 @@ export interface FileRoutesByTo {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
+  '/pr/gajana': typeof PrGajanaRoute
+  '/pr/status': typeof PrStatusRoute
   '/admin': typeof AdminIndexRoute
   '/master': typeof MasterIndexRoute
   '/pr': typeof PrIndexRoute
@@ -191,6 +207,8 @@ export interface FileRoutesById {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/master/inactive-users': typeof MasterInactiveUsersRoute
   '/master/users': typeof MasterUsersRoute
+  '/pr/gajana': typeof PrGajanaRoute
+  '/pr/status': typeof PrStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/master/': typeof MasterIndexRoute
   '/pr/': typeof PrIndexRoute
@@ -216,6 +234,8 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/master/inactive-users'
     | '/master/users'
+    | '/pr/gajana'
+    | '/pr/status'
     | '/admin'
     | '/master'
     | '/pr'
@@ -239,6 +259,8 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/master/inactive-users'
     | '/master/users'
+    | '/pr/gajana'
+    | '/pr/status'
     | '/admin'
     | '/master'
     | '/pr'
@@ -262,6 +284,8 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/master/inactive-users'
     | '/master/users'
+    | '/pr/gajana'
+    | '/pr/status'
     | '/admin/'
     | '/master/'
     | '/pr/'
@@ -286,6 +310,8 @@ export interface RootRouteChildren {
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   MasterInactiveUsersRoute: typeof MasterInactiveUsersRoute
   MasterUsersRoute: typeof MasterUsersRoute
+  PrGajanaRoute: typeof PrGajanaRoute
+  PrStatusRoute: typeof PrStatusRoute
   AdminIndexRoute: typeof AdminIndexRoute
   MasterIndexRoute: typeof MasterIndexRoute
   PrIndexRoute: typeof PrIndexRoute
@@ -382,6 +408,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pr/status': {
+      id: '/pr/status'
+      path: '/pr/status'
+      fullPath: '/pr/status'
+      preLoaderRoute: typeof PrStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pr/gajana': {
+      id: '/pr/gajana'
+      path: '/pr/gajana'
+      fullPath: '/pr/gajana'
+      preLoaderRoute: typeof PrGajanaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/master/users': {
       id: '/master/users'
       path: '/master/users'
@@ -462,6 +502,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsAndConditionsRoute: TermsAndConditionsRoute,
   MasterInactiveUsersRoute: MasterInactiveUsersRoute,
   MasterUsersRoute: MasterUsersRoute,
+  PrGajanaRoute: PrGajanaRoute,
+  PrStatusRoute: PrStatusRoute,
   AdminIndexRoute: AdminIndexRoute,
   MasterIndexRoute: MasterIndexRoute,
   PrIndexRoute: PrIndexRoute,

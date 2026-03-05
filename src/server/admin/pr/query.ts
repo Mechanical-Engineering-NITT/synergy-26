@@ -1,12 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@/db";
-import { accommodation, registrations, workshops } from "@/db/schema";
+import {
+	accommodation,
+	customUser,
+	onspotPayments,
+	registrations,
+	workshops,
+} from "@/db/schema";
 import { requireAdminUser } from "@/lib/utils";
 import {
 	getAccommodationPricing,
 	parseCurrencyValue,
+	parseOnspotPrice,
 	parseWorkshopPrice,
 } from "@/server/admin/pr/utils";
 import { getConstantValue } from "@/server/constants";
@@ -205,9 +212,13 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 			workshops: workshopRows.map((workshopEntry) => ({
 				id: workshopEntry.id,
 				title: workshopEntry.title,
-				price: parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
+				price: parseOnspotPrice(
+					parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
+				),
 			})),
-			eventPassPrice: parseCurrencyValue("event_pass", eventPassValue),
+			eventPassPrice: parseOnspotPrice(
+				parseCurrencyValue("event_pass", eventPassValue),
+			),
 			existingWorkshopRegistrations,
 			hasEventPass: userHasEventPass,
 		};
@@ -235,9 +246,8 @@ export const calculateOnspotAmount = createServerFn({ method: "POST" })
 
 			const workshopPrices = workshopRows.reduce<Record<number, number>>(
 				(accumulator, workshopEntry) => {
-					accumulator[workshopEntry.id] = parseWorkshopPrice(
-						workshopEntry.id,
-						workshopEntry.price,
+					accumulator[workshopEntry.id] = parseOnspotPrice(
+						parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
 					);
 					return accumulator;
 				},
@@ -253,7 +263,196 @@ export const calculateOnspotAmount = createServerFn({ method: "POST" })
 		}
 
 		const eventPassValue = await getConstantValue("event_pass");
-		const eventPassPrice = parseCurrencyValue("event_pass", eventPassValue);
+		const eventPassPrice = parseOnspotPrice(
+			parseCurrencyValue("event_pass", eventPassValue),
+		);
 
 		return { totalAmount: eventPassPrice };
 	});
+
+const GetSwapWorkshopOptionsInputSchema = z.object({
+	userId: z.string().min(1),
+});
+
+export const getSwapWorkshopOptions = createServerFn({ method: "GET" })
+	.inputValidator(GetSwapWorkshopOptionsInputSchema)
+	.handler(async ({ data }) => {
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
+
+		const [workshopRows, existingWorkshopRegistrationRows] = await Promise.all([
+			db
+				.select({
+					id: workshops.id,
+					title: workshops.title,
+					price: workshops.price,
+				})
+				.from(workshops),
+			db
+				.select({ workshopId: registrations.workshopId })
+				.from(registrations)
+				.where(
+					and(
+						eq(registrations.userId, data.userId),
+						isNotNull(registrations.workshopId),
+					),
+				),
+		]);
+
+		const existingWorkshopRegistrations = Array.from(
+			new Set(
+				existingWorkshopRegistrationRows
+					.map((registrationEntry) => registrationEntry.workshopId)
+					.filter((workshopId): workshopId is number => workshopId !== null),
+			),
+		).sort((leftValue, rightValue) => leftValue - rightValue);
+
+		return {
+			workshops: workshopRows.map((workshopEntry) => ({
+				id: workshopEntry.id,
+				title: workshopEntry.title,
+				price: parseOnspotPrice(
+					parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
+				),
+			})),
+			existingWorkshopRegistrations,
+		};
+	});
+
+export interface GajanaTransaction {
+	id: string | number;
+	userId: string;
+	synergyId: string | null;
+	fullname: string | null;
+	phone: string | null;
+	amount: number;
+	type: string;
+	createdAt: Date | string | null;
+}
+
+export const getGajanaData = createServerFn({ method: "GET" }).handler(
+	async () => {
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
+
+		try {
+			// Query 1: Accommodation Fees
+			const accommRows = await db
+				.select({
+					id: accommodation.id,
+					userId: accommodation.userId,
+					synergyId: customUser.synergyId,
+					fullname: customUser.fullname,
+					phone: customUser.phone,
+					amount: accommodation.accommodationFee,
+					type: sql<string>`'ACCOMMODATION_FEE'`,
+					createdAt: accommodation.createdAt,
+				})
+				.from(accommodation)
+				.leftJoin(customUser, eq(customUser.userId, accommodation.userId))
+				.where(
+					sql`${accommodation.accommodationRequired} = true AND ${accommodation.accommodationFee} > 0`,
+				);
+
+			// Query 2: Caution Deposit (Initial Payment)
+			const depositRows = await db
+				.select({
+					id: accommodation.id,
+					userId: accommodation.userId,
+					synergyId: customUser.synergyId,
+					fullname: customUser.fullname,
+					phone: customUser.phone,
+					amount: accommodation.cautionDeposit,
+					type: sql<string>`'CAUTION_DEPOSIT'`,
+					createdAt: accommodation.checkedInAt,
+				})
+				.from(accommodation)
+				.leftJoin(customUser, eq(customUser.userId, accommodation.userId))
+				.where(
+					sql`${accommodation.accommodationRequired} = true AND ${accommodation.cautionDeposit} > 0`,
+				);
+
+			// Query 2.1: Caution Deposit (Returned)
+			const returnedDepositRows = await db
+				.select({
+					id: accommodation.id,
+					userId: accommodation.userId,
+					synergyId: customUser.synergyId,
+					fullname: customUser.fullname,
+					phone: customUser.phone,
+					amount: sql<number>`-${accommodation.cautionDeposit}`,
+					type: sql<string>`'CAUTION_RETURNED'`,
+					createdAt: accommodation.checkedOutAt,
+				})
+				.from(accommodation)
+				.leftJoin(customUser, eq(customUser.userId, accommodation.userId))
+				.where(
+					sql`${accommodation.accommodationRequired} = true AND ${accommodation.cautionReturned} = true AND ${accommodation.checkedOutAt} IS NOT NULL`,
+				);
+
+			// Query 3: Onspot Payments
+			const onspotRows = await db
+				.select({
+					id: onspotPayments.id,
+					userId: onspotPayments.userId,
+					synergyId: customUser.synergyId,
+					fullname: customUser.fullname,
+					phone: customUser.phone,
+					amount: onspotPayments.amount,
+					type: sql<string>`CASE WHEN ${onspotPayments.isEventPass} THEN 'ONSPOT_EVENT_PASS' ELSE 'ONSPOT_WORKSHOP' END`,
+					createdAt: onspotPayments.createdAt,
+				})
+				.from(onspotPayments)
+				.leftJoin(customUser, eq(customUser.userId, onspotPayments.userId));
+
+			const allTransactions: GajanaTransaction[] = [
+				...accommRows.map((r) => ({ ...r, amount: Number(r.amount) })),
+				...depositRows.map((r) => ({ ...r, amount: Number(r.amount) })),
+				...returnedDepositRows.map((r) => ({ ...r, amount: Number(r.amount) })),
+				...onspotRows.map((r) => ({ ...r, amount: Number(r.amount) })),
+			].sort((a, b) => {
+				const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+				const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+				return timeB - timeA;
+			});
+
+			const totalAmount = allTransactions.reduce(
+				(acc, curr) => acc + curr.amount,
+				0,
+			);
+
+			return {
+				data: {
+					totalAmount,
+					rows: allTransactions,
+				},
+			};
+		} catch (e) {
+			console.error("Failed to fetch Gajana data:", e);
+			throw new Error("Failed to fetch Gajana data");
+		}
+	},
+);
+
+export const getHostelStats = createServerFn({ method: "GET" }).handler(
+	async () => {
+		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
+
+		const stats = await db
+			.select({
+				hostelName: accommodation.hostelName,
+				floor: accommodation.floor,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(accommodation)
+			.where(
+				and(
+					isNotNull(accommodation.checkedInAt),
+					isNull(accommodation.checkedOutAt),
+					isNotNull(accommodation.hostelName),
+					isNotNull(accommodation.floor),
+				),
+			)
+			.groupBy(accommodation.hostelName, accommodation.floor);
+
+		return stats;
+	},
+);

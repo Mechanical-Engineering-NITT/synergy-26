@@ -21,10 +21,8 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 			const usersRows = await db
 				.select({
 					id: user.id,
-					email: user.email,
 					synergyId: customUser.synergyId,
 					fullname: customUser.fullname,
-					phone: customUser.phone,
 				})
 				.from(user)
 				.leftJoin(customUser, eq(customUser.userId, user.id))
@@ -106,10 +104,8 @@ export const getPrUsers = createServerFn({ method: "GET" }).handler(
 				data: {
 					rows: usersRows.map((currentUser) => ({
 						id: currentUser.id,
-						email: currentUser.email,
 						synergyId: currentUser.synergyId,
 						fullname: currentUser.fullname,
-						phone: currentUser.phone,
 						totalEvents: eventAggMap.get(currentUser.id) ?? 0,
 						totalWorkshops: workshopAggMap.get(currentUser.id) ?? 0,
 						totalPaidAmount:
