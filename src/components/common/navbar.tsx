@@ -5,16 +5,21 @@ import { authClient } from "@/lib/auth-client";
 
 export default function Navbar({
 	user,
+	isFixed = true,
 }: {
 	user: {
 		id: string;
 		email: string;
 		name: string;
 	} | null;
+	isFixed?: boolean;
 }) {
 	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
+	const navPositionClass = isFixed
+		? "fixed top-0 left-0 right-0 z-100"
+		: "relative z-100";
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -48,7 +53,7 @@ export default function Navbar({
 
 	return (
 		<nav
-			className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 ${
+			className={`${navPositionClass} transition-all duration-300 ${
 				scrolled || isOpen
 					? "bg-[#090521]/40 backdrop-blur-xl border-b border-white/10 py-1"
 					: "bg-transparent py-3"

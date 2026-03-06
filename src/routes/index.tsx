@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import ContactBadge from "@/components/common/contact-badge";
 import Footer from "@/components/common/footer";
 import Navbar from "@/components/common/navbar";
+import RegistrationAnnouncement from "@/components/home/registration-announcement";
 import About from "@/components/landing/about";
 import AccommodationSection from "@/components/landing/accommodation";
 import Events from "@/components/landing/events";
@@ -29,7 +30,10 @@ function App() {
 	const data = Route.useLoaderData();
 	return (
 		<div className="min-h-screen flex flex-col">
-			<Navbar user={data.session?.user ?? null} />
+			<div className="fixed top-0 left-0 right-0 z-100">
+				<Navbar user={data.session?.user ?? null} isFixed={false} />
+				<RegistrationAnnouncement />
+			</div>
 			<Hero user={data.profile ?? null} />
 
 			<div className="relative bg-[#090521]">
