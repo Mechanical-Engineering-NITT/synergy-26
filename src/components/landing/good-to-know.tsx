@@ -41,23 +41,9 @@ export default function GoodToKnow() {
 								<span>Meals:</span>
 								<span className="text-white">Rs. 50</span>
 							</p>
-							<p className="flex justify-between border-b border-white/5 pb-1 text-sm">
-								<span>Name:</span>
-								<span className="text-white">F Mess</span>
+							<p className="flex border-b border-white/5 pb-1 text-sm justify-center">
+								<span className="text-white">ALL MESSES</span>
 							</p>
-							<div className="space-y-1">
-								<p className="text-[10px] text-gray-400">Landmark:</p>
-								<p className="text-white text-xs">Turn Right from Bru Stall</p>
-							</div>
-							<a
-								href="https://maps.app.goo.gl/FrkmjKAKgacDqErP6"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-[#9D00FF]/10 border border-[#9D00FF]/30 text-[#9D00FF] hover:bg-[#9D00FF] hover:text-white transition-all duration-300 font-black text-[10px] tracking-[0.2em]"
-							>
-								<MapPin className="w-3 h-3" />
-								VIEW MAPS
-							</a>
 						</div>
 					</div>
 
@@ -91,6 +77,10 @@ export default function GoodToKnow() {
 								{
 									name: "Opal A",
 									url: "https://maps.app.goo.gl/qyJZRUM1tjEu3JRLA",
+								},
+								{
+									name: "Garnet C",
+									url: "https://maps.app.goo.gl/a4Ravsjhmj5rK8ZP7",
 								},
 							].map((hostel) => (
 								<a

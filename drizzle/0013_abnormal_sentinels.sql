@@ -1,0 +1,1 @@
+ALTER TYPE "public"."hostel_enum" ADD VALUE 'Garnet C';

@@ -1,4 +1,10 @@
-export const HOSTELS = ["Zircon A", "Zircon B", "Zircon C", "Opal A"] as const;
+export const HOSTELS = [
+	"Zircon A",
+	"Zircon B",
+	"Zircon C",
+	"Opal A",
+	"Garnet C",
+] as const;
 
 export const FLOORS = [
 	"Ground Floor",
