@@ -78,6 +78,10 @@ export default function GoodToKnow() {
 									name: "Opal A",
 									url: "https://maps.app.goo.gl/qyJZRUM1tjEu3JRLA",
 								},
+								{
+									name: "Garnet C",
+									url: "https://maps.app.goo.gl/a4Ravsjhmj5rK8ZP7",
+								},
 							].map((hostel) => (
 								<a
 									key={hostel.name}
