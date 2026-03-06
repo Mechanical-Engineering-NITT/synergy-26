@@ -1,7 +1,12 @@
 import { AlertTriangle, Bed, ShieldCheck } from "lucide-react";
 import type { Dispatch } from "react";
 import { FLOORS, HOSTELS } from "@/lib/constants";
-import type { CheckInAction, CheckInMode, CheckInState } from "../types";
+import type {
+	CheckInAction,
+	CheckInMode,
+	CheckInState,
+	StayFullDetails,
+} from "../types";
 
 type StepProps = {
 	state: CheckInState;
@@ -12,13 +17,18 @@ type StepProps = {
 	updatePending: boolean;
 };
 
+type Step1AccommodationProps = StepProps & {
+	staySnapshot: StayFullDetails;
+};
+
 export function Step1Accommodation({
 	state,
 	dispatch,
 	disabled,
 	createPending,
 	updatePending,
-}: StepProps) {
+	staySnapshot,
+}: Step1AccommodationProps) {
 	return (
 		<div className="space-y-2 rounded-2xl border border-[#222222] bg-[#141414] p-5 transition-all duration-200">
 			<p className="inline-flex items-center text-base font-medium text-[#fafafa]">
@@ -40,6 +50,7 @@ export function Step1Accommodation({
 							dispatch({
 								type: "setAccommodationRequired",
 								value: true,
+								staySnapshot,
 							})
 						}
 						disabled={disabled || createPending || updatePending}
@@ -57,6 +68,7 @@ export function Step1Accommodation({
 							dispatch({
 								type: "setAccommodationRequired",
 								value: false,
+								staySnapshot,
 							})
 						}
 						disabled={disabled || createPending || updatePending}
@@ -215,7 +227,18 @@ export function Step4Deposit({
 	createPending,
 	updatePending,
 	depositAmount,
-}: StepProps & { depositAmount: number }) {
+	isDepositAlreadyPaid,
+	originalDepositAmount,
+}: StepProps & {
+	depositAmount: number;
+	isDepositAlreadyPaid: boolean;
+	originalDepositAmount: number;
+}) {
+	const showAlreadyPaidBanner = mode === "edit" && isDepositAlreadyPaid;
+	const displayedDepositAmount = showAlreadyPaidBanner
+		? originalDepositAmount
+		: depositAmount;
+
 	return (
 		<div className="space-y-6 rounded-2xl border border-[#222222] bg-[#141414] p-5 transition-all duration-200">
 			<p className="inline-flex items-center text-base font-medium text-[#fafafa]">
@@ -228,14 +251,14 @@ export function Step4Deposit({
 				4. Deposit verification
 			</p>
 
-			{mode === "edit" ? (
+			{showAlreadyPaidBanner ? (
 				<div className="space-y-3 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
 					<div className="text-sm font-medium">Caution Deposit Status</div>
 					<div className="text-xs text-[#71717a]">
 						Deposit was verified during check-in.
 					</div>
 					<div className="border-l-[3px] border-l-[#22c55e] pl-2 text-base font-semibold text-[#22c55e]">
-						₹{depositAmount} — Already Paid
+						₹{displayedDepositAmount} — Already Paid
 					</div>
 				</div>
 			) : (
@@ -243,7 +266,7 @@ export function Step4Deposit({
 					<div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
 						<p className="text-sm text-[#22c55e]">Caution Deposit Amount</p>
 						<p className="text-[28px] font-bold text-[#fafafa]">
-							₹{depositAmount}
+							₹{displayedDepositAmount}
 						</p>
 					</div>
 

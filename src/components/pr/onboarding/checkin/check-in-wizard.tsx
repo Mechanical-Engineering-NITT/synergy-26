@@ -100,14 +100,7 @@ export function CheckInWizard({
 
 		dispatch({
 			type: "INITIALIZE_FROM_STAY",
-			payload: {
-				accommodationRequired: stay.accommodationRequired,
-				nightsRequested: stay.nightsRequested,
-				accommodationFee: stay.accommodationFee,
-				paymentVerified: stay.paymentVerified,
-				hostelName: stay.hostelName,
-				floor: stay.floor,
-			},
+			payload: stay,
 		});
 	}, [stay]);
 
@@ -138,7 +131,12 @@ export function CheckInWizard({
 		state.accommodationRequired === true ? state.accommodationPreviewTotal : 0;
 	const totalPayable = previewTotal + depositAmount;
 	const isFeeUnchanged =
-		mode === "edit" && state.nightsRequested === state.originalNightsRequested;
+		mode === "edit" &&
+		stay.accommodationRequired &&
+		state.accommodationRequired === true &&
+		state.nightsRequested === state.originalNightsRequested;
+	const isDepositAlreadyPaid =
+		mode === "edit" && stay.accommodationRequired && stay.cautionDeposit > 0;
 
 	const isRoomAllotmentValid = isCheckInRoomAllotmentValid(state);
 
@@ -154,7 +152,7 @@ export function CheckInWizard({
 		return (
 			state.nightsRequested > 0 &&
 			state.paymentVerified === true &&
-			(mode === "edit" || state.depositVerified === true) &&
+			(isDepositAlreadyPaid || state.depositVerified === true) &&
 			state.roomPrice > 0 &&
 			state.accommodationPreviewTotal > 0 &&
 			isRoomAllotmentValid
@@ -171,7 +169,7 @@ export function CheckInWizard({
 						? true
 						: state.paymentVerified
 					: state.step === 4
-						? mode === "edit"
+						? isDepositAlreadyPaid
 							? true
 							: state.depositVerified
 						: state.step === 5
@@ -283,6 +281,7 @@ export function CheckInWizard({
 					<Step1Accommodation
 						state={state}
 						dispatch={dispatch}
+						staySnapshot={stay}
 						disabled={disabled}
 						mode={mode}
 						createPending={createStayMutation.isPending}
@@ -324,6 +323,8 @@ export function CheckInWizard({
 						createPending={createStayMutation.isPending}
 						updatePending={updateStayMutation.isPending}
 						depositAmount={depositAmount}
+						isDepositAlreadyPaid={isDepositAlreadyPaid}
+						originalDepositAmount={stay.cautionDeposit}
 					/>
 				) : null}
 

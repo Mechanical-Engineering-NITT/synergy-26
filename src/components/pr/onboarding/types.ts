@@ -49,16 +49,13 @@ export type CheckOutState = {
 export type CheckInAction =
 	| {
 			type: "INITIALIZE_FROM_STAY";
-			payload: {
-				accommodationRequired: boolean;
-				nightsRequested: number;
-				accommodationFee: number;
-				paymentVerified: boolean;
-				hostelName: HostelType | null;
-				floor: FloorType | null;
-			};
+			payload: StayFullDetails;
 	  }
-	| { type: "setAccommodationRequired"; value: boolean | null }
+	| {
+			type: "setAccommodationRequired";
+			value: boolean | null;
+			staySnapshot: StayFullDetails;
+	  }
 	| { type: "setNightsRequested"; value: number }
 	| { type: "setPaymentVerified"; value: boolean }
 	| { type: "setDepositVerified"; value: boolean }
