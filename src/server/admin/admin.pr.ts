@@ -231,7 +231,10 @@ export const getPrUserDetails = createServerFn({ method: "GET" })
 					events: eventRegistrations,
 					workshops: workshopRegistrations,
 					onlinePayments: onlinePaymentRows,
-					onspotPayments: onspotPaymentRows,
+					onspotPayments: onspotPaymentRows.map((paymentRow) => ({
+						...paymentRow,
+						status: "Paid",
+					})),
 				},
 			};
 		} catch {

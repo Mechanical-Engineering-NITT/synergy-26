@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+
 export function SimpleDetailsTable({
 	headers,
 	rows,
 	emptyLabel,
 }: {
 	headers: string[];
-	rows: Array<Array<string | number>>;
+	rows: Array<Array<ReactNode>>;
 	emptyLabel: string;
 }) {
 	if (rows.length === 0) {
@@ -58,9 +60,17 @@ export function SimpleDetailsTable({
 						</tr>
 					</thead>
 					<tbody>
-						{rows.map((row, rowIndex) => (
+						{rows.map((row) => (
 							<tr
-								key={`${rowIndex}-${row.map((value) => String(value)).join("|")}`}
+								key={`row-${row
+									.map((cell, cellIndex) => {
+										if (typeof cell === "string" || typeof cell === "number") {
+											return String(cell);
+										}
+
+										return `node-${cellIndex}`;
+									})
+									.join("|")}`}
 								className="border-t hover:bg-[#1a1a1a]"
 								style={{
 									borderColor: "#222222",
@@ -70,10 +80,10 @@ export function SimpleDetailsTable({
 							>
 								{row.map((cell, cellIndex) => (
 									<td
-										key={`${headers[cellIndex] ?? "col"}-${String(cell)}`}
+										key={`${headers[cellIndex] ?? "col"}-${cellIndex}`}
 										className="px-3 py-2 whitespace-nowrap"
 									>
-										{String(cell)}
+										{cell}
 									</td>
 								))}
 							</tr>
