@@ -147,6 +147,8 @@ export const createOrder = createServerFn({ method: "POST" })
 				.where(eq(workshops.id, parsedData.workshopId))
 				.limit(1);
 			if (!workshop) throw new Error("Workshop not found");
+			if (workshop.isDisabled)
+				throw new Error("Registration is disabled for this workshop");
 			expectedAmountPaise = Number(workshop.price) * 100;
 		} else {
 			throw new Error("Invalid order type");

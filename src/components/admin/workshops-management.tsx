@@ -72,6 +72,18 @@ export function WorkshopsManagement() {
 												<span className="font-semibold">Price:</span>{" "}
 												{workshop.price}
 											</p>
+											<p className="col-span-2 flex items-center gap-2">
+												<span className="font-semibold">Status:</span>
+												{workshop.isDisabled ? (
+													<span className="px-2 py-0.5 bg-gray-700 text-gray-200 rounded text-xs font-medium">
+														Registration Disabled
+													</span>
+												) : (
+													<span className="px-2 py-0.5 bg-green-700 text-green-100 rounded text-xs font-medium">
+														Registration Open
+													</span>
+												)}
+											</p>
 										</div>
 										<div className="flex gap-2 mt-4">
 											<button

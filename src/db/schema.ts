@@ -62,6 +62,7 @@ export const workshops = pgTable("workshops", {
 	time: text("time").notNull(),
 	location: text("location").notNull(),
 	price: text("price").notNull(),
+	isDisabled: boolean("is_disabled").notNull().default(false),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 

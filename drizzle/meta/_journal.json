@@ -99,6 +99,13 @@
       "when": 1772770176390,
       "tag": "0013_abnormal_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1772945287918,
+      "tag": "0014_red_zaladane",
+      "breakpoints": true
     }
   ]
 }

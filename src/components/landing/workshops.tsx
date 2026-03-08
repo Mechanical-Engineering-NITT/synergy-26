@@ -18,6 +18,7 @@ interface Workshop {
 	location: string;
 	price: string;
 	isRegistered: boolean;
+	isDisabled: boolean;
 }
 
 export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
@@ -204,16 +205,22 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 															setDialogMode("register");
 															setSelectedWorkshop(workshop);
 														}}
-														disabled={workshop.isRegistered}
+														disabled={
+															workshop.isRegistered || workshop.isDisabled
+														}
 														className={`w-full py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 -skew-x-6 flex items-center justify-center gap-2
                                              ${
-																								workshop.isRegistered
-																									? "bg-[#9D00FF]/20 text-[#FFDD00] border border-[#9D00FF]/50"
-																									: "bg-[#FFDD00] text-black hover:bg-[#FFDD00] shadow-[4px_4px_0px_0px_rgba(157,0,255,1)] hover:translate-x-0.5 hover:translate-y-0.5"
+																								workshop.isDisabled
+																									? "bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed"
+																									: workshop.isRegistered
+																										? "bg-[#9D00FF]/20 text-[#FFDD00] border border-[#9D00FF]/50"
+																										: "bg-[#FFDD00] text-black hover:bg-[#FFDD00] shadow-[4px_4px_0px_0px_rgba(157,0,255,1)] hover:translate-x-0.5 hover:translate-y-0.5"
 																							}
                                              disabled:opacity-50`}
 													>
-														{workshop.isRegistered ? (
+														{workshop.isDisabled ? (
+															"REGISTRATION CLOSED"
+														) : workshop.isRegistered ? (
 															<>
 																<span className="text-[10px]">●</span>{" "}
 																REGISTERED
