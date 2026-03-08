@@ -4,6 +4,7 @@ import * as z from "zod";
 import { db } from "@/db";
 import {
 	accommodation,
+	events,
 	onspotPayments,
 	payments,
 	registrations,
@@ -318,6 +319,7 @@ const CompleteOnspotRegistrationInputSchema = z
 	.object({
 		userId: z.string().min(1),
 		selectedWorkshops: z.array(z.number().int().positive()).default([]),
+		selectedEventIds: z.array(z.number().int().positive()).default([]),
 		eventPassSelected: z.boolean().default(false),
 		paymentVerified: z.boolean(),
 	})
@@ -330,11 +332,15 @@ const CompleteOnspotRegistrationInputSchema = z
 			});
 		}
 
-		if (data.selectedWorkshops.length === 0 && !data.eventPassSelected) {
+		if (
+			data.selectedWorkshops.length === 0 &&
+			!data.eventPassSelected &&
+			data.selectedEventIds.length === 0
+		) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "Select at least one workshop or event pass",
-				path: ["selectedWorkshops", "eventPassSelected"],
+				message: "Select at least one workshop, event, or event pass",
+				path: ["selectedWorkshops", "selectedEventIds", "eventPassSelected"],
 			});
 		}
 	});
@@ -342,8 +348,6 @@ const CompleteOnspotRegistrationInputSchema = z
 export const completeOnspotRegistration = createServerFn({ method: "POST" })
 	.inputValidator(CompleteOnspotRegistrationInputSchema)
 	.handler(async ({ data }) => {
-		// TO-DO: get existing data and validate for duplicates
-
 		await requireAdminUser({ data: { roles: ["PR", "MASTER", "ADMIN"] } });
 
 		if (!data.paymentVerified) {
@@ -351,12 +355,24 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 		}
 
 		const selectedWorkshopIds = Array.from(new Set(data.selectedWorkshops));
+		const selectedEventIds = Array.from(new Set(data.selectedEventIds));
+		const userAlreadyHasEventPass = await hasEventPass(data.userId);
 
 		if (data.eventPassSelected) {
-			const userAlreadyHasEventPass = await hasEventPass(data.userId);
 			if (userAlreadyHasEventPass) {
 				throw new Error("User already has event pass eligibility");
 			}
+		}
+
+		if (
+			selectedEventIds.length > 0 &&
+			selectedWorkshopIds.length === 0 &&
+			!data.eventPassSelected &&
+			!userAlreadyHasEventPass
+		) {
+			throw new Error(
+				"Event registration requires event pass eligibility or workshop selection",
+			);
 		}
 
 		const workshopRows =
@@ -366,6 +382,7 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 							id: workshops.id,
 							title: workshops.title,
 							price: workshops.price,
+							isDisabled: workshops.isDisabled,
 						})
 						.from(workshops)
 						.where(inArray(workshops.id, selectedWorkshopIds))
@@ -373,6 +390,30 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 
 		if (workshopRows.length !== selectedWorkshopIds.length) {
 			throw new Error("One or more selected workshops were not found");
+		}
+
+		if (workshopRows.some((workshopEntry) => workshopEntry.isDisabled)) {
+			throw new Error("One or more selected workshops are disabled");
+		}
+
+		const eventRows =
+			selectedEventIds.length > 0
+				? await db
+						.select({
+							id: events.id,
+							title: events.title,
+							isDisabled: events.isDisabled,
+						})
+						.from(events)
+						.where(inArray(events.id, selectedEventIds))
+				: [];
+
+		if (eventRows.length !== selectedEventIds.length) {
+			throw new Error("One or more selected events were not found");
+		}
+
+		if (eventRows.some((eventEntry) => eventEntry.isDisabled)) {
+			throw new Error("One or more selected events are disabled");
 		}
 
 		const workshopPriceMap = new Map<number, number>(
@@ -388,6 +429,9 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 				workshopEntry.id,
 				workshopEntry.title,
 			]),
+		);
+		const eventTitleMap = new Map<number, string>(
+			eventRows.map((eventEntry) => [eventEntry.id, eventEntry.title]),
 		);
 
 		const eventPassPrice = data.eventPassSelected
@@ -415,15 +459,37 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 							)
 					: [];
 
+			const existingEventRegistrationRows =
+				selectedEventIds.length > 0
+					? await transaction
+							.select({ eventId: registrations.eventId })
+							.from(registrations)
+							.where(
+								and(
+									eq(registrations.userId, data.userId),
+									isNotNull(registrations.eventId),
+									inArray(registrations.eventId, selectedEventIds),
+								),
+							)
+					: [];
+
 			const existingWorkshopIds = new Set<number>(
 				existingWorkshopRegistrationRows
 					.map((registrationEntry) => registrationEntry.workshopId)
 					.filter((workshopId): workshopId is number => workshopId !== null),
 			);
+			const existingEventIds = new Set<number>(
+				existingEventRegistrationRows
+					.map((registrationEntry) => registrationEntry.eventId)
+					.filter((eventId): eventId is number => eventId !== null),
+			);
 
 			const insertedWorkshopIds: number[] = [];
 			const skippedWorkshopIds: number[] = [];
 			const insertedWorkshopTitles: string[] = [];
+			const insertedEventIds: number[] = [];
+			const skippedEventIds: number[] = [];
+			const insertedEventTitles: string[] = [];
 			let totalAmount = 0;
 
 			for (const workshopId of selectedWorkshopIds) {
@@ -456,6 +522,22 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 				totalAmount += workshopPrice;
 			}
 
+			for (const eventId of selectedEventIds) {
+				if (existingEventIds.has(eventId)) {
+					skippedEventIds.push(eventId);
+					continue;
+				}
+
+				await transaction.insert(registrations).values({
+					userId: data.userId,
+					eventId,
+					workshopId: null,
+				});
+
+				insertedEventIds.push(eventId);
+				insertedEventTitles.push(eventTitleMap.get(eventId) ?? "");
+			}
+
 			if (data.eventPassSelected) {
 				await transaction.insert(onspotPayments).values({
 					amount: eventPassPrice,
@@ -471,6 +553,9 @@ export const completeOnspotRegistration = createServerFn({ method: "POST" })
 				insertedWorkshopIds,
 				insertedWorkshopTitles,
 				skippedWorkshopIds,
+				insertedEventIds,
+				insertedEventTitles,
+				skippedEventIds,
 				eventPassSelected: data.eventPassSelected,
 				totalAmount,
 			};
