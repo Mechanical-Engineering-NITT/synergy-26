@@ -12,6 +12,7 @@ const EditWorkshopInputSchema = z.object({
 	time: z.string().min(1, "Time is required"), // HH:MM
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
+	isDisabled: z.boolean().default(false),
 });
 
 interface EditWorkshopFormProps {
@@ -23,6 +24,7 @@ interface EditWorkshopFormProps {
 		time: string;
 		location: string;
 		price: string;
+		isDisabled: boolean;
 	};
 	onSuccess?: () => void;
 }
@@ -48,6 +50,7 @@ export function EditWorkshopForm({
 			time: workshop.time,
 			location: workshop.location,
 			price: workshop.price,
+			isDisabled: workshop.isDisabled,
 		} as z.infer<typeof EditWorkshopInputSchema>,
 		onSubmit: async ({ value }) => {
 			await mutation.mutateAsync({
@@ -258,6 +261,26 @@ export function EditWorkshopForm({
 							</p>
 						)}
 					</>
+				)}
+			/>
+			<form.Field
+				name="isDisabled"
+				children={(field) => (
+					<div className="flex items-center gap-2">
+						<input
+							id="workshop-is-disabled-edit"
+							type="checkbox"
+							className="h-4 w-4 rounded border-input bg-background text-primary focus:ring-2 focus:ring-ring"
+							checked={field.state.value ?? false}
+							onChange={(e) => field.handleChange(e.target.checked)}
+						/>
+						<label
+							htmlFor="workshop-is-disabled-edit"
+							className="text-sm font-medium cursor-pointer"
+						>
+							Disable Registration
+						</label>
+					</div>
 				)}
 			/>
 			<button

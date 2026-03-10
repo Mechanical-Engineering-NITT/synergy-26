@@ -9,6 +9,7 @@ import GoodToKnow from "@/components/landing/good-to-know";
 import Hero from "@/components/landing/hero";
 import PreFestSection from "@/components/landing/pre-fest";
 import PricingComparison from "@/components/landing/pricing-comparison";
+import RegistrationAnnouncement from "@/components/landing/registration-announcement";
 import Schedule from "@/components/landing/schedule";
 import Workshops from "@/components/landing/workshops";
 import { enforceOnboarding } from "@/lib/utils";
@@ -29,7 +30,10 @@ function App() {
 	const data = Route.useLoaderData();
 	return (
 		<div className="min-h-screen flex flex-col">
-			<Navbar user={data.session?.user ?? null} />
+			<div className="fixed top-0 left-0 right-0 z-100">
+				<Navbar user={data.session?.user ?? null} isFixed={false} />
+				<RegistrationAnnouncement />
+			</div>
 			<Hero user={data.profile ?? null} />
 
 			<div className="relative bg-[#090521]">

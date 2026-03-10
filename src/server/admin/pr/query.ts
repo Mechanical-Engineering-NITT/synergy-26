@@ -5,6 +5,7 @@ import { db } from "@/db";
 import {
 	accommodation,
 	customUser,
+	events,
 	onspotPayments,
 	registrations,
 	workshops,
@@ -145,6 +146,7 @@ export const getCheckInPricingPreview = createServerFn({ method: "POST" })
 const OnspotSelectionInputSchema = z
 	.object({
 		selectedWorkshops: z.array(z.number().int().positive()).default([]),
+		selectedEventIds: z.array(z.number().int().positive()).default([]),
 		eventPassSelected: z.boolean().default(false),
 	})
 	.superRefine((data, ctx) => {
@@ -156,11 +158,15 @@ const OnspotSelectionInputSchema = z
 			});
 		}
 
-		if (data.selectedWorkshops.length === 0 && !data.eventPassSelected) {
+		if (
+			data.selectedWorkshops.length === 0 &&
+			!data.eventPassSelected &&
+			data.selectedEventIds.length === 0
+		) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "Select at least one workshop or event pass",
-				path: ["selectedWorkshops", "eventPassSelected"],
+				message: "Select at least one workshop, event, or event pass",
+				path: ["selectedWorkshops", "selectedEventIds", "eventPassSelected"],
 			});
 		}
 	});
@@ -176,8 +182,10 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 
 		const [
 			workshopRows,
+			eventRows,
 			eventPassValue,
 			existingWorkshopRegistrationRows,
+			existingEventRegistrationRows,
 			userHasEventPass,
 		] = await Promise.all([
 			db
@@ -185,8 +193,16 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 					id: workshops.id,
 					title: workshops.title,
 					price: workshops.price,
+					isDisabled: workshops.isDisabled,
 				})
 				.from(workshops),
+			db
+				.select({
+					id: events.id,
+					title: events.title,
+					isDisabled: events.isDisabled,
+				})
+				.from(events),
 			getConstantValue("event_pass"),
 			db
 				.select({ workshopId: registrations.workshopId })
@@ -195,6 +211,15 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 					and(
 						eq(registrations.userId, data.userId),
 						isNotNull(registrations.workshopId),
+					),
+				),
+			db
+				.select({ eventId: registrations.eventId })
+				.from(registrations)
+				.where(
+					and(
+						eq(registrations.userId, data.userId),
+						isNotNull(registrations.eventId),
 					),
 				),
 			hasEventPass(data.userId),
@@ -208,6 +233,14 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 			),
 		).sort((leftValue, rightValue) => leftValue - rightValue);
 
+		const existingEventRegistrations = Array.from(
+			new Set(
+				existingEventRegistrationRows
+					.map((registrationEntry) => registrationEntry.eventId)
+					.filter((eventId): eventId is number => eventId !== null),
+			),
+		).sort((leftValue, rightValue) => leftValue - rightValue);
+
 		return {
 			workshops: workshopRows.map((workshopEntry) => ({
 				id: workshopEntry.id,
@@ -215,11 +248,18 @@ export const getOnspotRegistrationOptions = createServerFn({ method: "GET" })
 				price: parseOnspotPrice(
 					parseWorkshopPrice(workshopEntry.id, workshopEntry.price),
 				),
+				isDisabled: workshopEntry.isDisabled,
+			})),
+			events: eventRows.map((eventEntry) => ({
+				id: eventEntry.id,
+				title: eventEntry.title,
+				isDisabled: eventEntry.isDisabled,
 			})),
 			eventPassPrice: parseOnspotPrice(
 				parseCurrencyValue("event_pass", eventPassValue),
 			),
 			existingWorkshopRegistrations,
+			existingEventRegistrations,
 			hasEventPass: userHasEventPass,
 		};
 	});
@@ -260,6 +300,10 @@ export const calculateOnspotAmount = createServerFn({ method: "POST" })
 			);
 
 			return { totalAmount };
+		}
+
+		if (!data.eventPassSelected) {
+			return { totalAmount: 0 };
 		}
 
 		const eventPassValue = await getConstantValue("event_pass");

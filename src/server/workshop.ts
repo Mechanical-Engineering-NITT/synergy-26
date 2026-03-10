@@ -44,6 +44,7 @@ const WorkshopInputSchema = z.object({
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
 	price: z.string().min(1, "Price is required"),
+	isDisabled: z.boolean().default(false),
 });
 
 export const createWorkshop = createServerFn({ method: "POST" })
@@ -60,6 +61,7 @@ export const createWorkshop = createServerFn({ method: "POST" })
 			time: parsedData.time,
 			location: parsedData.location,
 			price: parsedData.price,
+			isDisabled: parsedData.isDisabled,
 		});
 	});
 
@@ -85,6 +87,7 @@ export const updateWorkshop = createServerFn({ method: "POST" })
 				time: parsedData.time,
 				location: parsedData.location,
 				price: parsedData.price,
+				isDisabled: parsedData.isDisabled,
 			})
 			.where(eq(workshops.id, id));
 	});

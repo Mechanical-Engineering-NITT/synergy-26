@@ -161,9 +161,19 @@ code {
   }
 
   --animate-marquee: marquee 35s linear infinite;
+  --animate-registration-marquee: registration-marquee 24s linear infinite;
   --animate-subtle-bounce: subtle-bounce 2s ease-in-out infinite;
 
   @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes registration-marquee {
     from {
       transform: translateX(0);
     }

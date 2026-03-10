@@ -79,9 +79,11 @@ export function OnspotRegistrationModal({
 						key={`onspot-controls-${resolvedUserId}-${controlsResetSignal}-${data.eventPassPrice}`}
 						userId={resolvedUserId}
 						workshops={data.workshops}
+						events={data.events}
 						eventPassPrice={data.eventPassPrice}
 						existingWorkshopRegistrations={data.existingWorkshopRegistrations}
-						hasEventPass={data.hasEventPass}
+						existingEventRegistrations={data.existingEventRegistrations}
+						eventPassAlreadyOwned={data.hasEventPass}
 						onActionComplete={handleActionComplete}
 					/>
 				) : null}

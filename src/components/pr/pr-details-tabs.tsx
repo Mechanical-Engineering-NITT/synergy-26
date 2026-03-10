@@ -13,6 +13,47 @@ type PaymentRecord = {
 	status?: string;
 };
 
+function getPaymentStatusVisual(rawStatus: string | undefined) {
+	const normalizedStatus = rawStatus?.trim().toLowerCase();
+
+	if (!normalizedStatus) {
+		return {
+			label: "Pending",
+			className: "text-yellow-400",
+		};
+	}
+
+	if (["paid", "captured", "success", "succeeded"].includes(normalizedStatus)) {
+		return {
+			label: "Paid",
+			className: "text-green-400",
+		};
+	}
+
+	if (["failed", "failure"].includes(normalizedStatus)) {
+		return {
+			label: "Failed",
+			className: "text-red-400",
+		};
+	}
+
+	if (
+		["created", "attempted", "pending", "processing"].includes(normalizedStatus)
+	) {
+		return {
+			label: "Pending",
+			className: "text-yellow-400",
+		};
+	}
+
+	return {
+		label:
+			normalizedStatus.charAt(0).toUpperCase() +
+			normalizedStatus.slice(1).toLowerCase(),
+		className: "text-[#a1a1aa]",
+	};
+}
+
 function InfoCard({
 	title,
 	icon,
@@ -191,15 +232,31 @@ export function PrUserDetailsTabs({
 				{onlinePaymentRows.length > 0 ? (
 					<SimpleDetailsTable
 						key="online-payments"
-						headers={["Payment ID", "Amount", "Workshop/Event", "Created At"]}
-						rows={onlinePaymentRows.map((paymentRow) => [
-							String(paymentRow.id ?? "-"),
-							`₹${(Number((paymentRow.amount ?? 0) / 100)).toFixed(2)}`,
-							getPaymentResourceLabel(paymentRow),
-							paymentRow.createdAt
-								? new Date(String(paymentRow.createdAt)).toLocaleString()
-								: "-",
-						])}
+						headers={[
+							"Payment ID",
+							"Amount",
+							"Workshop/Event",
+							"Payment Status",
+							"Created At",
+						]}
+						rows={onlinePaymentRows.map((paymentRow) => {
+							const statusVisual = getPaymentStatusVisual(paymentRow.status);
+
+							return [
+								String(paymentRow.id ?? "-"),
+								`₹${(Number((paymentRow.amount ?? 0) / 100)).toFixed(2)}`,
+								getPaymentResourceLabel(paymentRow),
+								<span
+									key={`online-status-${paymentRow.id}`}
+									className={statusVisual.className}
+								>
+									{statusVisual.label}
+								</span>,
+								paymentRow.createdAt
+									? new Date(String(paymentRow.createdAt)).toLocaleString()
+									: "-",
+							];
+						})}
 						emptyLabel="No online payments found."
 					/>
 				) : (
@@ -216,15 +273,33 @@ export function PrUserDetailsTabs({
 				{onspotPaymentRows.length > 0 ? (
 					<SimpleDetailsTable
 						key="onspot-payments"
-						headers={["Payment ID", "Amount", "Workshop/Event", "Created At"]}
-						rows={onspotPaymentRows.map((paymentRow) => [
-							String(paymentRow.id ?? "-"),
-							`₹${Number(paymentRow.amount ?? 0).toFixed(2)}`,
-							getPaymentResourceLabel(paymentRow),
-							paymentRow.createdAt
-								? new Date(String(paymentRow.createdAt)).toLocaleString()
-								: "-",
-						])}
+						headers={[
+							"Payment ID",
+							"Amount",
+							"Workshop/Event",
+							"Payment Status",
+							"Created At",
+						]}
+						rows={onspotPaymentRows.map((paymentRow) => {
+							const statusVisual = getPaymentStatusVisual(
+								paymentRow.status ?? "Paid",
+							);
+
+							return [
+								String(paymentRow.id ?? "-"),
+								`₹${Number(paymentRow.amount ?? 0).toFixed(2)}`,
+								getPaymentResourceLabel(paymentRow),
+								<span
+									key={`onspot-status-${paymentRow.id}`}
+									className={statusVisual.className}
+								>
+									{statusVisual.label}
+								</span>,
+								paymentRow.createdAt
+									? new Date(String(paymentRow.createdAt)).toLocaleString()
+									: "-",
+							];
+						})}
 						emptyLabel="No onspot payments found."
 					/>
 				) : (

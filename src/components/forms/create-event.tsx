@@ -11,6 +11,7 @@ const CreateEventInputSchema = z.object({
 	longDescription: z.string().min(1, "Long description is required"),
 	time: z.string().min(1, "Time is required"),
 	location: z.string().min(1, "Location is required"),
+	isDisabled: z.boolean().default(false),
 });
 
 export function CreateEventForm() {
@@ -31,6 +32,7 @@ export function CreateEventForm() {
 			longDescription: "",
 			time: "",
 			location: "",
+			isDisabled: false,
 		} as z.infer<typeof CreateEventInputSchema>,
 		onSubmit: async ({ value }) => {
 			await mutation.mutateAsync({
@@ -206,6 +208,26 @@ export function CreateEventForm() {
 							</p>
 						)}
 					</>
+				)}
+			/>
+			<form.Field
+				name="isDisabled"
+				children={(field) => (
+					<div className="flex items-center gap-2 mt-4">
+						<input
+							id="is-disabled"
+							type="checkbox"
+							className="h-4 w-4 rounded border-input bg-background text-primary focus:ring-2 focus:ring-ring"
+							checked={field.state.value ?? false}
+							onChange={(e) => field.handleChange(e.target.checked)}
+						/>
+						<label
+							htmlFor="is-disabled"
+							className="text-sm font-medium cursor-pointer"
+						>
+							Disable Registration
+						</label>
+					</div>
 				)}
 			/>
 			<button

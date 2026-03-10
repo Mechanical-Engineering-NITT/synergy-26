@@ -10,35 +10,51 @@ import {
 	Step1Selection,
 	Step2PaymentVerification,
 	Step3RegistrationSummary,
+	Step4FinalConfirmation,
 } from "../onspot-registration-steps";
 
 type WorkshopOption = {
 	id: number;
 	title: string;
 	price: number;
+	isDisabled: boolean;
+};
+
+type EventOption = {
+	id: number;
+	title: string;
+	isDisabled: boolean;
 };
 
 export function OnspotControlsSection({
 	userId,
 	workshops,
+	events,
 	eventPassPrice,
 	existingWorkshopRegistrations,
-	hasEventPass,
+	existingEventRegistrations,
+	eventPassAlreadyOwned,
 	onActionComplete,
 }: {
 	userId: string;
 	workshops: WorkshopOption[];
+	events: EventOption[];
 	eventPassPrice: number;
 	existingWorkshopRegistrations: number[];
-	hasEventPass: boolean;
+	existingEventRegistrations: number[];
+	eventPassAlreadyOwned: boolean;
 	onActionComplete: () => Promise<void>;
 }) {
 	const [state, dispatch] = useReducer(
 		onspotRegistrationReducer,
 		createInitialOnspotRegistrationState({
+			events,
 			existingWorkshopRegistrations,
+			existingEventRegistrations,
 			initialSelectedWorkshops: [],
+			initialSelectedEventIds: [],
 			initialEventPassSelected: false,
+			eventPassAlreadyOwned,
 		}),
 	);
 
@@ -53,11 +69,18 @@ export function OnspotControlsSection({
 		[workshops],
 	);
 
+	const eventTitleMap = useMemo(
+		() =>
+			new Map(events.map((eventEntry) => [eventEntry.id, eventEntry.title])),
+		[events],
+	);
+
 	const calculateAmountMutation = useMutation({
 		mutationFn: async () =>
 			calculateOnspotAmount({
 				data: {
 					selectedWorkshops: state.selectedWorkshops,
+					selectedEventIds: state.selectedEventIds,
 					eventPassSelected: state.eventPassSelected,
 				},
 			}),
@@ -75,6 +98,7 @@ export function OnspotControlsSection({
 				data: {
 					userId,
 					selectedWorkshops: state.selectedWorkshops,
+					selectedEventIds: state.selectedEventIds,
 					eventPassSelected: state.eventPassSelected,
 					paymentVerified: state.paymentVerified,
 				},
@@ -85,7 +109,9 @@ export function OnspotControlsSection({
 	});
 
 	const hasSelection =
-		state.selectedWorkshops.length > 0 || state.eventPassSelected === true;
+		state.selectedWorkshops.length > 0 ||
+		state.eventPassSelected === true ||
+		state.selectedEventIds.length > 0;
 	const canProceedFromCurrentStep =
 		state.currentStep === 1
 			? hasSelection && state.hasChanges
@@ -104,6 +130,34 @@ export function OnspotControlsSection({
 
 	const getWorkshopTitle = (workshopId: number) =>
 		workshopTitleMap.get(workshopId) ?? `Workshop ${workshopId}`;
+	const getEventTitle = (eventId: number) =>
+		eventTitleMap.get(eventId) ?? `Event ${eventId}`;
+
+	const disabledWorkshopIds = useMemo(
+		() =>
+			Array.from(
+				new Set([
+					...existingWorkshopRegistrations,
+					...workshops
+						.filter((workshopEntry) => workshopEntry.isDisabled)
+						.map((workshopEntry) => workshopEntry.id),
+				]),
+			),
+		[existingWorkshopRegistrations, workshops],
+	);
+
+	const disabledEventIds = useMemo(
+		() =>
+			Array.from(
+				new Set([
+					...existingEventRegistrations,
+					...events
+						.filter((eventEntry) => eventEntry.isDisabled)
+						.map((eventEntry) => eventEntry.id),
+				]),
+			),
+		[events, existingEventRegistrations],
+	);
 
 	const handleNext = async () => {
 		if (state.currentStep === 1) {
@@ -123,19 +177,29 @@ export function OnspotControlsSection({
 				return (
 					<Step1Selection
 						workshops={workshops}
+						events={events}
 						selectedWorkshops={state.selectedWorkshops}
+						selectedEventIds={state.selectedEventIds}
 						existingWorkshopRegistrations={existingWorkshopRegistrations}
+						existingEventRegistrations={existingEventRegistrations}
 						hasExistingWorkshopRegistrations={
 							state.hasExistingWorkshopRegistrations
 						}
 						eventPassPrice={eventPassPrice}
 						eventPassSelected={state.eventPassSelected}
-						hasEventPass={hasEventPass}
+						eventPassAlreadyOwned={state.eventPassAlreadyOwned}
 						onToggleWorkshop={(workshopId) =>
 							dispatch({
 								type: "SELECT_WORKSHOP",
 								workshopId,
-								disabledWorkshopIds: existingWorkshopRegistrations,
+								disabledWorkshopIds,
+							})
+						}
+						onToggleEvent={(eventId) =>
+							dispatch({
+								type: "SELECT_EVENT",
+								eventId,
+								disabledEventIds,
 							})
 						}
 						onToggleEventPass={(value) =>
@@ -159,9 +223,18 @@ export function OnspotControlsSection({
 				return (
 					<Step3RegistrationSummary
 						selectedWorkshops={state.selectedWorkshops}
+						selectedEvents={state.selectedEventIds}
 						eventPassSelected={state.eventPassSelected}
-						calculatedAmount={state.calculatedAmount}
 						getWorkshopTitle={getWorkshopTitle}
+						getEventTitle={getEventTitle}
+					/>
+				);
+
+			case 4:
+				return (
+					<Step4FinalConfirmation
+						calculatedAmount={state.calculatedAmount}
+						onBack={() => dispatch({ type: "PREVIOUS_STEP" })}
 						onConfirm={() => {
 							completeRegistrationMutation.mutate();
 						}}
@@ -176,7 +249,7 @@ export function OnspotControlsSection({
 
 	return (
 		<div className="space-y-4 rounded-md border border-[#222222] bg-[#141414] p-4 text-[#fafafa]">
-			<p className="text-xs text-[#71717a]">Step {state.currentStep} of 3</p>
+			<p className="text-xs text-[#71717a]">Step {state.currentStep} of 4</p>
 
 			<div className="max-h-[45vh] overflow-y-auto pr-1">
 				{renderCurrentStep()}
@@ -198,7 +271,7 @@ export function OnspotControlsSection({
 				</p>
 			) : null}
 
-			{state.currentStep < 3 ? (
+			{state.currentStep < 4 ? (
 				<div className="flex items-center gap-2">
 					<button
 						type="button"
