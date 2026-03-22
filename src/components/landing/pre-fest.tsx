@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 export default function PreFestSection() {
 	return (
 		// biome-ignore lint: Static ID is required for anchor scrolling
@@ -55,14 +57,23 @@ export default function PreFestSection() {
 							</p>
 
 							<div className="flex flex-wrap gap-6 items-center mt-auto">
-								<a
+								{/*<a
 									href="https://teams.microsoft.com/meet/42045356141968?p=R31UnzwdHcb9rgJK5j"
 									target="_blank"
 									rel="noopener noreferrer"
 									className="group/btn relative px-8 py-4 bg-[#9D00FF] hover:bg-[#B333FF] text-white font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(157,0,255,0.4)] hover:shadow-[0_0_30px_rgba(157,0,255,0.6)]"
 								>
 									Meeting Link
-								</a>
+								</a>*/}
+								<button
+									type="button"
+									onClick={() => {
+										toast.error("Online workshop is no longer available.");
+									}}
+									className="group/btn relative px-8 py-4 bg-gray-700 hover:bg-gray-600 text-gray-500 font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1"
+								>
+									Meeting Link
+								</button>
 							</div>
 						</div>
 					</div>
@@ -106,14 +117,25 @@ export default function PreFestSection() {
 								>
 									Rulebook
 								</a>
-								<a
+								{/*<a
 									href="https://docs.google.com/forms/d/e/1FAIpQLSfOgEudQmpD6Nc6tGoWEPTsEbbpgcnb9niofNvmH1kYc7l15Q/viewform?usp=publish-editor"
 									target="_blank"
 									rel="noopener noreferrer"
 									className="group/btn relative px-8 py-4 bg-[#FFDD00] hover:bg-[#FFEA00] text-[#090521] font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1 shadow-[0_0_20px_rgba(255,221,0,0.4)] hover:shadow-[0_0_30px_rgba(255,221,0,0.6)]"
 								>
 									Register
-								</a>
+								</a>*/}
+								<button
+									type="button"
+									onClick={() => {
+										toast.error(
+											"Registration for Mech Reel Challenge is closed.",
+										);
+									}}
+									className="group/btn relative px-8 py-4 bg-gray-700 hover:bg-gray-600 text-gray-500 font-black uppercase tracking-widest transition-all duration-300 transform -skew-x-6 hover:-translate-y-1"
+								>
+									Register
+								</button>
 								<div className="flex flex-col">
 									<span className="text-xs font-bold text-[#9D00FF] uppercase tracking-[0.2em] mb-1">
 										Contact
