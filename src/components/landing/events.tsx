@@ -104,6 +104,10 @@ function EventCard({
 				<button
 					type="button"
 					onClick={() => {
+						if (event.isDisabled) {
+							toast.error("Registration for this event is closed.");
+							return;
+						}
 						if (!isLoggedIn) {
 							toast.error("Please sign in to register");
 							return;
@@ -114,7 +118,7 @@ function EventCard({
 						}
 						register({ data: { eventId: event.id } });
 					}}
-					disabled={isRegistering || event.isRegistered || event.isDisabled}
+					disabled={isRegistering || event.isRegistered}
 					className={`w-full py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 -skew-x-6 flex items-center justify-center gap-2
                         ${
 													event.isDisabled
@@ -316,18 +320,20 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 							<button
 								type="button"
 								onClick={() => {
-									if (!isLoggedIn) {
+									/*if (!isLoggedIn) {
 										toast.error("Please sign in to get event pass");
 										return;
 									}
-									setIsPassDialogOpen(true);
+									setIsPassDialogOpen(true);*/
+									toast.error(
+										"Event Passes are no longer available for purchase.",
+									);
 								}}
-								className="group relative px-8 py-4 bg-[#FFDD00] hover:bg-[#FFDD00] text-black font-black text-xl -skew-x-12 shadow-[5px_5px_0px_0px_rgba(157,0,255,1)] hover:shadow-[8px_8px_0px_0px_rgba(157,0,255,1)] transition-all hover:translate-y-1 active:translate-y-2 overflow-hidden w-full md:w-auto"
+								className="group relative px-8 py-4 bg-gray-700 hover:bg-gray-600 text-gray-400 font-black text-xl -skew-x-12 shadow-[5px_5px_0px_0px_rgba(100,100,100,0.5)] hover:shadow-[5px_5px_0px_0px_rgba(100,100,100,0.5)] transition-all cursor-not-allowed overflow-hidden w-full md:w-auto opacity-50"
 							>
 								<span className="relative z-10 block skew-x-12 uppercase">
 									Get Event Pass
 								</span>
-								<div className="absolute inset-0 bg-white/40 -translate-x-full group-hover:translate-x-full transition-transform duration-500 skew-x-12"></div>
 							</button>
 						</div>
 					</div>

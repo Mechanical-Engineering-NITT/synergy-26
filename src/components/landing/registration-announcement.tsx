@@ -1,6 +1,6 @@
-import { AlertCircle } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
-const announcementMessages = ["Event registrations are currently disabled!"];
+const announcementMessages = ["Registrations are currently disabled!"];
 const disabled = false; // Set to true to disable the announcement banner
 
 export default function RegistrationAnnouncement() {
@@ -18,7 +18,7 @@ export default function RegistrationAnnouncement() {
 						>
 							{announcementMessages.map((msg) => (
 								<span key={msg} className="flex items-center gap-3">
-									<AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+									<TriangleAlert className="h-7 w-7 shrink-0 text-amber-500" />
 									<span>{msg}</span>
 								</span>
 							))}

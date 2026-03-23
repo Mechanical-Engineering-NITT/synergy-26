@@ -198,6 +198,12 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 													<button
 														type="button"
 														onClick={() => {
+															if (workshop.isDisabled) {
+																toast.error(
+																	"Registration for this workshop is closed.",
+																);
+																return;
+															}
 															if (!isLoggedIn) {
 																toast.error("Please sign in to register");
 																return;
@@ -205,9 +211,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 															setDialogMode("register");
 															setSelectedWorkshop(workshop);
 														}}
-														disabled={
-															workshop.isRegistered || workshop.isDisabled
-														}
+														disabled={workshop.isRegistered}
 														className={`w-full py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 -skew-x-6 flex items-center justify-center gap-2
                                              ${
 																								workshop.isDisabled
