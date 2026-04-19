@@ -1,7 +1,7 @@
 import { TriangleAlert } from "lucide-react";
 
 const announcementMessages = ["Registrations are currently disabled!"];
-const disabled = false; // Set to true to disable the announcement banner
+const disabled = true; // Set to true to disable the announcement banner
 
 export default function RegistrationAnnouncement() {
 	if (disabled) {

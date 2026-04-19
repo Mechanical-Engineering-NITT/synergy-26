@@ -29,6 +29,7 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 	const [dialogMode, setDialogMode] = useState<"view" | "register" | null>(
 		null,
 	);
+	const [showArchived, setShowArchived] = useState(false);
 
 	const [emblaRef, emblaApi] = useEmblaCarousel(
 		{ loop: true, align: "start" },
@@ -116,7 +117,24 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 				</p>
 
 				<div className="relative">
-					{workshops.length === 0 ? (
+					{!showArchived ? (
+						<div className="text-center py-16 bg-white/5 border border-white/10 backdrop-blur-sm relative">
+							<p className="text-4xl mb-3">🏁</p>
+							<p className="text-white font-black uppercase tracking-[0.2em] text-lg mb-2">
+								Symposium Concluded
+							</p>
+							<p className="text-gray-400 text-sm font-medium uppercase tracking-widest">
+								Synergy '26 has come to an end. Thank you for participating!
+							</p>
+							<button
+								type="button"
+								onClick={() => setShowArchived(true)}
+								className="absolute bottom-3 right-4 text-[8px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#9D00FF] transition-colors underline underline-offset-2"
+							>
+								View Archived Workshops
+							</button>
+						</div>
+					) : workshops.length === 0 ? (
 						<div className="text-center py-20 bg-white/5 border border-white/10 backdrop-blur-sm -skew-x-2">
 							<p className="text-[#9D00FF] font-black uppercase tracking-[0.3em] animate-pulse">
 								No databanks found. Synchronization incomplete.
@@ -124,6 +142,18 @@ export default function Workshops({ isLoggedIn }: { isLoggedIn: boolean }) {
 						</div>
 					) : (
 						<div className="relative group/carousel">
+							<div className="mb-4 flex items-center justify-between">
+								<span className="text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-700 px-3 py-1">
+									📦 Archived
+								</span>
+								<button
+									type="button"
+									onClick={() => setShowArchived(false)}
+									className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
+								>
+									✕ Hide
+								</button>
+							</div>
 							<div className="overflow-hidden py-4" ref={emblaRef}>
 								<div className="flex -ml-6">
 									{workshops.map((workshop) => (

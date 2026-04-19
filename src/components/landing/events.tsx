@@ -150,6 +150,7 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 	const queryClient = useQueryClient();
 	const [isPassDialogOpen, setIsPassDialogOpen] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+	const [showArchived, setShowArchived] = useState(false);
 
 	const {
 		isPending: isEventsPending,
@@ -253,7 +254,24 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 				</p>
 
 				<div className="relative">
-					{events.length === 0 ? (
+					{!showArchived ? (
+						<div className="text-center py-16 bg-white/5 border border-white/10 backdrop-blur-sm relative">
+							<p className="text-4xl mb-3">🏁</p>
+							<p className="text-white font-black uppercase tracking-[0.2em] text-lg mb-2">
+								Symposium Concluded
+							</p>
+							<p className="text-gray-400 text-sm font-medium uppercase tracking-widest">
+								Synergy '26 has come to an end. Thank you for participating!
+							</p>
+							<button
+								type="button"
+								onClick={() => setShowArchived(true)}
+								className="absolute bottom-3 right-4 text-[8px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#9D00FF] transition-colors underline underline-offset-2"
+							>
+								View Archived Events
+							</button>
+						</div>
+					) : events.length === 0 ? (
 						<div className="text-center py-20 bg-white/5 border border-white/10 backdrop-blur-sm -skew-x-2">
 							<p className="text-[#9D00FF] font-black uppercase tracking-[0.3em] animate-pulse">
 								Scanning for events... No signals found.
@@ -261,6 +279,18 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 						</div>
 					) : (
 						<div className="relative group/carousel">
+							<div className="mb-4 flex items-center justify-between">
+								<span className="text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-700 px-3 py-1">
+									📦 Archived
+								</span>
+								<button
+									type="button"
+									onClick={() => setShowArchived(false)}
+									className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
+								>
+									✕ Hide
+								</button>
+							</div>
 							<div className="overflow-hidden py-4" ref={emblaRef}>
 								<div className="flex -ml-6">
 									{events.map((event) => (
@@ -298,7 +328,7 @@ export default function Events({ isLoggedIn }: { isLoggedIn: boolean }) {
 					)}
 				</div>
 
-				{!hasEventPass && (
+				{false && !hasEventPass && (
 					<div className="my-5 relative group bg-[#090521]/60 backdrop-blur-md border-2 border-[#FFDD00] -skew-x-3 p-8 text-white shadow-[10px_10px_0px_0px_rgba(157,0,255,0.5)] overflow-hidden hover:shadow-[15px_15px_0px_0px_rgba(157,0,255,0.6)] transition-all">
 						{/* Animated scanline effect */}
 						<div className="absolute inset-0 bg-linear-to-b from-transparent via-white/10 to-transparent h-1/2 w-full -translate-y-full group-hover:translate-y-full transition-transform duration-1000 ease-in-out"></div>
