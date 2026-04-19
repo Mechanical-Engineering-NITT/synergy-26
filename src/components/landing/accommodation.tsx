@@ -1,6 +1,4 @@
 export default function AccommodationSection() {
-	const roomPrice = 250;
-
 	return (
 		// biome-ignore lint: Static ID is required for anchor scrolling
 		<div
@@ -37,19 +35,9 @@ export default function AccommodationSection() {
 							<div className="h-0.5 w-16 bg-[#9D00FF] mb-8 transition-all group-hover:w-full duration-500 shadow-[0_0_5px_rgba(157,0,255,0.8)]"></div>
 
 							<p className="text-gray-300 text-lg md:text-xl font-bold leading-relaxed uppercase tracking-tighter mb-10 max-w-2xl">
-								A refundable security deposit of ₹300 is required at entry,
-								returned upon departure subject to a damage-free inspection.
+								A refundable security deposit is required at entry, returned
+								upon departure subject to a damage-free inspection.
 							</p>
-
-							<div className="flex flex-wrap gap-6">
-								<div className="flex items-center gap-4 text-sm md:text-base font-bold uppercase tracking-[0.2em] text-[#9D00FF] bg-[#9D00FF]/10 px-6 py-3 border border-[#9D00FF]/30">
-									<span className="w-2 h-2 bg-[#9D00FF]"></span>
-									<span className="text-gray-500">PRICE:</span>
-									<span className="text-white font-black">
-										₹{roomPrice} / night
-									</span>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>

@@ -54,7 +54,7 @@ export default function PricingComparison() {
 											₹450
 										</td>
 										<td className="py-4 md:py-6 px-2 md:px-4 text-center text-white font-black tabular-nums">
-											₹450<span className="text-[#9D00FF]">***</span>
+											₹450
 										</td>
 									</tr>
 									<tr className="hover:bg-white/2 transition-colors text-xs md:text-lg">
@@ -101,7 +101,7 @@ export default function PricingComparison() {
 											₹1205
 										</td>
 										<td className="py-6 md:py-8 px-2 md:px-4 text-center text-white font-black tabular-nums drop-shadow-[0_0_15px_rgba(157,0,255,0.5)]">
-											₹600<span className="text-[#9D00FF]">***</span>
+											₹600
 										</td>
 									</tr>
 								</tbody>
@@ -137,19 +137,6 @@ export default function PricingComparison() {
 										₹100
 									</span>
 									.
-								</p>
-							</div>
-
-							<div className="flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left border-t border-white/5 pt-6">
-								<div className="bg-[#9D00FF] text-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shrink-0">
-									<span className="text-black">***</span> Note
-								</div>
-								<p className="text-gray-300 text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-[0.15em] italic leading-relaxed">
-									Razorpay payment charges of{" "}
-									<span className="text-[#FFDD00] font-black underline decoration-[#9D00FF] underline-offset-4">
-										2.42%
-									</span>{" "}
-									is excluded.
 								</p>
 							</div>
 						</div>
